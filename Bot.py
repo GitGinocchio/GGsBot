@@ -21,12 +21,10 @@ class json_utils:
         with open(self.fp, 'w') as json_file:
             json.dump(content,json_file,indent=indent)
 data = json_utils(fp="./assets.json",indent=3)
-
 content = data.content()
 
 #data.save_to_file(content,3)
 
-content = json_utils.load(fp="./assets.json")
 
 
 
