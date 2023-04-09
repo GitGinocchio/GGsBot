@@ -85,6 +85,4 @@ async def every_ten_minutes():
 
 
 
-
-
 bot.run(content["TOKEN"],reconnect=True)
