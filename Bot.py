@@ -49,11 +49,12 @@ async def comma(ctx):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def clear(ctx,amount=10000):
     await ctx.channel.purge(limit=amount)
 
 @bot.command()
-@commands.has_permissions()
+@commands.has_permissions(administrator=True)
 async def ban(ctx, member: Member,*,reason=None):
     await member.ban(reason=reason)
 
