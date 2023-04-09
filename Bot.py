@@ -31,7 +31,7 @@ intents.message_content = True
 #bot = Client(intents=intents)
 
 
-bot = commands.Bot(command_prefix=('!'),status=Status.online, activity=Activity(type=ActivityType.playing, name="Setting up!", intents=intents),intents=intents)
+bot = commands.Bot(command_prefix=('!','/'),status=Status.online, activity=Activity(type=ActivityType.playing, name="Setting up!", intents=intents),intents=intents)
 
 channel_id = 1069733888815026250
 
