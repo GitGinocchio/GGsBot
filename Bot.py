@@ -23,9 +23,6 @@ content = data.content()
 #data.save_to_file(content,3)
 
 
-
-
-#TOKEN = "MTA5NDQxMjM3MTM5MDM3NDAyOQ.G7ARec.QB3g0K0m5G_n0GMxm6W-3B6jxzHn7oOFcDGMk4"
 intents = Intents.all()
 intents.message_content = True
 
