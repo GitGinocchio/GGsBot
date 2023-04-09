@@ -3,9 +3,6 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 import json5 as json
 
-#a
-
-
 class json_utils:
     def __init__(self,fp: str = None,*,indent: int = 3):
         self.fp = fp
@@ -19,6 +16,9 @@ class json_utils:
     def save_to_file(self,content,indent: int = 3):
         with open(self.fp, 'w') as json_file:
             json.dump(content,json_file,indent=indent)
+
+
+
 data = json_utils(fp="./assets.json",indent=3)
 content = data.content()
 
@@ -29,11 +29,9 @@ intents = Intents.all()
 intents.message_content = True
 
 #bot = Client(intents=intents)
-#channels = [channel for channel in bot.get_all_channels()]
-#print(channels)
 
 
-bot = commands.Bot(command_prefix=('/'),status=Status.online, activity=Activity(type=ActivityType.playing, name="Setting up!", intents = intents),intents=intents)
+bot = commands.Bot(command_prefix=('!'),status=Status.online, activity=Activity(type=ActivityType.playing, name="Setting up!", intents=intents),intents=intents)
 
 channel_id = 1069733888815026250
 
@@ -42,7 +40,6 @@ channel_id = 1069733888815026250
 @bot.command()
 async def comma(ctx):
     await ctx.send("hai attivato un comando!")
-
 
 @bot.command()
 @commands.has_permissions(administrator=True)
