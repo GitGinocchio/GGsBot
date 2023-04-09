@@ -2,8 +2,17 @@ from discord import Intents,Status,ActivityType,Activity,Member,Permissions
 from discord.ext import commands
 from discord.ext.tasks import loop
 from time import sleep
+from utils import json_utils as json
+data = json(fp="./assets.json",indent=3)
+content = data.content()
 
-TOKEN = "MTA5NDQxMjM3MTM5MDM3NDAyOQ.G7ARec.QB3g0K0m5G_n0GMxm6W-3B6jxzHn7oOFcDGMk4"
+#data.save_to_file(content,3)
+
+content = json.load(fp="./assets.json")
+
+
+
+#TOKEN = "MTA5NDQxMjM3MTM5MDM3NDAyOQ.G7ARec.QB3g0K0m5G_n0GMxm6W-3B6jxzHn7oOFcDGMk4"
 intents = Intents.all()
 intents.message_content = True
 
@@ -63,4 +72,5 @@ async def every_ten_minutes():
 
 
 
-bot.run(TOKEN,reconnect=True)
+
+bot.run(content["TOKEN"],reconnect=True)
