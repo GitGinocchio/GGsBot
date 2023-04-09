@@ -1,10 +1,7 @@
 from discord import Intents,Status,ActivityType,Activity,Member,Permissions
 from discord.ext import commands
 from discord.ext.tasks import loop
-try: 
-    import json
-except:
-    import json5 as json
+import json5 as json
 
 
 class json_utils:
