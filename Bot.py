@@ -19,7 +19,7 @@ channel_id = 1069733888815026250
 
 
 @bot.command()
-async def c(ctx):
+async def comma(ctx):
     await ctx.send("hai attivato un comando!")
 
 
