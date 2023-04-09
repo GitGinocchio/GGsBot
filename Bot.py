@@ -1,7 +1,6 @@
 from discord import Intents,Status,ActivityType,Activity,Member,Permissions
 from discord.ext import commands
 from discord.ext.tasks import loop
-from time import sleep
 from utils import json_utils as json
 data = json(fp="./assets.json",indent=3)
 content = data.content()
