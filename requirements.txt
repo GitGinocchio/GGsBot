@@ -1,2 +1,2 @@
 discord.py
-json.py
+json5.py
