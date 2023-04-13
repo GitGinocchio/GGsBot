@@ -1,6 +1,7 @@
 from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Client, Embed, Color
 from discord.ext import commands
 from discord.ext.tasks import loop
+from datetime import datetime
 import json5 as json
 
 class json_utils:
@@ -67,11 +68,11 @@ async def on_message(message):
             sent = await channel.send(embed=embed)
             await sent.add_reaction("✅")
 
-
         if text.startswith("//SEND_VERIFY_MESSAGE") and text.split()[0] == "//SEND_VERIFY_MESSAGE":
             await message.delete()
             embed = Embed(title="",description="",color=Color.green())
 
+        #----------------------------------------------------------------------------------------------------------------
 
         if text.startswith("/help") or text.startswith("/commands") and text.split()[0] == "/help" or text.split()[0] == "/commands" and text.endswith("/help") or text.endswith("/commands"):
             await message.delete()
@@ -86,32 +87,35 @@ async def on_message(message):
 
 `/clear` (messages) - clear the amount of messages in the channel (default: 100).
 
-`/poll` [title] [choices] (subtitle) (time limit) - create a poll message in the channel 
-es. `/poll Superpowers [(1️⃣,invisibility),(2️⃣,Super strength),(3️⃣,flight),(4️⃣,Teleportation)] [if you could have any superpower, wich one would you choose?]`
+`/poll` [title] // [choices] // (description) // (time limit) - create a poll message in the channel 
+es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️⃣,flight),(4️⃣,Teleportation) // if you could have any superpower, wich one would you choose?`
  
 """
             embed = Embed(title="All commands available:",description=description,color=Color.green())
             await channel.send(embed=embed)
 
         if text.startswith("/poll") and text.split()[0] == "/poll":
-            #title = text.split()[1]
-            #text_without_title = text.split("] ")[0::]
-            #choices = text_without_title[0].split(" [")[1]
-            #choices = choices.split(',')
-            #description = text_without_title[1]
-            #.replace(char,'') for char in ["(",")"]
-            #print(choices[1])
+            try:
+                if "//" in text:
+                    splitted = text.split('//')
+                    title = splitted[0].replace(text.split()[0],'').strip()
+                    choices = [s.strip().replace('(','').replace(')','') for s in splitted[1].strip().split(',(')]
+                    parsed_choices = " \n".join(choices).replace(',',' - ')
+                    emojis = [word.split(',')[0] for word in choices]
+                    description = splitted[2].strip()
 
-            parsed_choices = ""
-            #parsed_choices = ["".join([f"{emoji} : {choice} \n" for emoji,choice in choices])][0]
-            #print(parsed_choices)
 
-            Embed_message = f"""
-**{description}**
-{parsed_choices}
-"""
-            embed = Embed(title=f"POLL: ",description=Embed_message,color=Color.green())
-            #await channel.send(embed=embed)
+                Embed_message = f"""
+    **{description}**
+
+    {parsed_choices}
+    """
+                embed = Embed(title=f"POLL: {title}",description=Embed_message,color=Color.green())
+                sent = await channel.send(embed=embed)
+                [await sent.add_reaction(emoji) for emoji in emojis]
+            except Exception as e:
+                await channel.send(embed=Embed(title="Error:",description="You must use '//' to correctly separate the kwargs arguments in the message",color=Color.red(),timestap=datetime.datetime))
+
         if text.startswith("/clear") and text.split()[0] == "/clear":
             await message.delete()
             if len(text.split()) == 2 and text.split()[1].isdecimal():
