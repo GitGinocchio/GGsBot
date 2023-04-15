@@ -1,4 +1,4 @@
-from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Client, Embed, Color
+from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Client, Embed, Color,DiscordException,Emoji
 from discord.ext import commands
 from discord.ext.tasks import loop
 from datetime import datetime
@@ -112,9 +112,17 @@ es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️�
     """
                 embed = Embed(title=f"POLL: {title}",description=Embed_message,color=Color.green())
                 sent = await channel.send(embed=embed)
-                [await sent.add_reaction(emoji) for emoji in emojis]
+
+                for emoji in emojis:
+                    try:
+                        print(emoji)
+                        await sent.add_reaction(emoji)
+                    except:pass
+            except DiscordException as e:
+                print(e)
+                await channel.send(embed=Embed(title="Error:",description="You must use '//' to correctly separate the kwargs arguments in the message",color=Color.red()))
             except Exception as e:
-                await channel.send(embed=Embed(title="Error:",description="You must use '//' to correctly separate the kwargs arguments in the message",color=Color.red(),timestap=datetime.datetime))
+                print(e)
 
         if text.startswith("/clear") and text.split()[0] == "/clear":
             await message.delete()
