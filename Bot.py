@@ -112,6 +112,8 @@ es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️�
     """
                 embed = Embed(title=f"POLL: {title}",description=Embed_message,color=Color.green())
                 sent = await channel.send(embed=embed)
+                
+                SENT_MESSAGE_IDS.append(sent.id)
 
                 for emoji in emojis:
                     try:
@@ -141,6 +143,26 @@ es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️�
 
 @bot.event
 async def on_raw_reaction__add(payload):
-    print("added reaction")
+    global SENT_MESSAGE_IDS
+
+    #Get the message object
+    channel = await bot.fetch_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+
+    print(channel)
+    print(message)
+
+
+    #Get the member object
+    guild = message.guild
+    member = await guild.fetch_member(payload.user_id)
+
+    for message_id in SENT_MESSAGE_IDS:
+        if message_id == message.id:
+            pass
+            #if payload.emoji.name not in POLL_OPTION_EMOJIS:
+                #pass
+
+
 
 bot.run(content["TOKEN"],reconnect=True)
