@@ -2,6 +2,7 @@ from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Clie
 from discord.ext import commands
 from discord.ext.tasks import loop
 from datetime import datetime
+import time
 import json5 as json
 
 class json_utils:
@@ -125,16 +126,19 @@ es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️�
                 print(e)
 
         if text.startswith("/clear") and text.split()[0] == "/clear":
-            await message.delete()
             if len(text.split()) == 2 and text.split()[1].isdecimal():
-                await channel.send(embed=Embed(title="Info:",description=f"{int(text.split()[1])} messages will be deleted.",color=Color.red()))
+                await channel.send(embed=Embed(title="Info:",description=f"{int(text.split()[1])} messages will be deleted.",color=Color.green()))
+                await message.delete()
                 await channel.purge(limit=int(text.split()[1]))
             elif len(text.split()) == 1:
-                await channel.send(embed=Embed(title="Info:",description="100 messages will be deleted.",color=Color.red()))
+                await channel.send(embed=Embed(title="Info:",description="100 messages will be deleted.",color=Color.green()))
+                await message.delete()
                 await channel.purge(limit=100)
             elif len(text.split()) > 2:
+                await message.delete()
                 await channel.send(embed=Embed(title="Error:",description="Invalid number of arguments. Expected exactly 1 argument.",color=Color.red()))
             else:
+                await message.delete()
                 await channel.send(embed=Embed(title="Error:",description="Invalid type of arguments. Expected type integer.",color=Color.red()))
 
         if text.startswith("{}") and text.split()[0] == "{}":
