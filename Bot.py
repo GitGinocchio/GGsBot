@@ -18,8 +18,6 @@ class json_utils:
         with open(self.fp, 'w') as json_file:
             json.dump(content,json_file,indent=indent)
 
-
-
 data = json_utils(fp="./assets.json",indent=3)
 content = data.content()
 
@@ -129,8 +127,10 @@ es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️�
         if text.startswith("/clear") and text.split()[0] == "/clear":
             await message.delete()
             if len(text.split()) == 2 and text.split()[1].isdecimal():
+                await channel.send(embed=Embed(title="Info:",description=f"{int(text.split()[1])} messages will be deleted.",color=Color.red()))
                 await channel.purge(limit=int(text.split()[1]))
             elif len(text.split()) == 1:
+                await channel.send(embed=Embed(title="Info:",description="100 messages will be deleted.",color=Color.red()))
                 await channel.purge(limit=100)
             elif len(text.split()) > 2:
                 await channel.send(embed=Embed(title="Error:",description="Invalid number of arguments. Expected exactly 1 argument.",color=Color.red()))
