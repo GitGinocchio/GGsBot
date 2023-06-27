@@ -3,8 +3,6 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from datetime import datetime
 import asyncio
-import time
-import os
 import json5 as json
 
 class json_utils:
