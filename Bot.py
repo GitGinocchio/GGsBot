@@ -1,8 +1,10 @@
-from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Client, Embed, Color,DiscordException,Emoji
+from discord import Intents,Status,ActivityType,Activity,Member,Permissions,Client, Embed, Color,DiscordException,Emoji,utils
 from discord.ext import commands
 from discord.ext.tasks import loop
 from datetime import datetime
+import asyncio
 import time
+import os
 import json5 as json
 
 class json_utils:
@@ -22,14 +24,12 @@ class json_utils:
 data = json_utils(fp="./assets.json",indent=3)
 content = data.content()
 
-#data.save_to_file(content,3)
-
 intents = Intents.all()
 intents.message_content = True
 
 bot = Client(intents=intents,status=Status.online, activity=Activity(type=ActivityType.listening, name="...", intents=intents))
 SENT_MESSAGE_IDS = []
-
+CREATED_CHANNELS = {}
 
 @bot.event
 async def on_ready():
@@ -37,112 +37,143 @@ async def on_ready():
     #channel = bot.get_channel(channel_id)
     #await channel.send("Ready!")
 
+@bot.event
+async def on_member_join(member):
+    channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
+    if channel is not None:
+        message = f'Ciao {member.mention}, benvenuto nel server!'
+        await channel.send(message)
 
 @loop(minutes=10)
 async def every_ten_minutes():
     pass
 
 
+
+
 @bot.event
 async def on_message(message):
     author = message.author
-    text = message.content
     channel = message.channel
+    text = message.content
+    roles = [role.name for role in author.roles]
+    permissions = channel.permissions_for(author)
 
-    if not author == bot.user:
-        #await channel.send(f"Ciao {author.name}")
+    #os.system('cls')
+    print('---------------------------------------------------------------')
+    print(f"author: {[author]}")
+    print(f'roles: {[roles]}')
+    print(f'permissions: {[permissions]}')
+    print(f"text: {[text]}")
+    print(f"channel: {[channel]}")
 
-        if text.startswith("//SEND_RULES_MESSAGE") and text.split()[0] == "//SEND_RULES_MESSAGE":
-            await message.delete()
-            Rules = """
- - Tratta ogni persona con rispetto. Non sarà tollerato alcun tipo di molestia, persecuzione, sessismo, razzismo o incitamento all'odio.
+    try:
+        if not author == bot.user:
+            #await channel.send(f"Ciao {author.name}")
 
- - Se noti qualcosa che va contro alle regole o non ti fa sentire al sicuro, informa lo staff. Vogliamo che questo server sia un luogo accogliente!
+            if text.startswith("/help") or text.startswith("/commands") and text.split()[0] == "/help" or text.split()[0] == "/commands" and text.endswith("/help") or text.endswith("/commands"):
+                await message.delete()
+                description = f"""
+    **commands without arguments**
+    `/help`,`/commands` - shows all the available commands
 
- - Niente contenuti osceni o soggetti a limiti di età. Ciò include testi, immagini o link contenenti nudità, sesso, violenza brutale o altri contenuti esplicitamente scioccanti.
-
- - Niente spam o autopromozione (inviti a server, pubblicità, ecc.) senza il permesso di un membro dello staff. Ciò include inviare messaggi diretti ai membri.
-"""
-            embed = Embed(title="Rules",description=Rules,color=Color.green())
-            sent = await channel.send(embed=embed)
-            await sent.add_reaction("✅")
-
-        if text.startswith("//SEND_VERIFY_MESSAGE") and text.split()[0] == "//SEND_VERIFY_MESSAGE":
-            await message.delete()
-            embed = Embed(title="",description="",color=Color.green())
-
-        #----------------------------------------------------------------------------------------------------------------
-
-        if text.startswith("/help") or text.startswith("/commands") and text.split()[0] == "/help" or text.split()[0] == "/commands" and text.endswith("/help") or text.endswith("/commands"):
-            await message.delete()
-            description = f"""
-**commands without arguments**
-`/help`,`/commands` - shows all the available commands
-
-**commands with arguments**
-- ( ) : optional arguments
-- [ ] : required arguments
+    **commands with arguments**
+    - ( ) : optional arguments\n
+    - [ ] : required arguments
 
 
-`/clear` (messages) - clear the amount of messages in the channel (default: 100).
+    `/clear` (messages) - clear the amount of messages in the channel (default: 100).
 
-`/poll` [title] // [choices] // (description) // (time limit) - create a poll message in the channel 
-es. `/poll Superpowers // (1️⃣,invisibility),(2️⃣,Super strength),(3️⃣,flight),(4️⃣,Teleportation) // if you could have any superpower, wich one would you choose?`
- 
-"""
-            embed = Embed(title="All commands available:",description=description,color=Color.green())
-            await channel.send(embed=embed)
-
-        if text.startswith("/poll") and text.split()[0] == "/poll":
-            try:
-                if "//" in text:
-                    splitted = text.split('//')
-                    title = splitted[0].replace(text.split()[0],'').strip()
-                    choices = [s.strip().replace('(','').replace(')','') for s in splitted[1].strip().split(',(')]
-                    parsed_choices = " \n".join(choices).replace(',',' - ')
-                    emojis = [word.split(',')[0] for word in choices]
-                    description = splitted[2].strip()
-
-
-                Embed_message = f"""
-    **{description}**
-
-    {parsed_choices}
+    `/createvc` [channel name [str]] (max users [int - default: 100])  - create a voice channel.
+    
     """
-                embed = Embed(title=f"POLL: {title}",description=Embed_message,color=Color.green())
-                sent = await channel.send(embed=embed)
+                embed = Embed(title="All commands available:",description=description,color=Color.green())
+                await channel.send(embed=embed)
+
+            elif text.startswith("/clear") and text.split()[0] == "/clear":
+                command_roles = ['astro']
+                command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)]
+
+                assert any(channel.permissions_for(author).value & permission.value == permission.value for permission in command_permissions) or any(role in command_roles for role in roles), f"""
+                You do not have the following permissions or roles to use this command.
+                - Roles: {command_roles}\n
+                - Command permissions: {['administrator','manage_messages']}
                 
-                SENT_MESSAGE_IDS.append(sent.id)
+                """
+    
+                if len(text.split()) == 2 and text.split()[1].isdecimal():
+                    await channel.send(embed=Embed(title="Info:",description=f"{int(text.split()[1])} messages will be deleted.",color=Color.green()))
+                    await message.delete()
+                    await channel.purge(limit=int(text.split()[1]))
+                elif len(text.split()) == 1:
+                    await channel.send(embed=Embed(title="Info:",description="100 messages will be deleted.",color=Color.green()))
+                    await message.delete()
+                    await channel.purge(limit=100)
+                elif len(text.split()) > 2:
+                    await message.delete()
+                    await channel.send(embed=Embed(title="Error:",description="Invalid number of arguments. Expected exactly 1 argument.",color=Color.red()))
+                else:
+                    await message.delete()
+                    await channel.send(embed=Embed(title="Error:",description="Invalid type of arguments. Expected type integer.",color=Color.red()))
 
-                for emoji in emojis:
-                    try:
-                        print(emoji)
-                        await sent.add_reaction(emoji)
-                    except:pass
-            except DiscordException as e:
-                print(e)
-                await channel.send(embed=Embed(title="Error:",description="You must use '//' to correctly separate the kwargs arguments in the message",color=Color.red()))
-            except Exception as e:
-                print(e)
+            elif text.startswith("/createvc") and text.split()[0] == "/createvc":
+                command_roles = ['astro']
+                command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)]
+                assert any(channel.permissions_for(author).value & permission.value == permission.value for permission in command_permissions) or any(role in command_roles for role in roles), f"""
+                You do not have the following permissions or roles to use this command.
+                - Roles: {command_roles}\n
+                - Command permissions: {['administrator','manage_messages']}
+                
+                """
 
-        if text.startswith("/clear") and text.split()[0] == "/clear":
-            if len(text.split()) == 2 and text.split()[1].isdecimal():
-                await channel.send(embed=Embed(title="Info:",description=f"{int(text.split()[1])} messages will be deleted.",color=Color.green()))
-                await message.delete()
-                await channel.purge(limit=int(text.split()[1]))
-            elif len(text.split()) == 1:
-                await channel.send(embed=Embed(title="Info:",description="100 messages will be deleted.",color=Color.green()))
-                await message.delete()
-                await channel.purge(limit=100)
-            elif len(text.split()) > 2:
-                await message.delete()
-                await channel.send(embed=Embed(title="Error:",description="Invalid number of arguments. Expected exactly 1 argument.",color=Color.red()))
-            else:
-                await message.delete()
-                await channel.send(embed=Embed(title="Error:",description="Invalid type of arguments. Expected type integer.",color=Color.red()))
+                try:
+                    splitted_params = text.split()[1:]
+                    if len(splitted_params) == 1:
+                        channel_name = splitted_params[0]
+                        vocal_channel = await message.guild.create_voice_channel(channel_name,category=utils.get(message.guild.categories, id=1122912835962425397))
+                        await channel.send(f"Canale vocale {vocal_channel.mention} creato con successo!")
 
-        if text.startswith("{}") and text.split()[0] == "{}":
-            pass
+                        task = asyncio.create_task(delete_channel_after_timeout(vocal_channel))
+                        CREATED_CHANNELS[vocal_channel.id] = {'text_channel' : channel,'author': author,'task' : task}
+                    elif len(splitted_params) == 2:
+                        assert splitted_params[1].isdecimal(), 'Invalid type of arguments. Expected type integer.'
+                        
+                        channel_name = splitted_params[0]
+                        max_users = int(splitted_params[1])
+                        vocal_channel = await message.guild.create_voice_channel(channel_name,category=utils.get(message.guild.categories, id=1122912835962425397))
+                        await vocal_channel.edit(user_limit=max_users)
+                        await channel.send(f"Canale vocale {vocal_channel.mention} creato con successo con un limite di {max_users} utenti!")
+
+                        task = asyncio.create_task(delete_channel_after_timeout(vocal_channel))
+                        CREATED_CHANNELS[vocal_channel.id] = {'text_channel' : channel,'author': author,'task' : task}
+                except AssertionError as e:
+                    await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
+
+            elif text.startswith("{}") and text.split()[0] == "{}":
+                pass
+            
+    except AssertionError as e:
+        await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        pass
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    print(member,before.channel.name if before.channel is not None else None,after.channel.name if after.channel is not None else None)
+
+    if before.channel is not None and before.channel.id in CREATED_CHANNELS:
+        task = asyncio.create_task(delete_channel_after_timeout(before.channel))
+        CREATED_CHANNELS[before.channel.id]['task'] = task
+
+async def delete_channel_after_timeout(channel):
+    await asyncio.sleep(5)
+
+    if channel.id in CREATED_CHANNELS and len(channel.members) == 0:
+        await CREATED_CHANNELS[channel.id]['text_channel'].send(f"{CREATED_CHANNELS[channel.id]['author'].mention} Nel canale vocale \'#{channel.name}\' sono passati 5 minuti senza qualcuno al suo interno, il canale e' stato eliminato.")
+        await channel.delete()
+        del CREATED_CHANNELS[channel.id]
 
 
 @bot.event
@@ -166,7 +197,6 @@ async def on_raw_reaction__add(payload):
             pass
             #if payload.emoji.name not in POLL_OPTION_EMOJIS:
                 #pass
-
 
 
 bot.run(content["TOKEN"],reconnect=True)
