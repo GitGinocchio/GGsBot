@@ -5,7 +5,11 @@ from config import TOKEN
 import base64
 import os
 
-os.system('cls')
+def clear_terminal():
+    os_name = os.name
+    if os_name == 'nt': os.system('cls') # Windows
+    else: os.system('clear')# Unix/Linux/Mac
+clear_terminal()
 #data = json_utils(fp="./assets.json",indent=3)
 #content = data.content()
 
