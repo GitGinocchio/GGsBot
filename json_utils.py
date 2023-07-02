@@ -1,10 +1,10 @@
-import json5 as json
+import json
 
 class json_utils:
     def __init__(self,fp: str = None,*,indent: int = 3):
         self.fp = fp
         self.indent = indent
-    
+
     def content(self):
         with open(self.fp, 'r') as json_file:
             content = json.load(json_file)
