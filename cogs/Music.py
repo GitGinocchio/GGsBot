@@ -92,7 +92,7 @@ class Music(commands.Cog):
     - Call this command only if you are in a voice channel.
     - If you call this command before calling `join` the bot will join your current vocal channel anyway.""")
     async def play(self,ctx,url):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
 
@@ -147,7 +147,7 @@ class Music(commands.Cog):
     - This is the first command you should use to play music in a vocal channel.
     - This command has no parameters""")
     async def join(self,ctx):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
@@ -177,7 +177,7 @@ class Music(commands.Cog):
     - Make sure that the bot and you are in a vocal channel to use this command.
     - This command has no parameters, this command only works while the bot rest in a voice channel and.""")
     async def pause(self,ctx):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
@@ -205,7 +205,7 @@ class Music(commands.Cog):
     - Make sure that the bot and you are in a vocal channel to use this command.
     - This command has no parameters, this command only works while the bot rest in a voice channel.""")
     async def resume(self,ctx):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
@@ -231,7 +231,7 @@ class Music(commands.Cog):
     @commands.command(name='leave', help="""
     To make the bot leave the voice channel""")
     async def leave(self,ctx):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
@@ -253,7 +253,7 @@ class Music(commands.Cog):
 
     @commands.command(name='stop', help="""Stops the song""")
     async def stop(self,ctx):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:

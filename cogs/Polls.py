@@ -7,11 +7,6 @@ class Polls(commands.Cog):
     def __init__(self, bot):
         super().__init__()
         self.bot = bot
-
-    #@commands.Cog.listener()
-    #async def on_ready(self):
-        #print(f'Bot is ready. Connected to {len(self.bot.guilds)} servers.')
-        #await self.bot.change_presence(activity=nextcord.Game(name="Polls"))
     
     @commands.command(name="poll",help="""""")
     async def poll(self, ctx,*,params : str = None):

@@ -10,10 +10,11 @@ class Basic(commands.Cog):
 
     @commands.command()
     async def clear(self, ctx, amount : int = 100):
-        command_roles = [(1122918623120457849,'astro')]
+        command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
+            await ctx.message.delete()
             # Verifica se l'utente ha i permessi sufficienti per eliminare i messaggi
             assert any(ctx.channel.permissions_for(ctx.author).value & permission.value == permission.value for permission in command_permissions) or any(role in command_roles for role in [(role.id,role.name) for role in ctx.author.roles]), f"""
                 You do not have the following permissions or roles to use this command.
@@ -21,15 +22,15 @@ class Basic(commands.Cog):
                 - Command permissions: {command_permissions}
                 
                 """
-            await ctx.channel.purge(limit=amount+1)
+            await ctx.channel.purge(limit=amount)
         except AssertionError as e:
             await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         else:
             await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
 
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        pass
+    #@commands.Cog.listener()
+    #async def on_message(self,message):
+        #pass
         #print(message)
 
     @commands.Cog.listener()

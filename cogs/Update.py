@@ -1,7 +1,6 @@
 import nextcord
-from nextcord import Embed,Color,utils,channel,permissions
-from discord.ext.tasks import loop
-from nextcord.ext import commands
+from nextcord import Embed,Color,utils,channel,permissions,Member
+from nextcord.ext import commands,tasks
 import random,asyncio,time,os,json
 
 class json_utils:
@@ -29,7 +28,7 @@ class Update(commands.Cog):
         self.update_metadata()
         self.every_ten_seconds.start()
 
-    @loop(hours=2)#@loop(hours=2)
+    @tasks.loop(hours=1)
     async def every_ten_seconds(self):
         self.update_metadata()
 
