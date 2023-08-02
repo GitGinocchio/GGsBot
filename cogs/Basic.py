@@ -23,6 +23,10 @@ class Basic(commands.Cog):
                 
                 """
             await ctx.channel.purge(limit=amount)
+
+            
+        
+        
         except AssertionError as e:
             await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         else:
