@@ -149,6 +149,7 @@ class Music(commands.Cog):
 
         async def _play(song : dict,start : int = 0):
             h,m,s = seconds_conversion(start)
+            client.stop()
             client.play(nextcord.FFmpegPCMAudio(song['url'],executable=".\\ffmpeg\\ffmpeg.exe",options=f"-reconnect 1 -ss {h}:{m}:{s}"))
             sec = start
 
