@@ -3,6 +3,7 @@ from nextcord import Embed,Color,utils,channel,Permissions
 from nextcord.ext import commands
 import random,asyncio,os
 
+
 class Basic(commands.Cog):
     def __init__(self,bot):
         super().__init__()

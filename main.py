@@ -17,7 +17,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='/',intents=intents)
 
 def load_cogs():
-    ignore = ['test.py']
+    ignore = ['jsonutils.py']
 
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py') and filename not in ignore:
