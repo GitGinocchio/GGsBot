@@ -1,4 +1,4 @@
 nextcord
 asyncio
 youtube.dl
-base64
+PyNaCl
