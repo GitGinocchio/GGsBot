@@ -13,6 +13,7 @@ clear_terminal()
 intents = nextcord.Intents.all()
 intents.members = True
 intents.message_content = True
+intents.guilds = True
 
 bot = commands.Bot(command_prefix='/',intents=intents)
 

@@ -9,7 +9,6 @@ class New_custom_voice_channels(commands.Cog):
     def __init__(self,bot):
         self.content = jsonfile('cogs/data/saved.json')
         self.bot = bot
-        self.guild = self.bot.get_guild(self.content["Custom Channels"]["guild_id"])
         self.custom_channels = []
 
     """
@@ -25,8 +24,9 @@ class New_custom_voice_channels(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         try:
+
             if after.channel is not None:
-                if str(after.channel.id) == self.content["Custom Channels"]["setup_channel_id"]:
+                if after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
                     vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
                     await member.move_to(vocal_channel)
                     self.custom_channels.append(vocal_channel)
@@ -46,12 +46,11 @@ class New_custom_voice_channels(commands.Cog):
 
                 if before.channel is not None:
                     if before.channel.id != after.channel.id:
-                        if before.channel in self.content["Custom Channels"]["custom_channels"]:
+                        if before.channel in self.custom_channels or before.channel in self.content["Custom Channels"]["custom_channels"]:
                             _ = asyncio.create_task(self.delete_channel(before.channel))
             else:
-                if before.channel in self.content["Custom Channels"]["custom_channels"]:
+                if before.channel in self.custom_channels or before.channel in self.content["Custom Channels"]["custom_channels"]:
                     _ = asyncio.create_task(self.delete_channel(before.channel))
-
 
         except AssertionError as e:
             pass
@@ -61,13 +60,11 @@ class New_custom_voice_channels(commands.Cog):
     async def delete_channel(self,channel):
         try:
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
-            
-            if len(channel.members) == 0:
-                if channel in self.content["Custom Channels"]["custom_channels"]:
-                    self.custom_channels.remove(channel)
-                    #self.content["Custom Channels"]["custom_channels"].remove(channel)
-                    await channel.delete()
 
+            if len(channel.members) == 0 and (channel in self.custom_channels or channel in self.content["Custom Channels"]["custom_channels"]):
+                #self.content["Custom Channels"]["custom_channels"].remove(channel)
+                self.custom_channels.remove(channel)
+                await channel.delete()
         except AssertionError as e:
             pass
         except Exception as e:
