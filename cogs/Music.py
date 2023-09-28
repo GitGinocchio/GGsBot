@@ -331,4 +331,3 @@ def setup(bot):
     bot.add_cog(Music(bot))
 
 
-if __name__ == "__main__": os.system("python main.py")
