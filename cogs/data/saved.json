@@ -1,24 +1,4 @@
 {
-   "Automod": {
-      "banned": [
-         "nigga",
-         "negro",
-         "gay",
-         "nero",
-         "frocio",
-         "troia"
-      ],
-      "false positives": [],
-      "uppercase limit": 25,
-      "levenshtein normalized": false,
-      "levenshtein weights": [
-         2,
-         2,
-         1
-      ],
-      "threshold of similarity": 4,
-      "threshold of similarity normalized": 0.5
-   },
    "Custom Channels": {
       "setup_channel_id": 1156286033994993794,
       "category_id" : 1122912835962425397,

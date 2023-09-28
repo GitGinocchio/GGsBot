@@ -6,8 +6,8 @@ from jsonutils import jsonfile
 
 
 class New_custom_voice_channels(commands.Cog):
+    content = jsonfile('cogs/data/saved.json')
     def __init__(self,bot):
-        self.content = jsonfile('cogs/data/saved.json')
         self.bot = bot
         self.custom_channels = []
 
@@ -38,7 +38,7 @@ class New_custom_voice_channels(commands.Cog):
                             connect=True,
                             speak=True,
                             manage_channels=True,
-                            # Altri permessi desiderati
+                            manage_permissions=True
                         )
                     }
                     await vocal_channel.edit(overwrites=overwrites)
@@ -52,10 +52,8 @@ class New_custom_voice_channels(commands.Cog):
                 if before.channel in self.custom_channels or before.channel in self.content["Custom Channels"]["custom_channels"]:
                     _ = asyncio.create_task(self.delete_channel(before.channel))
 
-        except AssertionError as e:
-            pass
-        except Exception as e:
-            print(e)
+        except AssertionError as e: pass
+        except Exception as e: print(e)
 
     async def delete_channel(self,channel):
         try:
@@ -72,6 +70,3 @@ class New_custom_voice_channels(commands.Cog):
 
 def setup(bot):
     bot.add_cog(New_custom_voice_channels(bot))
-
-if __name__ == "__main__":
-    pass

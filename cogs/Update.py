@@ -1,61 +1,44 @@
 import nextcord
 from nextcord import Embed,Color,utils,channel,permissions,Member
 from nextcord.ext import commands,tasks
-import random,asyncio,time,os,json
+from datetime import datetime
+from jsonutils import jsonfile
 
-class json_utils:
-    def __init__(self,fp: str = None,*,indent: int = 3):
-        self.fp = fp
-        self.indent = indent
-
-    def content(self):
-        with open(self.fp, 'r') as json_file:
-            content = json.load(json_file)
-            return content
-
-    def save_to_file(self,content,indent: int = 3):
-        with open(self.fp, 'w') as json_file:
-            json.dump(content,json_file,indent=indent)
 
 class Update(commands.Cog):
+    content = jsonfile('./cogs/metadata/saved.json')
     def __init__(self,bot):
         super().__init__()
-        self.saved_file = json_utils('./cogs/metadata/saved.json')
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.update_metadata()
-        self.every_ten_seconds.start()
+        if len(self.bot.guilds) > 1:
+            for guild in self.bot.guilds:
+                if guild.name != self.content["tracked_server_name"] or guild.id != self.content["tracked_server_id"]:
+                    print('warning: Bot is in another server!',' name: ',guild.name,' id: ',guild.id)
+                    await guild.leave()
 
-    @tasks.loop(hours=1)
-    async def every_ten_seconds(self):
+        self.update_metadata()
+        self.every.start()
+
+    @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
+    async def every(self):
+        print(f'[{datetime.utcnow()}] - Updating Metadata...')
         self.update_metadata()
 
     def update_metadata(self):
-        content = self.saved_file.content()
         try:
-            last_update = str(time.strftime("%d-%m-%Y / %H:%M:%S"))
             guild = self.bot.guilds[0]
-            server_name = str(guild.name)  # Nome del server
-            member_count = sum(1 for member in guild.members if not member.bot)
-            bot_count = sum(1 for member in guild.members if member.bot)
-            role_count = len(guild.roles)
-
-            content["tracked_server"] = server_name
-            content["last_update"] = last_update
-            content["counters"]["members"] = member_count
-            content["counters"]["bots"] = bot_count
-            content["counters"]["roles"] = role_count
-        except IndexError as e:
-            pass
-        except Exception as e:
-            print(e)
-        else:
-            self.saved_file.save_to_file(content)        
+            self.content["tracked_server_name"] = guild.name
+            self.content['tracked_server_id'] = guild.id
+            self.content["last_update"] = str(datetime.utcnow())
+            self.content["counters"]["members"] = sum(1 for member in guild.members if not member.bot)
+            self.content["counters"]["bots"] = sum(1 for member in guild.members if member.bot)
+            self.content["counters"]["roles"] =  len(guild.roles)
+        except IndexError as e: pass
+        except Exception as e: print(e)
+        else: self.content.save()
 
 def setup(bot):
     bot.add_cog(Update(bot))
-
-if __name__ == "__main__":
-    os.system("python main.py")
