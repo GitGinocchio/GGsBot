@@ -24,7 +24,7 @@ class Update(commands.Cog):
 
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
-        print(f'[{datetime.utcnow()}] - Updating Metadata...')
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Updating Metadata...')
         self.update_metadata()
 
     def update_metadata(self):
