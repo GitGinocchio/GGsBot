@@ -2,11 +2,22 @@ import nextcord
 from nextcord import Embed,Color,utils,channel,Permissions
 from nextcord.ext import commands
 import asyncio,os
-import socket
 import youtube_dl
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from urllib.parse import urlparse, urlunparse
+
+
+"""
+import io
+import requests
+
+response = requests.get(song['url']) 
+filelike = io.BytesIO()             #filelike non e' un file su disco rigido ma su ram (+ velocita' di lettura e scrittura)
+filelike.write(response.content)
+client.play(nextcord.FFmpegPCMAudio(filelike,executable=".\\ffmpeg\\ffmpeg.exe",**ffmpeg_options))
+
+"""
 
 
 
