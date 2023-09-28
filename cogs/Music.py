@@ -4,6 +4,7 @@ from nextcord.ext import commands
 import asyncio,os
 import youtube_dl
 import spotipy
+import io,requests
 from spotipy.oauth2 import SpotifyClientCredentials
 from urllib.parse import urlparse, urlunparse
 
@@ -120,13 +121,6 @@ class CustomEmbeds:
     async def queueEmbed(self,ctx,queue : list):
         pass
 
-"""
-    NOTE:
-    add replay command.
-    add voteskip command.
-
-"""
-
 class Music(commands.Cog):
     def __init__(self,bot):
         super().__init__()
@@ -137,15 +131,6 @@ class Music(commands.Cog):
         self.history = []
         self.queue = []
     
-    async def conditions(self,ctx): #concept
-        """
-        if user pass all conditions return True else False
-
-        use this method like:
-        assert self.conditions(ctx)
-        """
-        pass
-
     @commands.command(name='play', help="""
     This command help you adding your tracks to queue and play them instantly using <url> parameter that allows you to send a video or a playlist url from Youtube.
     - If you don't pass a <url> and the queue is not empty will be played the first song in the queue.
@@ -153,36 +138,7 @@ class Music(commands.Cog):
     - If you call this command before calling `join` the bot will join your current vocal channel anyway.""")
     async def play(self,ctx,*,query_or_url = None):
         await ctx.message.delete()
-
-        def seconds_conversion(seconds : int):
-            hours = seconds // 3600
-            minutes = (seconds % 3600) // 60
-            remaining_seconds = seconds % 60
-            return hours, minutes, remaining_seconds
-
-        async def _play(song : dict,start : int = 0):
-            h,m,s = seconds_conversion(start)
-            client.stop()
-            ffmpeg_options = {'before_options': f"-reconnect 1 -reconnected_streamed 1 -reconnect_delay_max 5 -ss {h}:{m}:{s}", 'options': "-vn"}
-
-            client.play(nextcord.FFmpegPCMAudio(fr"{song['url']}",executable=".\\ffmpeg\\ffmpeg.exe",**ffmpeg_options))
-            sec = start
-
-            #message = await ctx.channel.send(embed=embed)
-            while client.is_playing():
-                sec+=1
-                await self.embeds.songEmbed(ctx,song,sec)
-                await asyncio.sleep(1)
-            
-            if sec < int(song['duration']) and not self.stopped:
-                self.stopped = False
-                await _play(song,sec)
-            else:
-                if song in self.queue:
-                    self.history.append(song)
-                    self.queue.remove(song)
-                await self.play(ctx)
-
+        
         try:
             assert ctx.message.author.voice, "{} You are not connected to a voice channel!".format(ctx.message.author.mention)
             if ctx.message.guild.voice_client is None: await ctx.message.author.voice.channel.connect()
@@ -194,151 +150,41 @@ class Music(commands.Cog):
                     self.queue.extend(queue)
                 else:
                     raise AssertionError('Could not add this song to the queue, try again or type the title and the artist name instead of a link.')
+            
             if client.is_playing(): return #if is playing another song simply add that new song into the queue
             else:
                 for song in self.queue:
                     client.stop()
-                    await _play(song)
+                    ffmpeg_options = {'before_options': f"-reconnect 1 -reconnected_streamed 1 -reconnect_delay_max 5", 'options': "-vn"}
+
+                    response = requests.get(song['url'])
+                    filelike = io.BytesIO()
+                    filelike.write(response.content)
+                    filelike.seek(0)
+
+                    client.play(nextcord.FFmpegPCMAudio(filelike,executable=".\\ffmpeg\\ffmpeg.exe",**ffmpeg_options))
+                    
+                    sec = 0
+                    while client.is_playing():
+                        sec+=1
+                        await self.embeds.songEmbed(ctx,song,sec)
+                        await asyncio.sleep(1)
+                    
+                    self.history.append(song)
+                    if song in self.queue:
+                        self.queue.remove(song)
+                    await self.play(ctx)
+
 
         except AssertionError as e: await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         except Exception as e: print(e)
-
-    @commands.command(name='skip', help="""
-    This command help you skipping tracks in the bot queue list.
-    - Call this command only if you are in a voice channel.
-    - If you call this command and the queue is empty your songs will be added to the queue but not played.
-    - This command has no parameters.""")
-    async def skip(self,ctx):
-        try:
-            assert ctx.message.guild.voice_client is not None, 'The bot is not connected to a voice channel!'
-            assert ctx.message.author.voice, "{} You are not connected to a voice channel!".format(ctx.message.author.mention)
-
-            voice_client = ctx.message.guild.voice_client
-            if voice_client.is_playing():
-                self.stopped = True
-                voice_client.stop()
-                if self.queue: self.queue.pop(0)
-                await self.play(ctx)
-
-            else:
-                raise AssertionError("The bot is not playing anything at the moment.")
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='add', help="""
-    This command help you skipping tracks in the bot queue list.
-    - Call this command only if you are in a voice channel.
-    - If you call this command and the queue is empty nothing changes.""")
-    async def add(self,ctx,query_or_url):
-        try:
-            assert ctx.message.author.voice, "{} You are not connected to a voice channel!".format(ctx.message.author.mention)
-            assert ctx.message.guild.voice_client is not None, "{} Bot is not connected to a voice channel!".format(ctx.message.author.mention)
-
-            await ctx.message.delete()
-            queue = await self.extractor.get_song(query_or_url)
-            if queue is not None:
-                self.queue.extend(queue)
-            else: 
-                raise AssertionError('Could not add this song to the queue, try again or type the title and the artist name instead of a link.')
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='join', help="""
-    This command can be used to autorize the bot to join your specific vocal channel.
-    - Call this command only if you are in a voice channel.
-    - This is the first command you should use to play music in a vocal channel.
-    - This command has no parameters""")
-    async def join(self,ctx):
-        try:
-            await ctx.message.delete()
-
-            if not ctx.message.author.voice:
-                raise AssertionError("{} You are not connected to a voice channel!".format(ctx.message.author.mention))
-            elif ctx.guild.voice_client is not None:
-                raise AssertionError("I am currently in a voice channel!")
-            else:
-                voice_channel = ctx.message.author.voice.channel
-                await voice_channel.connect()
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='pause', help="""
-    This command pauses the current song playing session.
-    - Make sure that the bot and you are in a vocal channel to use this command.
-    - This command has no parameters, this command only works while the bot rest in a voice channel and.""")
-    async def pause(self,ctx):
-        try:
-            voice_client = ctx.message.guild.voice_client
-            if voice_client.is_playing():
-                self.stopped = True
-                voice_client.pause()
-            else:
-                raise AssertionError("The bot is not playing anything at the moment.")
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='resume', help="""
-    This command resumes the current song playing session.
-    - Make sure that the bot and you are in a vocal channel to use this command.
-    - This command has no parameters, this command only works while the bot rest in a voice channel.""")
-    async def resume(self,ctx):
-        try:
-            assert ctx.message.guild.voice_client is not None, 'The bot is not connected to a voice channel!'
-            assert ctx.message.author.voice, "{} You are not connected to a voice channel!".format(ctx.message.author.mention)
-
-            voice_client = ctx.message.guild.voice_client
-            if voice_client.is_paused():
-                voice_client.resume()
-            else:
-                raise AssertionError("The bot was not playing anything before this. Use `play` command")
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='leave', help="""
-    To make the bot leave the voice channel""")
-    async def leave(self,ctx):
-        try:
-            assert ctx.message.guild.voice_client is not None, 'The bot is not connected to a voice channel!'
-            assert ctx.message.guild.voice_client.is_connected(),'The bot is not connected to a voice channel!'
-
-            voice_client = ctx.message.guild.voice_client
-            await voice_client.disconnect()
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
-
-    @commands.command(name='stop', help="""
-    Stops the song""")
-    async def stop(self,ctx):
-        try:
-            assert ctx.message.guild.voice_client is not None, 'The bot is not connected to a voice channel!'
-            assert ctx.message.author.voice, "{} You are not connected to a voice channel!".format(ctx.message.author.mention)
-
-            voice_client = ctx.message.guild.voice_client
-            if voice_client.is_playing():
-                self.stopped = True
-                if self.queue: self.queue.pop(0)
-                voice_client.stop()
-            else: raise AssertionError("The bot is not playing anything at the moment.")
-        except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
-        except Exception as e:
-            print(e)
 
 
 
 def setup(bot):
     bot.add_cog(Music(bot))
+<<<<<<< Updated upstream
 
 
+=======
+>>>>>>> Stashed changes
