@@ -1,7 +1,7 @@
 import nextcord
 from nextcord import Embed,Color,utils,channel,permissions,Member
 from nextcord.ext import commands,tasks
-from datetime import datetime
+from datetime import datetime,timedelta
 from jsonutils import jsonfile
 
 
@@ -32,7 +32,7 @@ class Update(commands.Cog):
             guild = self.bot.guilds[0]
             self.content["tracked_server_name"] = guild.name
             self.content['tracked_server_id'] = guild.id
-            self.content["last_update"] = str(datetime.utcnow())
+            self.content["last_update"] = str(datetime.utcnow() + timedelta(hours=2))
             self.content["counters"]["members"] = sum(1 for member in guild.members if not member.bot)
             self.content["counters"]["bots"] = sum(1 for member in guild.members if member.bot)
             self.content["counters"]["roles"] =  len(guild.roles)
