@@ -20,7 +20,7 @@ class Update(commands.Cog):
                     await guild.leave()
 
         self.update_metadata()
-        self.every.start()
+        if not self.every.is_running(): self.every.start()
 
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
