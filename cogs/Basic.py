@@ -32,7 +32,7 @@ class Basic(commands.Cog):
             await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         else:
             await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
-
+    
     #@commands.Cog.listener()
     #async def on_message(self,message):
         #pass
@@ -48,7 +48,7 @@ class Basic(commands.Cog):
                 description=f'Welcome to {member.name}, {member.mention} Enjoy your stay and feel free to look around!',
                 color=Color.green()
             )
-            embed.set_thumbnail(url=member.avatar.url)
+            if member.avatar is not None: embed.set_thumbnail(url=member.avatar.url)
         except AssertionError as e:
             await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
         else:

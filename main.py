@@ -24,7 +24,6 @@ def load_cogs():
         if filename.endswith('.py') and filename not in ignore:
             print(f' - importing cog {filename} as cogs.{filename[:-3]}...')
             bot.load_extension(f'cogs.{filename[:-3]}')
-            
             if bot.get_cog(filename[:-3]):
                 print(f' - {filename} imported correctly...')
             else:
