@@ -1,5 +1,3 @@
-import nextcord
-from nextcord import Embed,Color,utils,channel,permissions,Member
 from nextcord.ext import commands,tasks
 from datetime import datetime,timedelta
 from jsonutils import jsonfile
@@ -7,7 +5,7 @@ from jsonutils import jsonfile
 
 class Update(commands.Cog):
     content = jsonfile('./cogs/metadata/saved.json')
-    def __init__(self,bot):
+    def __init__(self,bot : commands.Bot):
         super().__init__()
         self.bot = bot
 

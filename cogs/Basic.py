@@ -5,7 +5,7 @@ import random,asyncio,os
 
 
 class Basic(commands.Cog):
-    def __init__(self,bot):
+    def __init__(self,bot : commands.Bot):
         super().__init__()
         self.bot = bot
 

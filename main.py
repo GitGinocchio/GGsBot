@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from config import TOKEN
+from config import TOKEN,APPLICATION_ID
 import base64,os
 from jsonutils import jsonfile
 
@@ -15,7 +15,7 @@ intents.members = True
 intents.message_content = True
 intents.guilds = True
 
-bot = commands.Bot(command_prefix='/',intents=intents)
+bot = commands.Bot(command_prefix='/',intents=intents,application_id=APPLICATION_ID)
 
 def load_cogs():
     ignore = ['jsonutils.py']

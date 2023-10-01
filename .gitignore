@@ -153,3 +153,4 @@ cython_debug/
 *.exe
 ginocchio.f462b217@de.fsn01.botshard.com.lnk
 .vscode/PythonImportHelper-v2-Completion.json
+cogs/metadata/saved.json

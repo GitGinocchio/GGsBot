@@ -7,7 +7,7 @@ from jsonutils import jsonfile
 
 class New_custom_voice_channels(commands.Cog):
     content = jsonfile('cogs/data/saved.json')
-    def __init__(self,bot):
+    def __init__(self,bot : commands.Bot):
         self.bot = bot
         self.custom_channels = []
 
