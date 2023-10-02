@@ -30,7 +30,6 @@ def load_cogs():
             else:
                 raise commands.ExtensionFailed()
 load_cogs()
-
 print('-------------------------[ Logs ]-------------------------')
 
 if __name__ == '__main__':
