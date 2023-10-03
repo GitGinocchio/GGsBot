@@ -1,5 +1,5 @@
 import nextcord
-from nextcord import Embed,Color,utils,channel,Permissions
+from nextcord import Embed,Color,utils,channel,Permissions,Interaction,slash_command
 from nextcord.ext import commands
 import random,asyncio,os
 
@@ -9,30 +9,43 @@ class Basic(commands.Cog):
         super().__init__()
         self.bot = bot
 
-    @commands.command()
-    async def clear(self, ctx, amount : int = 100):
+    """
+    Migration from decorator @commands.command() to @nextcord.slash_command() for client integration of the command in discord ui.
+    >>>
+    """
+    #@commands.command()
+    @slash_command('clear',"A simple command for clearing an amount of messages in a chat!",default_member_permissions=8)
+    async def clear(self,interaction: Interaction, amount : int = 100):
         command_roles = [(1122918623120457849,'mod')]
         command_permissions = [Permissions(administrator=True),Permissions(manage_messages=True)] #Permissions(administrator=True),Permissions(manage_messages=True)
 
         try:
-            await ctx.message.delete()
+            await interaction.channel.purge(limit=amount)
+            #await ctx.message.delete()
             # Verifica se l'utente ha i permessi sufficienti per eliminare i messaggi
-            assert any(ctx.channel.permissions_for(ctx.author).value & permission.value == permission.value for permission in command_permissions) or any(role in command_roles for role in [(role.id,role.name) for role in ctx.author.roles]), f"""
+            assert any(interaction.channel.permissions_for(interaction.user).value & permission.value == permission.value for permission in command_permissions) or any(role in command_roles for role in [(role.id,role.name) for role in interaction.user.roles]), f"""
                 You do not have the following permissions or roles to use this command.
                 - Roles: {command_roles}\n
                 - Command permissions: {command_permissions}
                 
                 """
-            await ctx.channel.purge(limit=amount)
+            #await ctx.channel.purge(limit=amount)
 
             
         
         
         except AssertionError as e:
-            await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
+            await interaction.response.send_message(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5,ephemeral=True)
+            #await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         else:
+<<<<<<< Updated upstream
             await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
     
+=======
+            await interaction.response.send_message(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5,ephemeral=True)
+            #await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
+
+>>>>>>> Stashed changes
     #@commands.Cog.listener()
     #async def on_message(self,message):
         #pass
