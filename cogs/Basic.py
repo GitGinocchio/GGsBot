@@ -38,14 +38,9 @@ class Basic(commands.Cog):
             await interaction.response.send_message(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5,ephemeral=True)
             #await ctx.channel.send(embed=Embed(title="Error:",description=e,color=Color.red()),delete_after=5)
         else:
-<<<<<<< Updated upstream
-            await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
-    
-=======
             await interaction.response.send_message(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5,ephemeral=True)
             #await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
-
->>>>>>> Stashed changes
+    
     #@commands.Cog.listener()
     #async def on_message(self,message):
         #pass
