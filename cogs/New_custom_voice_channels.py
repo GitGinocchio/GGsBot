@@ -23,7 +23,6 @@ class New_custom_voice_channels(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         try:
-
             if after.channel is not None:
                 if after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
                     vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
