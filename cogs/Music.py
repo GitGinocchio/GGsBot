@@ -1,11 +1,11 @@
 import nextcord
-from nextcord import Embed,Color,utils,channel,Permissions
+from nextcord import Embed,Color,utils,channel,Permissions,Interaction,slash_command
 from nextcord.ext import commands
 from pytube import YouTube
 import asyncio
-import io
+import io,os
 from urllib.parse import urlparse
-import librosa as lb
+import soundfile as sf
 
 """
 import io
@@ -83,14 +83,16 @@ class Music(commands.Cog):
                 else: 
                     url = "https://www.youtube.com/results?search_query={}".format(query_or_url)
 
-                try:
-                    filelike = io.BytesIO()
-                    yt = YouTube(url=url)
-                    video = yt.streams.filter(only_audio=True).get_audio_only()
-                    video.download(filename=video.get_file_path(f'{video.title}.mp3'))
-                    song = {'title' : video.title,'filelike' : video.get_file_path(f'{video.title}.mp3'),'thumbnail' : yt.thumbnail_url,'webpage_url': yt.watch_url,'uploader' : yt.author, 'uploader_url' : yt.channel_url,'duration' : yt.length}
-                    self.queue.append(song)
-                except Exception as e: print(e)
+                audio_filelike = io.BytesIO()
+                yt = YouTube(url=url)
+                video = yt.streams.filter(only_audio=True).get_audio_only()
+                video.stream_to_buffer(audio_filelike)
+                audio_filelike.seek(0)
+
+
+
+                song = {'title' : video.title,'filepath' : '','filelike' : audio_filelike,'thumbnail' : yt.thumbnail_url,'webpage_url': yt.watch_url,'uploader' : yt.author, 'uploader_url' : yt.channel_url,'duration' : yt.length}
+                self.queue.append(song)
 
             if client.is_playing(): return #if is playing another song simply add that new song into the queue
             else:
@@ -98,7 +100,8 @@ class Music(commands.Cog):
                     client.stop()
                     ffmpeg_options = {'before_options': f"-reconnect 1 -reconnected_streamed 1 -reconnect_delay_max 5", 'options': "-vn"}
 
-                    client.play(nextcord.FFmpegPCMAudio(song['filelike'],executable=r"D:\Desktop\Coding\Python\discord-bot-server-6949\ffmpeg\ffmpeg.exe",**ffmpeg_options))
+                    #client.play(nextcord.FFmpegPCMAudio(song['filepath'],executable=r"D:\Desktop\Coding\Python\discord-bot-server-6949\ffmpeg\ffmpeg.exe",**ffmpeg_options))
+                    client.play(nextcord.FFmpegPCMAudio(song['filelike'],executable=r"D:\Desktop\Coding\Python\discord-bot-server-6949\ffmpeg\ffmpeg.exe",pipe=True,**ffmpeg_options))
 
                     sec = 0
                     while client.is_playing():

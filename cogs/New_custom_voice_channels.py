@@ -2,6 +2,7 @@ import nextcord
 from nextcord import Embed,Color,utils,channel,Permissions
 from nextcord.ext import commands,tasks
 import random,asyncio,os
+from datetime import datetime, timedelta
 from jsonutils import jsonfile
 
 
@@ -14,11 +15,15 @@ class New_custom_voice_channels(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
+        previous_channels_ids = len(self.content["Custom Channels"]["custom_channels"])
         for channel_id in self.content["Custom Channels"]["custom_channels"]:
             channel = self.bot.get_channel(channel_id)
-            if channel is not None: await channel.delete()
-            self.content["Custom Channels"]["custom_channels"].remove(channel_id)
-            self.content.save()
+            if channel is not None:
+                if len(channel.members) == 0: 
+                    await channel.delete()
+                    self.content["Custom Channels"]["custom_channels"].remove(channel_id)
+                    self.content.save()
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Checking custom vocals channels ids. founded:{previous_channels_ids},removed:{previous_channels_ids - len(self.content["Custom Channels"]["custom_channels"])}')
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -45,10 +50,10 @@ class New_custom_voice_channels(commands.Cog):
 
                 if before.channel is not None:
                     if before.channel.id != after.channel.id:
-                        if before.channel in self.custom_channels:
+                        if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
                             _ = asyncio.create_task(self.delete_channel(before.channel))
             else:
-                if before.channel in self.custom_channels:
+                if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
                     _ = asyncio.create_task(self.delete_channel(before.channel))
 
         except AssertionError as e: pass
@@ -58,11 +63,13 @@ class New_custom_voice_channels(commands.Cog):
         try:
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
 
-            if len(channel.members) == 0 and channel in self.custom_channels:
-                self.custom_channels.remove(channel)
-                self.custom_channels_ids.remove(channel.id)
-                self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
-                self.content.save()
+            if len(channel.members) == 0: 
+                if channel in self.custom_channels:
+                    self.custom_channels.remove(channel)
+                if channel.id in self.content["Custom Channels"]["custom_channels"]:
+                    self.content["Custom Channels"]["custom_channels"].remove(channel.id)
+                    self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
+                    self.content.save()
                 await channel.delete()
         except AssertionError as e:
             pass
