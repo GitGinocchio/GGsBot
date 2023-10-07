@@ -36,4 +36,5 @@ load_cogs()
 print('-------------------------[ Logs ]-------------------------')
 
 if __name__ == '__main__':
-    bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode())
+    #bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode())
+    bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True)
