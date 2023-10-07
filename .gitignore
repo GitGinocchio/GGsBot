@@ -151,7 +151,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.exe
-ginocchio.f462b217@de.fsn01.botshard.com.lnk
-.vscode/PythonImportHelper-v2-Completion.json
-cogs/metadata/saved.json
-cogs/metadata/saved.json
+bot-hosting.net.lnk
+*.json

@@ -22,6 +22,7 @@ class Update(commands.Cog):
 
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
+        self.content = jsonfile('./cogs/metadata/saved.json')
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Updating Metadata...')
         self.update_metadata()
 

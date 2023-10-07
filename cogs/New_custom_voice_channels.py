@@ -10,17 +10,16 @@ class New_custom_voice_channels(commands.Cog):
     def __init__(self,bot : commands.Bot):
         self.bot = bot
         self.custom_channels = []
+        self.custom_channels_ids = []
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        for channel_id in self.content["Custom Channels"]["custom_channels"]:
+            channel = self.bot.get_channel(channel_id)
+            if channel is not None: await channel.delete()
+            self.content["Custom Channels"]["custom_channels"].remove(channel_id)
+            self.content.save()
 
-    """
-    Evento di entrata o di uscita di un utente da un canale vocale x.
-
-    1. Controllare se e' presente un utente nel canale di setup dei canali vocali custom.
-    2. Renderizzarte l'utente in un canale appena creato.
-    3. Salvare le info del canale, come id dell'utente che lo ha creato, id del canale (trovare il modo per salvare i dati della chat del canale.).
-    4. Rinominare il canale con il nome dell'utente
-    5. Dare i poteri per quel canale all'utente.
-
-    """
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         try:
@@ -28,10 +27,10 @@ class New_custom_voice_channels(commands.Cog):
             if after.channel is not None:
                 if after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
                     vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
-                    await member.move_to(vocal_channel)
                     self.custom_channels.append(vocal_channel)
-                    #self.content["Custom Channels"]["custom_channels"].append(vocal_channel)
-                    
+                    self.custom_channels_ids.append(vocal_channel.id)
+                    self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
+                    self.content.save()
 
                     overwrites = {
                         member: nextcord.PermissionOverwrite(
@@ -42,14 +41,15 @@ class New_custom_voice_channels(commands.Cog):
                         )
                     }
                     await vocal_channel.edit(overwrites=overwrites)
+                    await member.move_to(vocal_channel)
                     _ = asyncio.create_task(self.delete_channel(vocal_channel))
 
                 if before.channel is not None:
                     if before.channel.id != after.channel.id:
-                        if before.channel in self.custom_channels or before.channel in self.content["Custom Channels"]["custom_channels"]:
+                        if before.channel in self.custom_channels:
                             _ = asyncio.create_task(self.delete_channel(before.channel))
             else:
-                if before.channel in self.custom_channels or before.channel in self.content["Custom Channels"]["custom_channels"]:
+                if before.channel in self.custom_channels:
                     _ = asyncio.create_task(self.delete_channel(before.channel))
 
         except AssertionError as e: pass
@@ -59,9 +59,11 @@ class New_custom_voice_channels(commands.Cog):
         try:
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
 
-            if len(channel.members) == 0 and (channel in self.custom_channels or channel in self.content["Custom Channels"]["custom_channels"]):
-                #self.content["Custom Channels"]["custom_channels"].remove(channel)
+            if len(channel.members) == 0 and channel in self.custom_channels:
                 self.custom_channels.remove(channel)
+                self.custom_channels_ids.remove(channel.id)
+                self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
+                self.content.save()
                 await channel.delete()
         except AssertionError as e:
             pass
