@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from jsonutils import jsonfile
 
 
-class New_custom_voice_channels(commands.Cog):
+class Custom_Channels(commands.Cog):
     content = jsonfile('cogs/data/saved.json')
     def __init__(self,bot : commands.Bot):
         self.bot = bot
@@ -77,4 +77,4 @@ class New_custom_voice_channels(commands.Cog):
             print('delete_channel error:',e)
 
 def setup(bot):
-    bot.add_cog(New_custom_voice_channels(bot))
+    bot.add_cog(Custom_Channels(bot))
