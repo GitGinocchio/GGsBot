@@ -2,7 +2,6 @@ import nextcord
 from nextcord import Embed,Color,utils,channel,Permissions
 from nextcord.ext import commands
 import asyncio,os
-import socket
 import youtube_dl
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials

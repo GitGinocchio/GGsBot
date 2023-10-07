@@ -152,3 +152,5 @@ cython_debug/
 #.idea/
 *.exe
 bot-hosting.net.lnk
+*.json
+cogs/metadata/saved.json
