@@ -83,9 +83,13 @@ class Music(commands.Cog):
                 else: 
                     url = "https://www.youtube.com/results?search_query={}".format(query_or_url)
 
+                video_filelike = io.BytesIO()
                 audio_filelike = io.BytesIO()
                 yt = YouTube(url=url)
                 video = yt.streams.filter(only_audio=True).get_audio_only()
+                video.stream_to_buffer(video_filelike)
+                #print(sf.available_formats().keys())
+                sf.write(audio_filelike,video_filelike.read(),44100,format='raw')
                 video.stream_to_buffer(audio_filelike)
                 audio_filelike.seek(0)
 
