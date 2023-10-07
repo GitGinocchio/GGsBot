@@ -1,4 +1,5 @@
 nextcord
 asyncio
-youtube.dl
+pytube
+spotipy
 PyNaCl
