@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from config import TOKEN,APPLICATION_ID
-import base64,os
+import base64,os,asyncio
 from jsonutils import jsonfile
 
 def clear_terminal():
@@ -37,4 +37,4 @@ print('-------------------------[ Logs ]-------------------------')
 
 if __name__ == '__main__':
     #bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode())
-    bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True)
+    asyncio.run(bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True))
