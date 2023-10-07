@@ -24,10 +24,14 @@ def load_cogs():
         if filename.endswith('.py') and filename not in ignore:
             print(f' - importing cog {filename} as cogs.{filename[:-3]}...')
             bot.load_extension(f'cogs.{filename[:-3]}')
+        
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py') and filename not in ignore:
             if bot.get_cog(filename[:-3]):
                 print(f' - {filename} imported correctly...')
             else:
                 raise commands.ExtensionFailed()
+
 load_cogs()
 print('-------------------------[ Logs ]-------------------------')
 
