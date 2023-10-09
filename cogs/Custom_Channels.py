@@ -44,7 +44,7 @@ class Custom_Channels(commands.Cog):
                         speak=True,
                         manage_channels=True,
                         manage_permissions=True,
-                        manage_users=True
+                        move_members=True
                     )
                 }
                 await member.move_to(vocal_channel)
