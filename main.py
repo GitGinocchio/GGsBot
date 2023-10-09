@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands
 from config import TOKEN,APPLICATION_ID
 import base64,os,asyncio
+from datetime import datetime,timedelta
 from jsonutils import jsonfile
 
 def clear_terminal():
@@ -33,8 +34,11 @@ def load_cogs():
                 raise commands.ExtensionFailed()
 
 load_cogs()
-print('-------------------------[ Logs ]-------------------------')
+print('-------------------------[ Logs ]-------------------------\n')
 
 if __name__ == '__main__':
-    #bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode())
-    asyncio.run(bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True))
+    if not bot.is_closed(): print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - WARNING: Another istance of bot is already running, waiting for it to finish... (this could use a lot of resources)')
+    while not bot.is_closed(): pass
+    print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Starting bot...')
+    bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True)
+    #asyncio.run(bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True))
