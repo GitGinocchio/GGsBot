@@ -65,5 +65,3 @@ class Basic(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Basic(bot))
-
-if __name__ == "__main__": os.system("python main.py")
