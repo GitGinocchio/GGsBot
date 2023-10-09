@@ -34,7 +34,7 @@ def load_cogs():
                 raise commands.ExtensionFailed()
 
 load_cogs()
-print('-------------------------[ Logs ]-------------------------\n')
+print('\n[ System messages... ]')
 
 if __name__ == '__main__':
     if not bot.is_closed(): print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - WARNING: Another istance of bot is already running, waiting for it to finish... (this could use a lot of resources)')
