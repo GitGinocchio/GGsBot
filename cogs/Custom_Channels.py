@@ -20,41 +20,42 @@ class Custom_Channels(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel is not None:
                 if len(channel.members) == 0: 
-                    await channel.delete()
+                    _ = asyncio.create_task(self.delete_channel(channel))
                     self.content["Custom Channels"]["custom_channels"].remove(channel_id)
                     self.content.save()
+            else:
+                self.content["Custom Channels"]["custom_channels"].remove(channel_id)
+                self.content.save()
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Checking custom vocals channels ids. founded:{previous_channels_ids},removed:{previous_channels_ids - len(self.content["Custom Channels"]["custom_channels"])}')
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         try:
-            if after.channel is not None:
-                if after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
-                    vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
-                    self.custom_channels.append(vocal_channel)
-                    self.custom_channels_ids.append(vocal_channel.id)
-                    self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
-                    self.content.save()
+            if after.channel is not None and after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
+                vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
+                self.custom_channels.append(vocal_channel)
+                self.custom_channels_ids.append(vocal_channel.id)
+                self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
+                self.content.save()
 
-                    overwrites = {
-                        member: nextcord.PermissionOverwrite(
-                            connect=True,
-                            speak=True,
-                            manage_channels=True,
-                            manage_permissions=True
-                        )
-                    }
-                    await vocal_channel.edit(overwrites=overwrites)
-                    await member.move_to(vocal_channel)
-                    _ = asyncio.create_task(self.delete_channel(vocal_channel))
+                overwrites = {
+                    member: nextcord.PermissionOverwrite(
+                        connect=True,
+                        speak=True,
+                        manage_channels=True,
+                        manage_permissions=True,
+                        manage_users=True
+                    )
+                }
+                await member.move_to(vocal_channel)
+                await vocal_channel.edit(overwrites=overwrites)
+                await asyncio.sleep(5)
+                _ = asyncio.create_task(self.delete_channel(vocal_channel))
 
-                if before.channel is not None:
-                    if before.channel.id != after.channel.id:
-                        if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
-                            _ = asyncio.create_task(self.delete_channel(before.channel))
-            else:
-                if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
-                    _ = asyncio.create_task(self.delete_channel(before.channel))
+            if before.channel is not None:
+                if before.channel.id != after.channel.id:
+                    if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
+                        _ = asyncio.create_task(self.delete_channel(before.channel))
 
         except AssertionError as e: pass
         except Exception as e: print(e)
@@ -71,10 +72,8 @@ class Custom_Channels(commands.Cog):
                     self.content["Custom Channels"]["custom_channels"] = self.custom_channels_ids
                     self.content.save()
                 await channel.delete()
-        except AssertionError as e:
-            pass
-        except Exception as e:
-            print('delete_channel error:',e)
+        except AssertionError as e: pass
+        except Exception as e: print('delete_channel error:',e)
 
 def setup(bot):
     bot.add_cog(Custom_Channels(bot))
