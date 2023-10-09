@@ -53,17 +53,21 @@ class Custom_Channels(commands.Cog):
                 _ = asyncio.create_task(self.delete_channel(vocal_channel))
 
             if before.channel is not None:
-                if before.channel.id != after.channel.id:
+                if after.channel is not None:
+                    if before.channel.id != after.channel.id:
+                        if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
+                            _ = asyncio.create_task(self.delete_channel(before.channel))
+                else:
                     if before.channel in self.custom_channels or before.channel.id in self.content["Custom Channels"]["custom_channels"]:
                         _ = asyncio.create_task(self.delete_channel(before.channel))
 
         except AssertionError as e: pass
-        except Exception as e: print(e)
 
     async def delete_channel(self,channel):
         try:
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
-
+            assert self.bot.get_channel(channel.id) is not None
+            
             if len(channel.members) == 0: 
                 if channel in self.custom_channels:
                     self.custom_channels.remove(channel)
