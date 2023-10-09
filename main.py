@@ -37,8 +37,8 @@ load_cogs()
 print('\n[ System messages... ]')
 
 if __name__ == '__main__':
-    if not bot.is_closed(): print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - WARNING: Another istance of bot is already running, waiting for it to finish... (this could use a lot of resources)')
-    while not bot.is_closed(): pass
+    #if not bot.is_closed(): print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - WARNING: Another istance of bot is already running, waiting for it to finish... (this could use a lot of resources)')
+    #while not bot.is_closed(): pass
     print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Starting bot...')
     bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True)
     #asyncio.run(bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True))
