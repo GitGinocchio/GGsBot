@@ -1,7 +1,5 @@
 import os,json
 
-
-
 class jsonfile:
     def __init__(self,fp : str = None,*,indent : int = 3,encoding : str = 'utf-8',autosave : bool = True):
         assert fp.endswith('.json'),'fp must be a json file and end with ".json"'
@@ -10,7 +8,7 @@ class jsonfile:
         self.encoding = encoding
         self.autosave = autosave
         if os.path.exists(self.fp):
-            with open(self.fp, 'r', encoding=encoding) as jsf: self.content = json.load(jsf)
+            with open(self.fp, 'r', encoding=encoding) as jsf: self.content : dict = json.load(jsf)
         else: 
             self.content = {}
             if self.autosave: self.save()
@@ -25,7 +23,8 @@ class jsonfile:
         return __k in self.content
 
     def __getitem__(self, __k):
-        if __k in self.content: return self.content[__k]
+        if __k in self.content: 
+            return self.content[__k]
         else: raise KeyError(f"Key '{__k}' not found in JSON data.")
 
     def __setitem__(self, __k, __v):

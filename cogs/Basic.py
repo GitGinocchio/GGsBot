@@ -40,11 +40,6 @@ class Basic(commands.Cog):
         else:
             await interaction.response.send_message(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5,ephemeral=True)
             #await ctx.channel.send(embed=Embed(title="Info:",description=f"Successfully cleared {amount} messages.",color=Color.green()), delete_after=5)
-    
-    #@commands.Cog.listener()
-    #async def on_message(self,message):
-        #pass
-        #print(message)
 
     @commands.Cog.listener()
     async def on_member_join(self,member):

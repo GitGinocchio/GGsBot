@@ -21,17 +21,14 @@ bot = commands.Bot(command_prefix='/',intents=intents,application_id=APPLICATION
 def load_cogs():
     ignore = ['jsonutils.py']
 
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py') and filename not in ignore:
-            print(f' - importing cog {filename} as cogs.{filename[:-3]}...')
-            bot.load_extension(f'cogs.{filename[:-3]}')
-        
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py') and filename not in ignore:
-            if bot.get_cog(filename[:-3]):
-                print(f' - {filename} imported correctly...')
-            else:
-                raise commands.ExtensionFailed()
+    try:
+        for filename in os.listdir('./cogs'):
+            if filename.endswith('.py') and filename not in ignore:
+                print(f' - importing cog {filename} as cogs.{filename[:-3]}...')
+                bot.load_extension(f'cogs.{filename[:-3]}')
+
+    except (commands.ExtensionFailed,commands.NoEntryPointError,commands.NoEntryPointError,commands.ExtensionAlreadyLoaded,commands.ExtensionNotFound,commands.InvalidSetupArguments) as e:
+        print(f' - Loading Extension Error:',f'Cog {e.name}',e,'\n',e.original)
 
 load_cogs()
 print('\n[ System messages... ]')
