@@ -39,5 +39,26 @@ class Update(commands.Cog):
         except Exception as e: print(e)
         else: self.content.save()
 
+    """
+    @commands.Cog.listener()
+    async def on_guild_join(guild):
+        pass
+
+    @commands.Cog.listener()
+    async def check_for_new_servers():
+        current_guilds = set(guild.id for guild in bot.guilds)
+        new_servers = current_guilds - previous_guilds
+
+        for guild_id in new_servers:
+            guild = bot.get_guild(guild_id)
+            if guild:
+                print(f'Bot was invited to a new server: {guild.name}')
+
+    @commands.Cog.listener()
+    async def on_guild_remove(guild):
+        pass
+    """
+
+
 def setup(bot):
     bot.add_cog(Update(bot))
