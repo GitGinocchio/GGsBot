@@ -21,12 +21,12 @@ class Update(commands.Cog):
         if not self.every.is_running(): self.every.start()
 
     @commands.Cog.listener()
-    async def on_disconnect():
+    async def on_disconnect(self):
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Disconnected...')
 
     @commands.Cog.listener()
-    async def on_error(event, *args, **kwargs):
-        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - {event} | args. {args} kwargs. {kwargs}')
+    async def on_error(self, ctx, error):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - {error}')
 
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
