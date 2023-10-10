@@ -19,6 +19,10 @@ class Update(commands.Cog):
         if not self.every.is_running(): self.every.start()
 
     @commands.Cog.listener()
+    async def on_connect(self):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Connected...')
+
+    @commands.Cog.listener()
     async def on_disconnect(self):
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Disconnected...')
 
