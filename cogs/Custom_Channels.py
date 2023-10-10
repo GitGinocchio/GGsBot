@@ -63,12 +63,13 @@ class Custom_Channels(commands.Cog):
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
             assert self.bot.get_channel(channel.id) is not None
             
-            if len(channel.members) == 0: 
-                self.content["Custom Channels"]["custom_channels"].remove(channel.id)
-                self.content.save()
+            if len(channel.members) == 0:
                 await channel.delete()
         except AssertionError as e: pass
         except Exception as e: print('delete_channel error:',e)
+        else:
+            self.content["Custom Channels"]["custom_channels"].remove(channel.id)
+            self.content.save()
 
 def setup(bot):
     bot.add_cog(Custom_Channels(bot))
