@@ -30,10 +30,6 @@ class Update(commands.Cog):
     async def on_error(self, ctx, error):
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - {error}')
 
-    @commands.Cog.listener()
-    async def on_ready_after_reconnect(self):
-        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Reconnected...')
-
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
         self.content = jsonfile('./cogs/metadata/saved.json')
