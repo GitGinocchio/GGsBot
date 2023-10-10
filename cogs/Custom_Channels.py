@@ -18,7 +18,7 @@ class Custom_Channels(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel is not None:
                 if len(channel.members) == 0: 
-                    _ = asyncio.create_task(self.delete_channel(channel))
+                    _ = asyncio.create_task(self.__delete_channel(channel))
                     removed+=1
             else:
                 self.content["Custom Channels"]["custom_channels"].remove(channel_id)
@@ -45,20 +45,20 @@ class Custom_Channels(commands.Cog):
                 await member.move_to(vocal_channel)
                 await vocal_channel.edit(overwrites=overwrites)
                 await asyncio.sleep(5)
-                _ = asyncio.create_task(self.delete_channel(vocal_channel))
+                _ = asyncio.create_task(self.__delete_channel(vocal_channel))
 
             if before.channel is not None:
                 if after.channel is not None:
                     if before.channel.id != after.channel.id:
                         if before.channel.id in self.content["Custom Channels"]["custom_channels"]:
-                            _ = asyncio.create_task(self.delete_channel(before.channel))
+                            _ = asyncio.create_task(self.__delete_channel(before.channel))
                 else:
                     if before.channel.id in self.content["Custom Channels"]["custom_channels"]:
-                        _ = asyncio.create_task(self.delete_channel(before.channel))
+                        _ = asyncio.create_task(self.__delete_channel(before.channel))
 
         except AssertionError as e: pass
 
-    async def delete_channel(self,channel):
+    async def __delete_channel(self,channel):
         try:
             await asyncio.sleep(self.content["Custom Channels"]['timeout'])
             assert self.bot.get_channel(channel.id) is not None
