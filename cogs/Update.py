@@ -14,19 +14,30 @@ class Update(commands.Cog):
         if len(self.bot.guilds) > 1:
             for guild in self.bot.guilds:
                 if guild.name != self.content["tracked_server_name"] or guild.id != self.content["tracked_server_id"]:
-                    print('warning: Bot is in another server!',' name: ',guild.name,' id: ',guild.id)
+                    print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Warning: Bot is in another server!',' name: ',guild.name,' id: ',guild.id)
                     await guild.leave()
-
-        self.update_metadata()
         if not self.every.is_running(): self.every.start()
+
+    @commands.Cog.listener()
+    async def on_connect(self):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Connected...')
+
+    @commands.Cog.listener()
+    async def on_disconnect(self):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Disconnected...')
+
+    @commands.Cog.listener()
+    async def on_reconnect(self):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Reconnected...')
+
+    @commands.Cog.listener()
+    async def on_error(self, ctx, error):
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - {error}')
 
     @tasks.loop(hours=content["updatetime-h-m-s"][0],minutes=content["updatetime-h-m-s"][1],seconds=content["updatetime-h-m-s"][2])
     async def every(self):
         self.content = jsonfile('./cogs/metadata/saved.json')
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Updating Metadata...')
-        self.update_metadata()
-
-    def update_metadata(self):
         try:
             guild = self.bot.guilds[0]
             self.content["tracked_server_name"] = guild.name

@@ -1,4 +1,5 @@
 nextcord
 asyncio
-PyNaCl
 pytube
+spotipy
+PyNaCl
