@@ -28,7 +28,7 @@ class Update(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reconnect(self):
-        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Connected...')
+        print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Bot Reconnected...')
 
     @commands.Cog.listener()
     async def on_error(self, ctx, error):
