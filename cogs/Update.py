@@ -14,10 +14,8 @@ class Update(commands.Cog):
         if len(self.bot.guilds) > 1:
             for guild in self.bot.guilds:
                 if guild.name != self.content["tracked_server_name"] or guild.id != self.content["tracked_server_id"]:
-                    print('warning: Bot is in another server!',' name: ',guild.name,' id: ',guild.id)
+                    print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Warning: Bot is in another server!',' name: ',guild.name,' id: ',guild.id)
                     await guild.leave()
-
-        self.update_metadata()
         if not self.every.is_running(): self.every.start()
 
     @commands.Cog.listener()
@@ -32,9 +30,6 @@ class Update(commands.Cog):
     async def every(self):
         self.content = jsonfile('./cogs/metadata/saved.json')
         print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Updating Metadata...')
-        self.update_metadata()
-
-    def update_metadata(self):
         try:
             guild = self.bot.guilds[0]
             self.content["tracked_server_name"] = guild.name
