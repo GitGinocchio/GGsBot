@@ -65,15 +65,12 @@ class Custom_Channels(commands.Cog):
             
             if len(channel.members) == 0: 
                 await channel.delete()
+                raise AssertionError()
         except AssertionError as e:
             try: self.content["Custom Channels"]["custom_channels"].remove(channel.id)
             except ValueError as e: pass
+            else: self.content.save()
         except Exception as e: print('delete_channel error:',e)
-        else:
-            try: self.content["Custom Channels"]["custom_channels"].remove(channel.id)
-            except ValueError as e: pass
-        finally:
-            self.content.save()
 
 
 def setup(bot):
