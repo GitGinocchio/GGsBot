@@ -64,11 +64,14 @@ class Custom_Channels(commands.Cog):
             assert self.bot.get_channel(channel.id) is not None
             
             if len(channel.members) == 0: 
-                self.content["Custom Channels"]["custom_channels"].remove(channel.id)
-                self.content.save()
                 await channel.delete()
-        except AssertionError as e: pass
+        except AssertionError as e: 
+            self.content["Custom Channels"]["custom_channels"].remove(channel.id)
+            self.content.save()
         except Exception as e: print('delete_channel error:',e)
+        else:
+            self.content["Custom Channels"]["custom_channels"].remove(channel.id)
+            self.content.save()
 
 def setup(bot):
     bot.add_cog(Custom_Channels(bot))
