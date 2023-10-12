@@ -28,29 +28,24 @@ class Custom_Channels(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         try:
-            if after.channel is not None:
-                if after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
-                    try:
-                        vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
+            if after.channel is not None and after.channel.id == self.content["Custom Channels"]["setup_channel_id"]:
+                vocal_channel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
+                self.content["Custom Channels"]["custom_channels"].append(vocal_channel.id)
+                self.content.save()
 
-                        overwrites = {
-                            member: nextcord.PermissionOverwrite(
-                                connect=True,
-                                speak=True,
-                                manage_channels=True,
-                                manage_permissions=True,
-                                move_members=True
-                            )
-                        }
-                        await member.move_to(vocal_channel)
-                        await vocal_channel.edit(overwrites=overwrites)
-                        await asyncio.sleep(5)
-                        _ = asyncio.create_task(self.__delete_channel(vocal_channel))
-                    except Exception as e:
-                        print('create_channel error:',e)
-                    else:
-                        self.content["Custom Channels"]["custom_channels"].append(vocal_channel.id)
-                        self.content.save()
+                overwrites = {
+                    member: nextcord.PermissionOverwrite(
+                        connect=True,
+                        speak=True,
+                        manage_channels=True,
+                        manage_permissions=True,
+                        move_members=True
+                    )
+                }
+                await member.move_to(vocal_channel)
+                await vocal_channel.edit(overwrites=overwrites)
+                await asyncio.sleep(5)
+                _ = asyncio.create_task(self.__delete_channel(vocal_channel))
 
             if before.channel is not None:
                 if after.channel is not None:
@@ -72,19 +67,8 @@ class Custom_Channels(commands.Cog):
                 self.content["Custom Channels"]["custom_channels"].remove(channel.id)
                 self.content.save()
                 await channel.delete()
-<<<<<<< Updated upstream
         except AssertionError as e: pass
         except Exception as e: print('delete_channel error:',e)
-=======
-                self.content["Custom Channels"]["custom_channels"].remove(channel.id)
-                self.content.save()
-        except AssertionError as e:
-            print("Canale eliminato perche' non piu' presente...")
-            self.content["Custom Channels"]["custom_channels"].remove(channel.id)
-            self.content.save()
-        except Exception as e:
-            print('delete_channel error:',e)
->>>>>>> Stashed changes
 
 def setup(bot):
     bot.add_cog(Custom_Channels(bot))
