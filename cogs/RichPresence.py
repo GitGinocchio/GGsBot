@@ -15,9 +15,9 @@ class RichPresence(commands.Cog):
         #self.RPClient.start()
         #self.RPClient.authorize(client_id=f"{CLIENT_ID}",scopes=['rpc.activities.write'])\
 
-        self.RPC = Presence(client_id=f"{CLIENT_ID}")
-        self.RPC.connect()
-        self.RPC.update(details="Sto programmando", state="Utilizzando discord.py", large_image="large_image_key")
+        #self.RPC = Presence(client_id=f"{CLIENT_ID}")
+        #self.RPC.connect()
+        #self.RPC.update(details="Sto programmando", state="Utilizzando discord.py", large_image="large_image_key")
 
 
 def setup(bot):
