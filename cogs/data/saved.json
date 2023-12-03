@@ -4,5 +4,10 @@
       "category_id": 1122912835962425397,
       "custom_channels": [],
       "timeout": 0
+   },
+   "Basic" : {
+      "welcome_channel_id" : null,
+      "goodbye_channel_id" : null
    }
+
 }

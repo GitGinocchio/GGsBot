@@ -2,12 +2,14 @@ import nextcord
 from nextcord import Embed,Color,utils,channel,Permissions,Interaction,slash_command
 from nextcord.ext import commands
 import random,asyncio,os
+from jsonutils import jsonfile
 
 
 class Basic(commands.Cog):
     def __init__(self,bot : commands.Bot):
         super().__init__()
         self.bot = bot
+        self.content = jsonfile('./cogs/data/saved.json')
 
     """
     Migration from decorator @commands.command() to @nextcord.slash_command() for client integration of the command in discord ui.
@@ -44,8 +46,12 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self,member):
         try:
-            channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
-            assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
+            if self.content["Basic"]["welcome_channel_id"] is not None:
+                channel = self.bot.get_channel(self.content["Basic"]["welcome_channel_id"])
+            else:
+                channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
+                assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
+            
             embed = Embed(
                 title='Welcome!',
                 description=f'Welcome to {member.name}, {member.mention} Enjoy your stay and feel free to look around!',
@@ -60,8 +66,12 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_member_quit(self,member):
         try:
-            channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
-            assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
+            if self.content["Basic"]["goodbye_channel_id"] is not None:
+                channel = self.bot.get_channel(self.content["Basic"]["goodbye_channel_id"])
+            else: 
+                channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
+                assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
+            
             embed = Embed(
                 title='Welcome!',
                 description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',
