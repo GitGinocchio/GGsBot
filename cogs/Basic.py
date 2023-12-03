@@ -57,6 +57,22 @@ class Basic(commands.Cog):
         else:
             await channel.send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_member_quit(self,member):
+        try:
+            channel = member.guild.system_channel  # Ottieni il canale predefinito per i messaggi di benvenuto
+            assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
+            embed = Embed(
+                title='Welcome!',
+                description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',
+                color=Color.green()
+            )
+            if member.avatar is not None: embed.set_thumbnail(url=member.avatar.url)
+        except AssertionError as e:
+            await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
+        else:
+            await channel.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Basic(bot))
