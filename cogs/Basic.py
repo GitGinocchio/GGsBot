@@ -73,7 +73,7 @@ class Basic(commands.Cog):
                 assert channel is not None,'System channel is not defined. (trying to send a message of welcome in system channel)'
             
             embed = Embed(
-                title='Welcome!',
+                title='Goodbye!',
                 description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',
                 color=Color.green()
             )
