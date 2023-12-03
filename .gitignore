@@ -151,6 +151,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.exe
-bot-hosting.net.lnk
-cogs/metadata/saved.json
-cogs/data/saved.json
+*.json
