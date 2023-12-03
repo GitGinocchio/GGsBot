@@ -2,4 +2,4 @@
 Un semplice bot per la gestione del tuo server discord, con musica, minigames e tanto altro!
 
 Developed by @ginocchio
-Made with :snake: and much :heart: 
+Made with 🐍 and much ❤️ 
