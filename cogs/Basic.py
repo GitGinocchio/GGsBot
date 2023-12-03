@@ -64,7 +64,7 @@ class Basic(commands.Cog):
             await channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_member_quit(self,member):
+    async def on_member_remove(self,member):
         try:
             if self.content["Basic"]["goodbye_channel_id"] is not None:
                 channel = self.bot.get_channel(self.content["Basic"]["goodbye_channel_id"])
