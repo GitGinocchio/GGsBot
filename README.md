@@ -3,7 +3,7 @@ Un semplice bot per la gestione del tuo server discord, con musica, minigames e 
 
 Funzionalità già attive:
 
-- Messaggi di Benvenuto/uscita dal server
+- Messaggi di benvenuto/uscita dal server
   
 - Canali vocali personalizzati
   
