@@ -47,30 +47,6 @@ class jsonfile:
     def keys(self):
         return self.content.keys()
 
-    def set(self, keys : list[str], value):
-        current = self.content
-        for key in keys[:-1]:
-            if isinstance(current, dict):
-                current = current.setdefault(key, {})
-            elif isinstance(current, list):
-                try:
-                    key = int(key)
-                    current = current[key]
-                except (ValueError, IndexError):
-                    return
-        if isinstance(current, dict):
-            current[keys[-1]] = value
-            if self.autosave:
-                self.save()
-        elif isinstance(current, list):
-            try:
-                key = int(keys[-1])
-                current[key] = value
-                if self.autosave:
-                    self.save()
-            except (ValueError, IndexError):
-                pass
-
     def clear(self):
         self.content = {}
         if self.autosave: self.save()
