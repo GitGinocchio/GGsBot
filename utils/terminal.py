@@ -1,7 +1,8 @@
+from colorama import Fore, Back
 import os
 
-def clear():
-    if os.name == 'nt': 
-        os.system('cls') # Windows
-    else: 
-        os.system('clear')# Unix/Linux/Mac
+clear : function = lambda: os.system('cls' if os.name == 'nt' else 'clear')
+
+F = Fore
+B = Back
+

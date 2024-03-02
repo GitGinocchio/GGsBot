@@ -42,7 +42,7 @@ class CustomDecoder(json.JSONDecoder):
             slashastrsk = line.find('/*')
             astrskslash = line.find('*/')
 
-            # Commenti singoli      // Commento singolo
+            # Commenti singoli // 
             if line.count('\"',0,doubleslash) % 2 == 0 and doubleslash >= 0:
                 line = line[:doubleslash]
 
