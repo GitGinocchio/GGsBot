@@ -1,0 +1,22 @@
+{
+    // Constants
+    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GpnBZc.rTC8fxKuboclRKlF4jmhKnr7pTPTIQjFzoEDSM",
+    "PUBLIC_KEY": "5cb093e7fc30b5aacf9bb96595781f1c4426c64020e60204abd1df57b5f63cf7",
+    "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
+    "APPLICATION_ID": 1094412371390374029,
+    "CLIENT_ID": 1094412371390374029,
+    "COMMAND_PREFIX": "?",
+
+    // Bot settings
+    "ignore_commands" : [],         // Do not load the specified commands
+    "ignore_categories" : [],       // Do not load the specified categories of commands
+
+    // Music settings
+    "music": {
+        "spotify": {
+            "CLIENT_ID": "7fe554bb7974407cb0349fe30d9e5eec",
+            "SECRET_KEY": "9ab2f8fcafc74b0cb50fdb91a9ba9869"
+       },
+       "youtube": {}
+    }
+}
