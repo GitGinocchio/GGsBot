@@ -1,5 +1,6 @@
 nextcord
 pypresence
+colorama
 asyncio
 pytube
 spotipy
