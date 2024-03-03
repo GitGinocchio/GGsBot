@@ -1,5 +1,4 @@
 import json
-import re
 import os
 
 class _JsonDict(dict):
@@ -27,6 +26,15 @@ class _JsonList(list):
     def __delitem__(self, index):
         self.remove(index)
         if self.file.autosave: self.file.save()
+    
+    def append(self, value):
+        super().append(value)
+        if self.file.autosave: self.file.save()
+    
+    def remove(self, value):
+        super().remove(value)
+        if self.file.autosave: self.file.save()
+        
 
 class CustomDecoder(json.JSONDecoder):
     def __init__(self, file : 'JsonFile'):
@@ -85,8 +93,11 @@ class JsonFile(dict):
         """
         assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
         if fp is not None:
-            assert os.path.exists(fp), "File does not exist."
-            with open(fp,encoding=encoding) as jsf: super().__init__(json.load(jsf,cls=CustomDecoder,file=self))
+            #assert os.path.exists(fp), "File does not exist."
+            if os.path.exists(fp):
+                with open(fp,encoding=encoding) as jsf: super().__init__(json.load(jsf,cls=CustomDecoder,file=self))
+            else:
+                super().__init__()
         else:
             super().__init__()
         self.encoding = encoding
@@ -112,14 +123,13 @@ class JsonFile(dict):
             if self.autosave: self.save()
         else:
             raise KeyError(f"Key '{key}' not found in '{self.fp}'.")
-
     def __iter__(self):
         return iter(self.content)
 
     def copy(self):
         return JsonFile(self.fp,indent=self.indent,encoding=self.encoding,autosave=self.autosave)
 
-    def save(self):
-        with open(self.fp,'w',encoding=self.encoding) as jsf: json.dump(self,jsf,indent=self.indent)
+    def save(self, fp : str = None):
+        with open(self.fp if fp is None else fp,'w',encoding=self.encoding) as jsf: json.dump(self,jsf,indent=self.indent)
 
 #file = JsonFile(r'.\config\config.jsonc')

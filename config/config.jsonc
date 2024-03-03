@@ -5,11 +5,12 @@
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
     "APPLICATION_ID": 1094412371390374029,
     "CLIENT_ID": 1094412371390374029,
-    "COMMAND_PREFIX": "?",
+    "COMMAND_PREFIX": "/",
 
     // Bot settings
-    "ignore_commands" : [],         // Do not load the specified commands
-    "ignore_categories" : [],       // Do not load the specified categories of commands
+    "ignore_commands" : ["__pycache__"],         // Do not load the specified commands
+    "ignore_categories" : [],                    // Do not load the specified categories of commands
+    "max_guilds" : -1,                           // Maximum number of guilds
 
     // Music settings
     "music": {
