@@ -1,41 +1,36 @@
-import nextcord
 from nextcord.ext import commands
-from config import TOKEN,APPLICATION_ID
-import base64,os,asyncio
-from datetime import datetime,timedelta
-from jsonutils import jsonfile
+from utils.jsonfile import JsonFile
+from utils.terminal import clear, F, B
+from config.intents import get
+import os
 
-def clear_terminal():
-    os_name = os.name
-    if os_name == 'nt': os.system('cls') # Windows
-    else: os.system('clear')# Unix/Linux/Mac
-clear_terminal()
+config = JsonFile('./config/config.jsonc')
 
-intents = nextcord.Intents.all()
-intents.members = True
-intents.message_content = True
-intents.guilds = True
+Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
 
-bot = commands.Bot(command_prefix='/',intents=intents,application_id=APPLICATION_ID)
+clear()
+def load_commands():
+    categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
 
-def load_cogs():
-    ignore = ['jsonutils.py']
-
-    try:
-        for filename in os.listdir('./cogs'):
-            if filename.endswith('.py') and filename not in ignore:
-                print(f' - importing cog {filename} as cogs.{filename[:-3]}...')
-                bot.load_extension(f'cogs.{filename[:-3]}')
-
-    except (commands.ExtensionFailed,commands.NoEntryPointError,commands.NoEntryPointError,commands.ExtensionAlreadyLoaded,commands.ExtensionNotFound,commands.InvalidSetupArguments) as e:
-        print(f' - Loading Extension Error:',f'Cog {e.name}',e,'\n',e.original)
-
-load_cogs()
-print('\n[ System messages... ]')
+    for category in categories:
+        print(f' + looking in commands.{category} for commands...')
+        for filename in os.listdir(f'./commands/{category}'):
+            if filename.endswith('.py') and filename not in config['ignore_commands']:
+                try:
+                    print(f' | - Importing cog {filename} as commands.{category}.{filename[:-3]}...')
+                    Bot.load_extension(f'commands.{category}.{filename[:-3]}')
+                except (commands.ExtensionFailed,
+                    commands.NoEntryPointError,
+                    commands.ExtensionAlreadyLoaded,
+                    commands.ExtensionNotFound,
+                    commands.InvalidSetupArguments) as e:
+                    print(f' | - Loading Extension Error:',f'Cog {e.name}',e)
+                else:
+                    print(f' | - Successfully imported cog {filename} as commands.{category}.{filename[:-3]}')
+            elif filename in config['ignore_commands']: pass
+            else:
+                print(' | - (Warning) Skipping non-py file:',filename)
+load_commands()
 
 if __name__ == '__main__':
-    #if not bot.is_closed(): print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - WARNING: Another istance of bot is already running, waiting for it to finish... (this could use a lot of resources)')
-    #while not bot.is_closed(): pass
-    print(f'[{str(datetime.utcnow() + timedelta(hours=2))}] - Starting bot...')
-    bot.run(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True)
-    #asyncio.run(bot.start(base64.urlsafe_b64decode(bytes.fromhex(TOKEN)).decode(),reconnect=True))
+    Bot.run(token=config['TOKEN'],reconnect=True)
