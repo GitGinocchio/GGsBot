@@ -13,23 +13,23 @@ def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
 
     for category in categories:
-        print(f' + looking in commands.{category} for commands...')
+        print(f' + 🔍 {F.BLUE}looking in commands.{category} for commands...{F.RESET}')
         for filename in os.listdir(f'./commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_commands']:
                 try:
-                    print(f' | - Importing cog {filename} as commands.{category}.{filename[:-3]}...')
+                    print(f' | - ✅ {F.LIGHTGREEN_EX}Importing cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}...')
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionFailed,
                     commands.NoEntryPointError,
                     commands.ExtensionAlreadyLoaded,
                     commands.ExtensionNotFound,
                     commands.InvalidSetupArguments) as e:
-                    print(f' | - Loading Extension Error:',f'Cog {e.name}',e)
+                    print(f' | - ❌ {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n{e}')
                 else:
-                    print(f' | - Successfully imported cog {filename} as commands.{category}.{filename[:-3]}')
+                    print(f' | - 🎉 {F.GREEN}Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_commands']: pass
             else:
-                print(' | - (Warning) Skipping non-py file:',filename)
+                print(f' | - ⚠️ {F.YELLOW}(Warning) Skipping non-py file: {filename}{F.RESET}')
 load_commands()
 
 if __name__ == '__main__':
