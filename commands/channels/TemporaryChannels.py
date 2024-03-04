@@ -32,6 +32,7 @@ class TemporaryChannels(commands.Cog):
 
             if after.channel is not None and after.channel.id == setup["setup_channel_id"]:
                 vocal_channel : nextcord.VoiceChannel = await after.channel.category.create_voice_channel(f'{str(member.name).capitalize()}\'s Vocal Channel')
+                await member.move_to(vocal_channel,reason='Temporary Channel Created')
                 setup["temporary_channels"].append(vocal_channel.id)
                 overwrites = {
                     member: nextcord.PermissionOverwrite(
@@ -43,7 +44,6 @@ class TemporaryChannels(commands.Cog):
                     )
                 }
                 await vocal_channel.edit(overwrites=overwrites)
-                await member.move_to(vocal_channel,reason='Temporary Channel Created')
                 _ = asyncio.create_task(self.delete_channel(vocal_channel,setup))
 
             if before.channel is not None:
