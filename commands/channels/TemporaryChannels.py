@@ -25,7 +25,7 @@ class TemporaryChannels(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
+        print(f"\n🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
         for i,guild_id in enumerate(guilds_ids:=os.listdir('./data/guilds/')):
             if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
                 print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
