@@ -39,7 +39,7 @@ class TemporaryChannels(commands.Cog):
                             print('Temporary Channel Deleted - Channel id: {}'.format(channel_id))
                     file['temporary_channels'].remove(channel_id)
                 if len(temporary_channels) == 0:
-                    print(f' │    └── ✅  {F.GREEN}No Temporary Channels were found.{F.RESET}')
+                    print(f' {"│" if not i == len(guilds_ids) - 1 else " " }    └── ✅  {F.GREEN}No Temporary Channels were found.{F.RESET}')
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
