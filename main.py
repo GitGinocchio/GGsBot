@@ -12,24 +12,26 @@ clear()
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
 
-    for category in categories:
-        print(f' + 🔍 {F.BLUE}looking in commands.{category} for commands...{F.RESET}')
-        for filename in os.listdir(f'./commands/{category}'):
+    print(f"🚀  {F.YELLOW}Initiating command module loading sequence...{F.RESET}")
+    for i,category in enumerate(categories):
+        print(f' │\n{" ├──" if not i == len(categories) - 1 else " └──" } 🔍  {F.BLUE}looking in commands.{category} for commands...{F.RESET}')
+        for j,filename in enumerate(files:=os.listdir(f'./commands/{category}')):
             if filename.endswith('.py') and filename not in config['ignore_commands']:
                 try:
-                    print(f' | - ✅ {F.LIGHTGREEN_EX}Importing cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}...')
+                    print(f' │    ├── ✅  {F.GREEN}Importing cog {filename} as commands.{category}.{filename[:-3]}...{F.RESET}')
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionFailed,
                     commands.NoEntryPointError,
                     commands.ExtensionAlreadyLoaded,
                     commands.ExtensionNotFound,
                     commands.InvalidSetupArguments) as e:
-                    print(f' | - ❌ {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n{e}')
+                    print(f' │    {"└──" if not j == len(files) - 1 else "├──" } ❌  {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n{e}')
                 else:
-                    print(f' | - 🎉 {F.GREEN}Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
+                    print(f' │    {"└──" if not j == len(files) - 1 else "├──" } 🎉  {F.MAGENTA}Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_commands']: pass
             else:
-                print(f' | - ⚠️ {F.YELLOW}(Warning) Skipping non-py file: {filename}{F.RESET}')
+                print(f'{" │" if not i == len(categories) - 1 else "  " }    {"│" if not j == len(files) - 1 else "└──" } ⚠️  {F.YELLOW}Skipping non-py file: {filename}{F.RESET}')
+
 load_commands()
 
 if __name__ == '__main__':
