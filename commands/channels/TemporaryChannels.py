@@ -1,5 +1,6 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
+from utils.terminal import clear, F, B
 import asyncio,os
 import nextcord
 
@@ -24,10 +25,12 @@ class TemporaryChannels(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        for guild_id in os.listdir('./data/guilds/'):
+        print(f"🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
+        for i,guild_id in enumerate(guilds_ids:=os.listdir('./data/guilds/')):
             if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
+                print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
                 file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
-                for channel_id in file['temporary_channels']:
+                for j,channel_id in enumerate(file['temporary_channels']):
                     channel = self.bot.get_channel(channel_id)
                     if channel is not None:
                         if len(channel.members) == 0: 
