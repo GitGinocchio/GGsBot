@@ -13,7 +13,6 @@ class TemporaryChannels(commands.Cog):
             os.makedirs(f'./data/guilds/{interaction.guild_id}/TemporaryChannels',exist_ok=True)
         except OSError as e:
             await interaction.response.send_message(f"Error occurred while creating directory: {e}", ephemeral=True)
-            return
         else:
             file = JsonFile(f'./data/guilds/{interaction.guild_id}/TemporaryChannels/setup.json')
             file['temporary_channels_category_id'] = temporary_channels_category.id
