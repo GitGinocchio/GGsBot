@@ -7,7 +7,7 @@ import os
 config = JsonFile('./config/config.jsonc')
 
 Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
-#Bot.is_ws_ratelimited()
+
 clear()
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
@@ -35,5 +35,4 @@ def load_commands():
 load_commands()
 
 if __name__ == '__main__':
-    if not Bot.is_ws_ratelimited():
-        Bot.run(token=config['TOKEN'],reconnect=True)
+    Bot.run(token=config['TOKEN'],reconnect=True)
