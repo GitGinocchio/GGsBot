@@ -25,7 +25,7 @@ class TemporaryChannels(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"\n🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
+        print(f"🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
         for i,guild_id in enumerate(guilds_ids:=os.listdir('./data/guilds/')):
             if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
                 print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
@@ -39,7 +39,7 @@ class TemporaryChannels(commands.Cog):
                             print('Temporary Channel Deleted - Channel id: {}'.format(channel_id))
                     file['temporary_channels'].remove(channel_id)
                 if len(temporary_channels) == 0:
-                    print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.GREEN}No temporary Channels were found.{F.RESET}')
+                    print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    ├── ✅  {F.GREEN}No Temporary Channels were found.{F.RESET}')
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
