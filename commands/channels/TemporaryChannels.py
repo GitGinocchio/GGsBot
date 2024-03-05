@@ -6,7 +6,7 @@ import nextcord
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
         self.bot = bot
-    
+
     @nextcord.slash_command("setup_temporary_channels","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
     async def setup_temporary_channels(self, interaction : nextcord.Interaction, setup_channel : nextcord.VoiceChannel, temporary_channels_category : nextcord.CategoryChannel, timeout : float):
         try:
@@ -21,6 +21,20 @@ class TemporaryChannels(commands.Cog):
             file['timeout'] = timeout
             file.save()
             await interaction.response.send_message("Temporary channels setup completed successfully!", ephemeral=True)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        for guild_id in os.listdir('./data/guilds/'):
+            if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
+                file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
+                for channel_id in file['temporary_channels']:
+                    channel = self.bot.get_channel(channel_id)
+                    if channel is not None:
+                        if len(channel.members) == 0: 
+                            await channel.delete(reason='Temporary Channel Deleted')
+                            print('Temporary Channel Deleted - Channel id: {}'.format(channel_id))
+                    else:
+                        file['temporary_channels'].remove(channel_id)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
