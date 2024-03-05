@@ -30,14 +30,14 @@ class TemporaryChannels(commands.Cog):
             if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
                 print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
                 file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
-                for j,channel_id in enumerate(file['temporary_channels']):
+                for j,channel_id in enumerate(temporary_channels:=file['temporary_channels']):
                     channel = self.bot.get_channel(channel_id)
                     if channel is not None:
-                        if len(channel.members) == 0: 
+                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    ├── ✅  {F.GREEN}Found Channel {channel.name}{F.RESET}')
+                        if len(channel.members) == 0:
                             await channel.delete(reason='Temporary Channel Deleted')
                             print('Temporary Channel Deleted - Channel id: {}'.format(channel_id))
-                    else:
-                        file['temporary_channels'].remove(channel_id)
+                    file['temporary_channels'].remove(channel_id)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
