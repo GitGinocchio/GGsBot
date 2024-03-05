@@ -31,7 +31,6 @@ def load_commands():
             elif filename in config['ignore_commands']: pass
             else:
                 print(f' {"│" if not i == len(categories) - 1 else " " }    {"│" if not j == len(files) - 1 else "└──" } ⚠️  {F.YELLOW}Skipping non-py file: {filename}{F.RESET}')
-    print('\n')
 load_commands()
 
 if __name__ == '__main__':
