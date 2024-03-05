@@ -15,7 +15,7 @@ class RequestsErrors(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_command_error(ctx, error):
+    async def on_command_error(self, ctx, error):
         print(error)
         if isinstance(error, nextcord.HTTPException):
             if error.status == 429:
