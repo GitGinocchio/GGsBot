@@ -29,5 +29,5 @@ class RequestsErrors(commands.Cog):
         else:
             print(f"Unhandled exception: {error}")
 
-def setup(bot):
+def setup(bot : commands.Bot):
     bot.add_cog(RequestsErrors(bot))

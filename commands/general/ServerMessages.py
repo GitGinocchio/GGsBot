@@ -65,5 +65,5 @@ class ServerMessages(commands.Cog):
             else:
                 await channel.send(embed=embed)
 
-def setup(bot):
+def setup(bot : commands.Bot):
     bot.add_cog(ServerMessages(bot))

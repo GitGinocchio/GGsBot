@@ -66,5 +66,5 @@ class TemporaryChannels(commands.Cog):
         except AssertionError as e: pass
         except Exception as e: print('delete_channel error:',e)
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(TemporaryChannels(bot))
