@@ -25,7 +25,7 @@ def load_commands():
                     commands.ExtensionAlreadyLoaded,
                     commands.ExtensionNotFound,
                     commands.InvalidSetupArguments) as e:
-                    print(f' │    {"└──" if not j == len(files) - 1 else "├──" } ❌  {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n{e}')
+                    print(f' │    {"└──" if not j == len(files) - 1 else "├──" } ❌  {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n │         {F.RED}{"└──" if not j == len(files) - 1 else "├──" }{e}{F.RESET}')
                 else:
                     print(f' │    {"└──" if not j == len(files) - 1 else "├──" } 🎉  {F.MAGENTA}Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_commands']: pass
