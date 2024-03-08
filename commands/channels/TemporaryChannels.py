@@ -35,7 +35,7 @@ class TemporaryChannels(commands.Cog):
                 for j,channel_id in enumerate(temporary_channels):
                     channel = self.bot.get_channel(channel_id)
                     if channel is not None:
-                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    ├── ⚠️  {F.YELLOW}Found channel {channel.name} (id:{channel.id}){F.RESET}')
+                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    {"├──" if not j == len(temporary_channels) - 1 else "└──" } ⚠️  {F.YELLOW}Found channel \"{channel.name}\" (id:{channel.id}){F.RESET}')
                         if len(channel.members) == 0:
                             await channel.delete(reason='Temporary Channel Deleted')
                             print(f' {"│" if not j == len(temporary_channels) - 1 else " " }        └── ✅  {F.GREEN}Temporary channel deleted{F.RESET}')
