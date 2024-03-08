@@ -30,17 +30,18 @@ class TemporaryChannels(commands.Cog):
             if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
                 print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
                 file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
+                if len(temporary_channels) == 0:
+                    print(f' {"│" if not i == len(guilds_ids) - 1 else " " }    └── ✅  {F.GREEN}No temporary channels were found.{F.RESET}')
                 for j,channel_id in enumerate(temporary_channels:=file['temporary_channels']):
                     channel = self.bot.get_channel(channel_id)
                     if channel is not None:
-                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    ├── ✅  {F.GREEN}Found Channel {channel.name}{F.RESET}')
+                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    ├── ⚠️  {F.YELLOW}Found channel {channel.name} (id:{channel.id}){F.RESET}')
                         if len(channel.members) == 0:
                             await channel.delete(reason='Temporary Channel Deleted')
-                            print('Temporary Channel Deleted - Channel id: {}'.format(channel_id))
+                            print(f' {"│" if not j == len(temporary_channels) - 1 else " " }        └── ✅  {F.GREEN}Temporary channel deleted{F.RESET}')
+                        else:
+                            print(f' {"│" if not j == len(temporary_channels) - 1 else " " }        └── ⚠️  {F.YELLOW}Temporary channel not deleted, there are users inside the channel...{F.RESET}')
                     file['temporary_channels'].remove(channel_id)
-                if len(temporary_channels) == 0:
-                    print(f' {"│" if not i == len(guilds_ids) - 1 else " " }    └── ✅  {F.GREEN}No Temporary Channels were found.{F.RESET}')
-
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         setup_path = f'./data/guilds/{after.channel.guild.id if after.channel is not None else before.channel.guild.id}/TemporaryChannels/setup.json'
