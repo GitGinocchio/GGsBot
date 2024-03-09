@@ -22,7 +22,7 @@ class RequestsErrors(commands.Cog):
                 retry_after = error.response.headers.get('Retry-After')
                 if retry_after:
                     print(f"Rate limit hit, sleeping for {retry_after} seconds")
-                    time.sleep(int(retry_after))
+                    asyncio.sleep(int(retry_after))
                     # Qui potresti voler riprovare la tua richiesta o comando
                 else:
                     print("Rate limit hit, but no Retry-After header available")
