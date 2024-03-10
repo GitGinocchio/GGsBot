@@ -28,9 +28,9 @@ class MusicCommands(commands.Cog):
     async def leave(self, interaction : nextcord.Interaction):
         if interaction.guild.voice_client is not None:
             await interaction.guild.voice_client.disconnect()
-            await interaction.response.send_message(f"{interaction.user.mention} Successfully disconnected from channel!")
+            await interaction.response.send_message(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=2.5)
         else:
-            await interaction.response.send_message(f"{interaction.user.mention} I am not in a vocal channel!")
+            await interaction.response.send_message(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=2.5)
 
 
 
