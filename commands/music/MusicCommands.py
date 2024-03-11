@@ -21,7 +21,7 @@ class MusicCommands(commands.Cog):
                 interaction.guild.voice_client.stop()
                 info = await get_info_from_url(queryurl)
                 interaction.guild.voice_client.play(nextcord.FFmpegAudio(info['url'],executable='./bin/ffmpeg.exe'))
-                await interaction.response.send_message(f'{interaction.user.mention} playing {info['title']}...')
+                await interaction.response.send_message(f"{interaction.user.mention} playing {info['title']}...")
             else:
                 pass #aggiungere in coda...
         except AssertionError as e:
