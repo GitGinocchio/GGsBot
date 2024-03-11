@@ -70,21 +70,24 @@ class CustomDecoder(json.JSONDecoder):
         return '\n'.join(lines)
             
     def decode(self, s):
-        s = self._remove_comments(s)
-        obj = dict(super().decode(s))
-
-        for key,value in obj.items():
-            if isinstance(value, dict):
-                obj[key] = _JsonDict(value,self.file)
-            elif isinstance(value, list):
-                obj[key] = _JsonList(value,self.file)
-            else:
-                obj[key] = value
-
-        return obj
+        if self.file.commented:
+            s = self._remove_comments(s)
+        try:
+            obj = dict(super().decode(s))
+        except json.decoder.JSONDecodeError as e:
+            print(e)
+        else:
+            for key,value in obj.items():
+                if isinstance(value, dict):
+                    obj[key] = _JsonDict(value,self.file)
+                elif isinstance(value, list):
+                    obj[key] = _JsonList(value,self.file)
+                else:
+                    obj[key] = value
+            return obj
 
 class JsonFile(dict):
-    def __init__(self, fp : str = None,*,indent : int = 4,encoding : str = 'utf-8', autosave : bool = True):
+    def __init__(self, fp : str = None,*, indent : int = 4, encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
         """
         Subclass of dict for loading or creating JSON files.
 
@@ -92,6 +95,11 @@ class JsonFile(dict):
         Not all dict methods supports :autosave: attribute.
         """
         assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
+        self.commented = True if fp.endswith('.jsonc') else commented
+        self.encoding = encoding
+        self.autosave = autosave
+        self.indent = indent
+        self.fp = fp
         if fp is not None:
             #assert os.path.exists(fp), "File does not exist."
             if os.path.exists(fp):
@@ -100,10 +108,6 @@ class JsonFile(dict):
                 super().__init__()
         else:
             super().__init__()
-        self.encoding = encoding
-        self.autosave = autosave
-        self.indent = indent
-        self.fp = fp
 
     def __setitem__(self, key, value):
         if isinstance(value,dict):
@@ -123,6 +127,7 @@ class JsonFile(dict):
             if self.autosave: self.save()
         else:
             raise KeyError(f"Key '{key}' not found in '{self.fp}'.")
+    
     def __iter__(self):
         return iter(self.content)
 
@@ -131,5 +136,7 @@ class JsonFile(dict):
 
     def save(self, fp : str = None):
         with open(self.fp if fp is None else fp,'w',encoding=self.encoding) as jsf: json.dump(self,jsf,indent=self.indent)
+
+
 
 #file = JsonFile(r'.\config\config.jsonc')
