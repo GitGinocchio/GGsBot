@@ -65,7 +65,7 @@ class TemporaryChannels(commands.Cog):
                 }
                 vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
                     name=f'{str(member.name).capitalize()}\'s Vocal Channel',
-                    category=setup["temporary_channels_category_id"],
+                    category=self.bot.get_channel(setup["temporary_channels_category_id"]),
                     overwrites=overwrites)
                 
                 await member.move_to(vocal_channel,reason='Temporary Channel Created')
