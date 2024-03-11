@@ -55,6 +55,7 @@ class TemporaryChannels(commands.Cog):
                     member: nextcord.PermissionOverwrite(
                         connect=True,
                         speak=True,
+                        stream=True,
                         manage_channels=True,
                         manage_permissions=True,
                         move_members=True,
