@@ -87,13 +87,12 @@ class TemporaryChannels(commands.Cog):
     async def delete_channel(self,channel : nextcord.VoiceChannel, setup : JsonFile):
         try:
             await asyncio.sleep(setup["timeout"])
-            assert channel is not None
+            assert channel is not None and channel.members <= 0
             
-            if len(channel.members) <= 0: 
-                setup["temporary_channels"].remove(channel.id)
-                await channel.delete(reason='Temporary Channel Deleted')
+            setup["temporary_channels"].remove(channel.id)
+            await channel.delete(reason='Temporary Channel Deleted')
         except AssertionError as e: pass
-        except Exception as e: print('delete_channel error:',e)
+        except Exception as e: print('delete_channel error:',e,e.args)
 
 def setup(bot: commands.Bot):
     bot.add_cog(TemporaryChannels(bot))
