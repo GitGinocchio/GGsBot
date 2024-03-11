@@ -87,7 +87,7 @@ class TemporaryChannels(commands.Cog):
     async def delete_channel(self,channel : nextcord.VoiceChannel, setup : JsonFile):
         try:
             await asyncio.sleep(setup["timeout"])
-            assert channel is not None and channel.members <= 0
+            assert channel is not None and len(channel.members) <= 0
             
             setup["temporary_channels"].remove(channel.id)
             await channel.delete(reason='Temporary Channel Deleted')
