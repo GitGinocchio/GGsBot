@@ -81,11 +81,7 @@ class TemporaryChannels(commands.Cog):
                 else:
                     if before.channel.id in setup["temporary_channels"]:
                         _ = asyncio.create_task(self.delete_channel(before.channel,setup))
-            
-            if after.channel is not None:
-                pass
 
-            pass
         except AssertionError: pass
 
     async def delete_channel(self,channel : nextcord.VoiceChannel, setup : JsonFile):
