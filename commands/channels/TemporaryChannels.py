@@ -53,6 +53,7 @@ class TemporaryChannels(commands.Cog):
             if after.channel is not None and after.channel.id == setup["setup_channel_id"]:
                 overwrites = {
                     member: nextcord.PermissionOverwrite(
+                        view_channel=True,
                         connect=True,
                         speak=True,
                         stream=True,
