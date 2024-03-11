@@ -45,12 +45,12 @@ class TemporaryChannels(commands.Cog):
     
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
-        setup_path = f'./data/guilds/{after.channel.guild.id if after.channel is not None else before.channel.guild.id}/TemporaryChannels/setup.json'
-
-        if os.path.exists(setup_path):
+        try:
+            setup_path = f'./data/guilds/{after.channel.guild.id if after.channel is not None else before.channel.guild.id}/TemporaryChannels/setup.json'
+            assert os.path.exists(setup_path)
             setup = JsonFile(setup_path)
 
-            if after.channel is not None and after.channel.id == setup["setup_channel_id"]:
+            if after.channel is not None and after.channel.id == setup['setup_channel_id']:
                 overwrites = {
                     member: nextcord.PermissionOverwrite(
                         view_channel=True,
@@ -73,15 +73,20 @@ class TemporaryChannels(commands.Cog):
                 await member.move_to(vocal_channel,reason='Temporary Channel Created')
                 setup["temporary_channels"].append(vocal_channel.id)
                 _ = asyncio.create_task(self.delete_channel(vocal_channel,setup))
-            
+
             if before.channel is not None:
                 if after.channel is not None:
-                    if before.channel.id != after.channel.id:
-                        if before.channel.id in setup["temporary_channels"]:
-                            _ = asyncio.create_task(self.delete_channel(before.channel,setup))
+                    if before.channel.id != after.channel.id and before.channel.id in setup['temporary_channels']:
+                        _ = asyncio.create_task(self.delete_channel(before.channel,setup))
                 else:
                     if before.channel.id in setup["temporary_channels"]:
                         _ = asyncio.create_task(self.delete_channel(before.channel,setup))
+            
+            if after.channel is not None:
+                pass
+
+            pass
+        except AssertionError: pass
 
     async def delete_channel(self,channel : nextcord.VoiceChannel, setup : JsonFile):
         try:
