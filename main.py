@@ -38,7 +38,7 @@ def run():
     except nextcord.errors.HTTPException as e:
         print(e.response.headers.keys())
         #message = e.response.headers['message']
-        #retry_after = e.response.headers['retry_after']
+        retry_after = e.response.headers['Retry-After']
         #global_ratelimit = e.response.headers['global']
         #code = e.response.headers['code?']
         #print(e.response.headers)
@@ -46,8 +46,8 @@ def run():
         #print(retry_after)
         #print(global_ratelimit)
         #print(code)
-        #asyncio.sleep(retry_after)
-        #run()
+        asyncio.sleep(retry_after)
+        run()
         
 
 if __name__ == '__main__':
