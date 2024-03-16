@@ -2,6 +2,8 @@ from nextcord.ext import commands
 from utils.jsonfile import JsonFile
 from utils.terminal import clear, F, B
 from config.intents import get
+import nextcord
+import asyncio
 import os
 
 config = JsonFile('./config/config.jsonc')
@@ -30,5 +32,10 @@ def load_commands():
                 print(f' {"│" if not i == len(categories) - 1 else " " }    {"│" if not j == len(files) - 1 else "└──" } ⚠️  {F.YELLOW}Skipping non-py file: {filename}{F.RESET}')
 load_commands()
 
+
+
 if __name__ == '__main__':
-    Bot.run(token=config['TOKEN'],reconnect=True)
+    try:
+        Bot.run(token=config['TOKEN'],reconnect=True)
+    except nextcord.errors.HTTPException as e:
+        print(e.response.headers)
