@@ -26,23 +26,22 @@ class TemporaryChannels(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"\n🚀  {F.YELLOW}Initializing clearing temporary channels sequence...{F.RESET}")
-        for i,guild_id in enumerate(guilds_ids:=os.listdir('./data/guilds/')):
-            if os.path.isfile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json'):
-                print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
-                file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
-                if len(temporary_channels:=file['temporary_channels']) == 0:
-                    print(f' {"│" if not i == len(guilds_ids) - 1 else " " }    └── ✅  {F.GREEN}No temporary channels were found.{F.RESET}')
-                for j,channel_id in enumerate(temporary_channels):
-                    channel = self.bot.get_channel(channel_id)
-                    if channel is not None:
-                        print(f' {"│" if not j == len(temporary_channels) - 1 else " " }    {"├──" if not j == len(temporary_channels) - 1 else "└──" } ⚠️  {F.YELLOW}Found channel \"{channel.name}\" (id:{channel.id}){F.RESET}')
-                        if len(channel.members) == 0:
-                            await channel.delete(reason='Temporary Channel Deleted')
-                            print(f'      {"│" if not j == len(temporary_channels) - 1 else " "}    └── ✅  {F.GREEN}Temporary channel deleted{F.RESET}')
-                            file['temporary_channels'].remove(channel_id)
-                        else:
-                            print(f'      {"│" if not j == len(temporary_channels) - 1 else " "}    └── ⚠️  {F.YELLOW}Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel...{F.RESET}')
-    
+        for i,guild_id in enumerate(guilds_ids:=[file for file in os.listdir('./data/guilds/') if os.path.isfile(f'./data/guilds/{file}/TemporaryChannels/setup.json')]):
+            print(f' │\n{" ├──" if not i == len(guilds_ids) - 1 else " └──" } 🔍  {F.BLUE}Fetching data.guilds.{guild_id}...{F.RESET}')
+            file = JsonFile(f'./data/guilds/{guild_id}/TemporaryChannels/setup.json')
+            if len(temporary_channels:=file['temporary_channels']) == 0:
+                print(f' {"│" if not i == len(guilds_ids) - 1 else " " }    └── ✅  {F.GREEN}No temporary channels were found.{F.RESET}')
+            for j,channel_id in enumerate(temporary_channels):
+                channel = self.bot.get_channel(channel_id)
+                if channel is not None:
+                    print(f' {"│" if not j == len(guilds_ids) - 1 else " " }    {"├──" if not j == len(temporary_channels) - 1 else "└──" } ⚠️  {F.YELLOW}Found channel \"{channel.name}\" (id:{channel.id}){F.RESET}')
+                    if len(channel.members) == 0:
+                        await channel.delete(reason='Temporary Channel Deleted')
+                        print(f'      {"│" if not j == len(temporary_channels) - 1 else " "}    └── ✅  {F.GREEN}Temporary channel deleted{F.RESET}')
+                        file['temporary_channels'].remove(channel_id)
+                    else:
+                        print(f'      {"│" if not j == len(temporary_channels) - 1 else " "}    └── ⚠️  {F.YELLOW}Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel...{F.RESET}')
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         try:
