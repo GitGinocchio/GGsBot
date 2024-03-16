@@ -32,10 +32,21 @@ def load_commands():
                 print(f' {"│" if not i == len(categories) - 1 else " " }    {"│" if not j == len(files) - 1 else "└──" } ⚠️  {F.YELLOW}Skipping non-py file: {filename}{F.RESET}')
 load_commands()
 
-
-
-if __name__ == '__main__':
+def run():
     try:
         Bot.run(token=config['TOKEN'],reconnect=True)
     except nextcord.errors.HTTPException as e:
+        message = e.response.headers['message']
+        retry_after = e.response.headers['retry_after']
+        global_ratelimit = e.response.headers['global']
+        code = e.response.headers['code?']
         print(e.response.headers)
+        print(message)
+        print(retry_after)
+        print(global_ratelimit)
+        print(code)
+        asyncio.sleep(retry_after)
+        
+
+if __name__ == '__main__':
+    run()
