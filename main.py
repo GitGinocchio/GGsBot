@@ -23,24 +23,32 @@ def load_commands():
                 try:
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionFailed, commands.ExtensionAlreadyLoaded, commands.ExtensionNotFound, commands.InvalidSetupArguments) as e:
-                    print(f' {"│" if not i == len(categories) - 1 else " " }    {"└──" if not j == len(files) - 1 else "├──" } ❌  {F.RED}Loading Extension Error: Cog {e.name}{F.RESET}\n │         {F.RED}{"└──" if not j == len(files) - 1 else "├──" }{e}{F.RESET}')
+                    print(f' {"│" if not i == len(categories) - 1 else " " }    {F.RED}{"└──" if not j == len(files) - 1 else "├──" } ❌  Loading Extension Error: Cog {e.name}{F.RESET}\n │         {F.RED}{"└──" if not j == len(files) - 1 else "├──" }{e}{F.RESET}')
                 except commands.NoEntryPointError as e:
                     pass # if no entry point found maybe is a file used by the main command file.
                 else:
-                    print(f' {"│" if not i == len(categories) - 1 else " " }    {"└──" if not j == len(files) - 1 else "├──" } 🎉  {F.MAGENTA}Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
+                    print(f' {"│" if not i == len(categories) - 1 else " " }    {F.MAGENTA}{"└──" if not j == len(files) - 1 else "├──" } 🎉  Successfully imported cog {filename} as commands.{category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_commands']: pass
             else:
-                print(f' {"│" if not i == len(categories) - 1 else " " }    {"│" if not j == len(files) - 1 else "└──" } ⚠️  {F.YELLOW}Skipping non-py file: {filename}{F.RESET}')
+                print(f' {"│" if not i == len(categories) - 1 else " " }    {F.YELLOW}{"│" if not j == len(files) - 1 else "└──" } ⚠️  Skipping non-py file: {filename}{F.RESET}')
 load_commands()
 
 def run():
+    print(f"\n🚀  {F.YELLOW}Initiating bot starting sequence...{F.RESET}")
     try:
+        print(f"🔍  {F.BLUE}Starting bot...{F.RESET}")
         Bot.run(token=config['TOKEN'],reconnect=True)
     except nextcord.errors.HTTPException as e:
-        print(e.response.headers.keys())
-        retry_after = e.response.headers['Retry-After']
-        time.sleep(float(retry_after))
-        run()
+        print(f" {F.RED}└── ❌ An HTTPException occurred{F.RESET}")
+        match e.code:
+            case 429:
+                retry_after = e.response.headers['Retry-After']
+                print(f"     {F.RED}├── Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
+                print(f"     {F.YELLOW}└── Trying after {retry_after} seconds...{F.RESET}")
+                time.sleep(float(retry_after))
+                run()
+            case _:
+                print(f'Unhandled HTTPException(code: {e.code}): {e.text}')
         
 
 if __name__ == '__main__':
