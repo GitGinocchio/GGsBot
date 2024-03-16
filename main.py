@@ -38,15 +38,7 @@ def run():
         Bot.run(token=config['TOKEN'],reconnect=True)
     except nextcord.errors.HTTPException as e:
         print(e.response.headers.keys())
-        #message = e.response.headers['message']
         retry_after = e.response.headers['Retry-After']
-        #global_ratelimit = e.response.headers['global']
-        #code = e.response.headers['code?']
-        #print(e.response.headers)
-        #print(message)
-        #print(retry_after)
-        #print(global_ratelimit)
-        #print(code)
         time.sleep(float(retry_after))
         run()
         
