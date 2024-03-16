@@ -4,6 +4,7 @@ from utils.terminal import clear, F, B
 from config.intents import get
 import nextcord
 import asyncio
+import time
 import os
 
 config = JsonFile('./config/config.jsonc')
@@ -46,7 +47,7 @@ def run():
         #print(retry_after)
         #print(global_ratelimit)
         #print(code)
-        asyncio.sleep(retry_after)
+        time.sleep(float(retry_after))
         run()
         
 
