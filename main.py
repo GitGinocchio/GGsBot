@@ -46,6 +46,7 @@ def run():
                 print(f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
                 print(f"      {F.RED}└── ⚠️  {F.YELLOW}Trying after {retry_after} seconds...{F.RESET}")
                 time.sleep(float(retry_after))
+                print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:
                 print(f'      {F.RED}├── ❌  Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}')
