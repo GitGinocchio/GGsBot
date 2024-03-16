@@ -39,8 +39,8 @@ def run():
         print(f"🔍  {F.BLUE}Starting bot...{F.RESET}")
         Bot.run(token=config['TOKEN'],reconnect=True)
     except nextcord.errors.HTTPException as e:
-        print(f" {F.RED}└── ❌ An HTTPException occurred{F.RESET}")
-        match e.code:
+        print(f" {F.RED}└── ❌  An HTTPException occurred{F.RESET}")
+        match e.response.status_code:
             case 429:
                 retry_after = e.response.headers['Retry-After']
                 print(f"     {F.RED}├── Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
@@ -49,6 +49,7 @@ def run():
                 run()
             case _:
                 print(f'Unhandled HTTPException(code: {e.code}): {e.text}')
+                input('press any key to continue...')
         
 
 if __name__ == '__main__':
