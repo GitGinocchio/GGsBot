@@ -43,12 +43,12 @@ def run():
         match e.status:
             case 429:
                 retry_after = e.response.headers['Retry-After']
-                print(f"     {F.RED}├── Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
-                print(f"     {F.YELLOW}└── Trying after {retry_after} seconds...{F.RESET}")
+                print(f"     {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
+                print(f"     {F.YELLOW}└── ⚠️  Trying after {retry_after} seconds...{F.RESET}")
                 time.sleep(float(retry_after))
                 run()
             case _:
-                print(f'     {F.RED}├── Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}')
+                print(f'     {F.RED}├── ❌  Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}')
                 input('press any key to continue...')
         
 
