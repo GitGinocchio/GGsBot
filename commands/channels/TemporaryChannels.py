@@ -41,7 +41,7 @@ class TemporaryChannels(commands.Cog):
                             print(f' {"│" if not j == len(temporary_channels) - 1 else " "}    └── ✅  {F.GREEN}Temporary channel deleted{F.RESET}')
                             file['temporary_channels'].remove(channel_id)
                         else:
-                            print(f' {"│" if not j == len(temporary_channels) - 1 else " "}         └── ⚠️  {F.YELLOW}Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel...{F.RESET}')
+                            print(f' {"│" if not j == len(temporary_channels) - 1 else " "}    └── ⚠️  {F.YELLOW}Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel...{F.RESET}')
     
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
