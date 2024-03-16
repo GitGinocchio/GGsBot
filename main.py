@@ -39,16 +39,16 @@ def run():
         print(f"🔍  {F.BLUE}Starting bot...{F.RESET}")
         Bot.run(token=config['TOKEN'],reconnect=True)
     except nextcord.errors.HTTPException as e:
-        print(f" {F.RED}└── ❌  An HTTPException occurred(status code: {e.status}){F.RESET}")
+        print(f" └── ❌  {F.RED}An HTTPException occurred(status code: {e.status}){F.RESET}")
         match e.status:
             case 429:
                 retry_after = e.response.headers['Retry-After']
-                print(f"     {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
-                print(f"     {F.YELLOW}└── ⚠️  Trying after {retry_after} seconds...{F.RESET}")
+                print(f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
+                print(f"      {F.RED}└── ⚠️  {F.YELLOW}Trying after {retry_after} seconds...{F.RESET}")
                 time.sleep(float(retry_after))
                 run()
             case _:
-                print(f'     {F.RED}├── ❌  Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}')
+                print(f'      {F.RED}├── ❌  Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}')
                 input('press any key to continue...')
         
 
