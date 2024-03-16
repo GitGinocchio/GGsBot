@@ -16,7 +16,7 @@ class RequestsErrors(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        print(error)
+        print('on_command_error',error)
         if isinstance(error, nextcord.HTTPException):
             if error.status == 429:
                 retry_after = error.response.headers.get('Retry-After')
@@ -28,6 +28,8 @@ class RequestsErrors(commands.Cog):
                     print("Rate limit hit, but no Retry-After header available")
         else:
             print(f"Unhandled exception: {error}")
+
+    
 
 def setup(bot : commands.Bot):
     bot.add_cog(RequestsErrors(bot))
