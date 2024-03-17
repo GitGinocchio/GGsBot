@@ -1,6 +1,6 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
-from utils.terminal import clear, F, B
+from utils.terminal import clear, F, B, erase_last_line
 from config.intents import get
 import nextcord
 import asyncio
@@ -48,10 +48,7 @@ def run():
                 for i in range(0,int(retry_after)):
                     sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
                     time.sleep(1)
-                    sys.stdout.write('')
-                    sys.stdout.write('\033[F')
-                    sys.stdout.write('\033[K')
-
+                    erase_last_line()
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:

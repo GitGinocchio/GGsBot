@@ -7,7 +7,7 @@ clear = lambda: os.system('cls' if os.name == 'nt' else 'clear')
 F = Fore
 B = Back
 
-def remove_last_line():
+def erase_last_line():
     print('')
     sys.stdout.write('\033[F')
     sys.stdout.write('\033[K')
