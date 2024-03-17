@@ -44,8 +44,9 @@ def run():
             case 429:
                 retry_after = e.response.headers['Retry-After']
                 print(f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
-                print(f"      {F.RED}└── ⚠️  {F.YELLOW}Trying after {retry_after} seconds...{F.RESET}")
-                time.sleep(float(retry_after))
+                for i in range(0,int(retry_after)):
+                    time.sleep(1)
+                    print(f"      {F.RED}└── ⚠️  {F.YELLOW}Trying after {retry_after-i} seconds...{F.RESET}",end='\r')
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:
