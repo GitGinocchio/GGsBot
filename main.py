@@ -49,7 +49,7 @@ def run():
                     sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
                     sys.stdout.flush()
                     time.sleep(1)
-                    sys.stdout.flush()
+                    print('')
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:
