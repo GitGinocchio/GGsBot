@@ -48,7 +48,7 @@ def run():
                 for i in range(0,int(retry_after)):
                     sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
                     time.sleep(1)
-                    sys.stdout.flush()
+                    sys.stdout.write('')
                     sys.stdout.write('\033[F')
                     sys.stdout.write('\033[K')
 
