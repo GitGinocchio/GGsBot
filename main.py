@@ -48,8 +48,9 @@ def run():
                 for i in range(0,int(retry_after)):
                     sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
                     time.sleep(1)
-                    print('\r\r')
-                    sys.stdout.flush()
+                    sys.stdout.write('\033[F')
+                    sys.stdout.write('\033[K')
+
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:
