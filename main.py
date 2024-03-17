@@ -47,9 +47,9 @@ def run():
                 print(f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
                 for i in range(0,int(retry_after)):
                     sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
-                    sys.stdout.flush()
                     time.sleep(1)
-                    print('\r')
+                    print('\r\r')
+                    sys.stdout.flush()
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
             case _:
