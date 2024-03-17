@@ -5,6 +5,7 @@ from config.intents import get
 import nextcord
 import asyncio
 import time
+import sys
 import os
 
 config = JsonFile('./config/config.jsonc')
@@ -45,7 +46,8 @@ def run():
                 retry_after = e.response.headers['Retry-After']
                 print(f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}")
                 for i in range(0,int(retry_after)):
-                    print(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}",end='',flush=True)
+                    sys.stdout.write(f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}")
+                    sys.stdout.flush()
                     time.sleep(1)
                 print(f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}")
                 run()
