@@ -1,6 +1,6 @@
 {
     // Constants
-    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GpnBZc.rTC8fxKuboclRKlF4jmhKnr7pTPTIQjFzoEDSM",
+    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GMIilO._CONNKfv4wqiJ1MTDsmf211fXKhbQKkQMndNpM",
     "PUBLIC_KEY": "5cb093e7fc30b5aacf9bb96595781f1c4426c64020e60204abd1df57b5f63cf7",
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
     "APPLICATION_ID": 1094412371390374029,
