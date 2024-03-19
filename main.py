@@ -1,7 +1,6 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
-from utils.terminal import clear, F, B, erase_last_line
-from utils.logger import logger
+from utils.terminal import clear, F, B, erase_last_line, logger
 from config.intents import get
 import nextcord
 import asyncio
@@ -9,14 +8,14 @@ import time
 import sys
 import os
 
+
 config = JsonFile('./config/config.jsonc')
 
 Bot = commands.Bot(intents=get(),
                    command_prefix=config['COMMAND_PREFIX'],
                    application_id=config['APPLICATION_ID'])
 clear()
-
-
+print('ciao')
 def load_commands():
     categories = [
         c for c in os.listdir('./commands')
@@ -53,36 +52,26 @@ load_commands()
 
 
 def run():
-    print(f"\n🚀  {F.YELLOW}Initiating bot starting sequence...{F.RESET}")
+    logger.info("Starting bot...")
     try:
-        print(f"🔍  {F.BLUE}Starting bot...{F.RESET}")
+        logger.info("Loggin in...")
         Bot.run(token=config['TOKEN'], reconnect=True)
     except nextcord.errors.HTTPException as e:
-        print(
-            f" └── ❌  {F.RED}An HTTPException occurred(status code: {e.status}){F.RESET}"
-        )
+        logger.error(f"An HTTPException occurred (status code: {e.status})")
         match e.status:
             case 429:
-                retry_after = e.response.headers['Retry-After']
-                print(
-                    f"      {F.RED}├── ❌  Bot has been temporary-RateLimited from the Discord api's and the bot will not start!{F.RESET}"
-                )
+                retry_after = e.response.headers['Retry-After']    
+                logger.critical("Bot has been temporary-rate-limited from Discord's api and will not start.")
                 for i in range(0, int(retry_after)):
-                    sys.stdout.write(
-                        f"\r      {F.RED}└── ⚠️  {F.YELLOW}Trying after {int(retry_after)-i} seconds...{F.RESET}"
-                    )
+                    logger.warning(f"Retrying after {int(retry_after)-i} seconds...")
                     time.sleep(1)
                     erase_last_line()
-                print(
-                    f"🔍  {F.BLUE}Re-Starting bot after {retry_after} seconds...{F.RESET}"
-                )
+                logger.warning(f"Re-starting bot after {retry_after} seconds...")
                 run()
             case _:
-                print(
-                    f'      {F.RED}├── ❌  Unhandled HTTPException(code: {e.code}): {e.text}{F.RESET}'
-                )
+                logger.fatal(f"Unhandled HTTPException occurred (code: {e.code}): {e.text}")
                 input('press any key to continue...')
-
-
+    except Exception as e:
+        logger.critical(f'Unhandled Exception occurred: {e}')
 if __name__ == '__main__':
     run()

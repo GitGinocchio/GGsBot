@@ -25,6 +25,7 @@
 
     // Logger settings
     "loggername" : "GGsBot",
+    "loglevel" : "INFO",
     "logdir" : "./logs",
-    "loglevel" : "INFO"
+    "logtofile" : false
 }
