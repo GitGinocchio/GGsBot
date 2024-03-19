@@ -15,7 +15,7 @@ Bot = commands.Bot(intents=get(),
                    command_prefix=config['COMMAND_PREFIX'],
                    application_id=config['APPLICATION_ID'])
 clear()
-print('ciao')
+
 def load_commands():
     categories = [
         c for c in os.listdir('./commands')
