@@ -1,10 +1,11 @@
 {
     // Constants
-    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GMIilO._CONNKfv4wqiJ1MTDsmf211fXKhbQKkQMndNpM",
-    "PUBLIC_KEY": "5cb093e7fc30b5aacf9bb96595781f1c4426c64020e60204abd1df57b5f63cf7",
+    "TOKEN": "MTIxOTY2NTY1MzAwMzE5MDI5Mw.GypaZ8.MdXT0kLOAQq6_bXAuT7gBn_eaK8cr6yPzGaxGE",
+    "PUBLIC_KEY": "ca45f7970a4502faea7d294d81ebf97f8390bf6bbea6ae450130cbf015f638cf",
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
-    "APPLICATION_ID": 1094412371390374029,
-    "CLIENT_ID": 1094412371390374029,
+    "APPLICATION_ID": 1219665653003190293,
+    "CLIENT_ID": 1219665653003190293,
+    "CLIENT_SECRET" : "NDn81SZw1xdL5J2HvYQVIk0-m3Ipb2mC",
     "COMMAND_PREFIX": "/",
 
     // Bot settings
