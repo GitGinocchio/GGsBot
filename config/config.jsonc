@@ -1,8 +1,8 @@
 {
     // Constants
-    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GpnBZc.rTC8fxKuboclRKlF4jmhKnr7pTPTIQjFzoEDSM",
+    "TOKEN": "MTA5NDQxMjM3MTM5MDM3NDAyOQ.GMIilO._CONNKfv4wqiJ1MTDsmf211fXKhbQKkQMndNpM",
     "PUBLIC_KEY": "5cb093e7fc30b5aacf9bb96595781f1c4426c64020e60204abd1df57b5f63cf7",
-    "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
+    "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id=1094412371390374029&permissions=8&scope=bot",
     "APPLICATION_ID": 1094412371390374029,
     "CLIENT_ID": 1094412371390374029,
     "COMMAND_PREFIX": "/",
@@ -14,10 +14,16 @@
 
     // Music settings
     "music": {
+        "ffmpeg_path" : "./bin/win64/ffmpeg.exe",
         "spotify": {
-            "CLIENT_ID": "7fe554bb7974407cb0349fe30d9e5eec",
-            "SECRET_KEY": "9ab2f8fcafc74b0cb50fdb91a9ba9869"
-       },
-       "youtube": {}
-    }
+            "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
+            "secretKEY" : "9ab2f8fcafc74b0cb50fdb91a9ba9869"
+        },
+        "youtube": {}
+    },
+
+    // Logger settings
+    "loggername" : "GGsBot",
+    "logdir" : "./logs",
+    "loglevel" : "INFO"
 }
