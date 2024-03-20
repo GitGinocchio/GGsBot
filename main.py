@@ -48,11 +48,10 @@ def load_commands():
                 logger.warning(f'Skipping non-py file: {filename}')
 
 
-load_commands()
-
 
 def run():
     logger.info("Starting bot...")
+    load_commands()
     try:
         logger.info("Loggin in...")
         Bot.run(token=config['TOKEN'], reconnect=True)
