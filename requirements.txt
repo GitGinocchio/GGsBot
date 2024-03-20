@@ -6,3 +6,4 @@ pytube
 spotipy
 PyNaCl
 youtube_dl
+cachetools
