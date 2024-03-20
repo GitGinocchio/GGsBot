@@ -99,8 +99,8 @@ class TemporaryChannels(commands.Cog):
             
             await channel.delete(reason='Temporary Channel Deleted')
         except AssertionError as e: pass
-        except nextcord.NotFound: 
-            setup["temporary_channels"].remove(channel.id)
+        except nextcord.NotFound:
+            if channel.id in setup["temporary_channels"]: setup["temporary_channels"].remove(channel.id)
         except nextcord.Forbidden as e: 
             logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')
         except nextcord.HTTPException as e: logger.error(f'delete_channel HTTPException error: {e} args: [{e.args}]')
