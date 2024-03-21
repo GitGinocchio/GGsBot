@@ -12,37 +12,27 @@ import os
 config = JsonFile('./config/config.jsonc')
 logger = getlogger()
 
-Bot = commands.Bot(intents=get(),
-                   command_prefix=config['COMMAND_PREFIX'],
-                   application_id=config['APPLICATION_ID'])
+Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
 clear()
 
 def load_commands():
-    categories = [
-        c for c in os.listdir('./commands')
-        if c not in config['ignore_categories']
-    ]
+    categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
     for i, category in enumerate(categories):
         logger.info(f'Looking in commands.{category}...')
-        for j, filename in enumerate(
-                files := os.listdir(f'./commands/{category}')):
-            if filename.endswith(
-                    '.py') and filename not in config['ignore_commands']:
+        for j, filename in enumerate(os.listdir(f'./commands/{category}')):
+            if filename.endswith('.py') and filename not in config['ignore_commands']:
                 try:
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionFailed,
                         commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
-                    logger.critical(
-                        f'Loading command error: Cog {e.name} message: {e}')
+                    logger.critical(f'Loading command error: Cog {e.name} message: {e}')
                 except commands.NoEntryPointError as e:
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
-                    logger.info(
-                        f'Succesfully imported command {filename[:-3]} as commands.{category}.{filename[:-3]}'
-                    )
+                    logger.info(f'Succesfully imported command {filename[:-3]} as commands.{category}.{filename[:-3]}')
             elif filename in config['ignore_commands']:
                 pass
             else:
@@ -73,5 +63,6 @@ def run():
                 input('press any key to continue...')
     except Exception as e:
         logger.critical(f'Unhandled Exception occurred: {e}')
+
 if __name__ == '__main__':
     run()

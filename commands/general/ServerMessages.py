@@ -13,7 +13,7 @@ class ServerMessages(commands.Cog):
         super().__init__()
         self.bot = bot
 
-    @nextcord.slash_command("setup_server_messages_channels","Set up server messages in the server.",default_member_permissions=2147493936,dm_permission=False)
+    @nextcord.slash_command("servermessages_setup","Set up server messages in the server.",default_member_permissions=2147493936,dm_permission=False)
     async def setup_server_messages_channels(self, interaction : nextcord.Interaction, welcome_channel : nextcord.TextChannel, goodbye_channel : nextcord.TextChannel):
         try:
             os.makedirs(f'./data/guilds/{interaction.guild_id}/ServerMessages',exist_ok=True)

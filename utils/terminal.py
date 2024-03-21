@@ -60,7 +60,11 @@ level = levels.get(config["loglevel"], logging.INFO)
 
 
 def getlogger():
-    filename = inspect.stack()[1].filename.split('/')[-1].split('.')[0]
+    filename = inspect.stack()[1].filename
+    filename = filename.split('/')[-1]
+    filename = filename.split('\\')[-1]
+    filename = filename.split('.')[:-1][0]
+
     logger = logging.getLogger("{}.{}".format(config['loggername'], filename))
 
     if isinstance(level, tuple):

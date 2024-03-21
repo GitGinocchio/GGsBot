@@ -14,7 +14,7 @@ class General(commands.Cog):
         super().__init__()
         self.bot = bot
 
-    @nextcord.slash_command('clear',"A simple command for clearing an amount of messages in a chat!",default_member_permissions=1101659119616)
+    @nextcord.slash_command('mods_clear',"A simple command for clearing an amount of messages in a chat!",default_member_permissions=1101659119616)
     async def clear(self, interaction : nextcord.Interaction, amount : int = None):
         try:
             await interaction.channel.purge(limit=amount)

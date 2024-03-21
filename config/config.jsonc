@@ -13,6 +13,10 @@
     "ignore_categories" : [],                    // Do not load the specified categories of commands
     "max_guilds" : -1,                           // Maximum number of guilds
 
+    // Temporary Channels
+    "maxcachedguildsettings" : 100,
+    "cachetimetolive" : 3600,
+
     // Music settings
     "music": {
         "ffmpeg_path" : "./bin/win64/ffmpeg.exe",

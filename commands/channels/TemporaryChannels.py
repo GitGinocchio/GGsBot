@@ -10,10 +10,11 @@ logger = getlogger()
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
-        self.setups_cache = TTLCache(100,ttl=300)
+        config = JsonFile('./config/config.jsonc')
+        self.setups_cache = TTLCache(config['maxcachedguildsettings'],ttl=config['cachetimetolive'])
         self.bot = bot
 
-    @nextcord.slash_command("setup_temporary_channels","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
+    @nextcord.slash_command("temporarychannels_setup","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
     async def setup_temporary_channels(self, interaction : nextcord.Interaction, setup_channel : nextcord.VoiceChannel, temporary_channels_category : nextcord.CategoryChannel, timeout : float):
         try:
             os.makedirs(f'./data/guilds/{interaction.guild_id}/{TemporaryChannels.__name__}',exist_ok=True)
