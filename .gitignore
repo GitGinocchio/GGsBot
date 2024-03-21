@@ -155,3 +155,4 @@ cython_debug/
 *.nix
 *.exe
 rippkgs-index.sqlite
+/data/guilds/*
