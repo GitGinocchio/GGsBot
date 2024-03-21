@@ -1,9 +1,12 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
-from utils.terminal import logger
+from utils.terminal import getlogger
 from cachetools import TTLCache
-import asyncio,os
 import nextcord
+import asyncio
+import os
+
+logger = getlogger()
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):

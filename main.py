@@ -1,6 +1,6 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
-from utils.terminal import clear, F, B, erase_last_line, logger
+from utils.terminal import clear, erase_last_line, getlogger
 from config.intents import get
 import nextcord
 import asyncio
@@ -10,6 +10,7 @@ import os
 
 
 config = JsonFile('./config/config.jsonc')
+logger = getlogger()
 
 Bot = commands.Bot(intents=get(),
                    command_prefix=config['COMMAND_PREFIX'],
