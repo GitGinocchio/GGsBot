@@ -113,7 +113,7 @@ class TemporaryChannels(commands.Cog):
             setup = self.get_setup(channel.guild)
             await asyncio.sleep(setup["timeout"])
             logger.info(f'Waited {setup["timeout"]} seconds before deleting channel \'{channel.name}\' with id: {channel.id}')
-            assert len(channel.members) <= 0, f'Temporary channel \"{channel.name}\" with id: {channel.id} not deleted there is/are {len(channel.members)} user/s inside the channel'
+            assert len(channel.members) <= 0, f'Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel'
             
             await channel.delete()
         except AssertionError as e: 
