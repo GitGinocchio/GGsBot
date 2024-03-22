@@ -36,7 +36,6 @@ class TemporaryChannels(commands.Cog):
             logger.info(f"Fetching data.guilds.{guild_id}")
             guild = self.bot.get_guild(int(guild_id))
             file = self.get_setup(guild)
-            #file = JsonFile(f'./data/guilds/{guild_id}/{TemporaryChannels.__name__}/setup.json')
             if len(temporary_channels:=file['temporary_channels']) == 0:
                 logger.info(f"No temporary channels found in guild with id: {guild_id}")
             for j,channel_id in enumerate(temporary_channels):
@@ -53,17 +52,16 @@ class TemporaryChannels(commands.Cog):
     def get_setup(self, guild : nextcord.Guild) -> JsonFile:
         setup_path = f'./data/guilds/{guild.id}/{TemporaryChannels.__name__}/setup.json'
         if guild.id not in self.setups_cache:
-            logger.info(f'Successfully added guild config for guild \'{guild.name}\' with id: {guild.id}.')
+            logger.debug(f'Successfully added guild config for guild \'{guild.name}\' with id: {guild.id}.')
             self.setups_cache[guild.id] = JsonFile(setup_path)
-        logger.info(f'Currently saving config files for {self.setups_cache.currsize} server/s.')
-        logger.info(f'Getting config file for guild \'{guild.name}\' with id: {guild.id}.')
+        logger.debug(f'Currently saving config files for {self.setups_cache.currsize} server/s.')
+        logger.debug(f'Getting config file for guild \'{guild.name}\' with id: {guild.id}.')
         return self.setups_cache[guild.id]
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         if str(member.guild.id) in os.listdir('./data/guilds') and os.path.exists(f'./data/guilds/{member.guild.id}/{TemporaryChannels.__name__}/setup.json'):
             try:
-
                 if before.channel is not None:
                     if after.channel is not None:
                         if before.channel.id == after.channel.id: return
