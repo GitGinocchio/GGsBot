@@ -105,8 +105,6 @@ class TemporaryChannels(commands.Cog):
                     logger.info(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
 
                     setup["temporary_channels"].append(vocal_channel.id)
-                    _ = asyncio.create_task(self.delete_channel(vocal_channel))
-
             except nextcord.errors.HTTPException as e:
                 logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
     
