@@ -18,7 +18,7 @@ clear()
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
-    for i, category in enumerate(categories):
+    for category in categories:
         logger.info(f'Looking in commands.{category}...')
         for j, filename in enumerate(os.listdir(f'./commands/{category}')):
             if filename.endswith('.py') and filename not in config['ignore_commands']:
@@ -28,15 +28,15 @@ def load_commands():
                         commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
-                    logger.critical(f'Loading command error: Cog {e.name} message: {e}')
+                    logger.critical(f'Loading command error: Cog {e.name} message: \n{e}')
                 except commands.NoEntryPointError as e:
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
-                    logger.info(f'Succesfully imported command {filename[:-3]} as commands.{category}.{filename[:-3]}')
+                    logger.info(f'Imported command {category}.{filename[:-3]}')
             elif filename in config['ignore_commands']:
                 pass
             else:
-                logger.warning(f'Skipping non-py file: {filename}')
+                logger.warning(f'Skipping non-py file: \'{filename}\'')
 
 
 
