@@ -66,13 +66,12 @@ class TemporaryChannels(commands.Cog):
 
                 if before.channel is not None:
                     if after.channel is not None:
-                        if before.channel.id != after.channel.id and before.channel.id in setup['temporary_channels']:
-                            _ = asyncio.create_task(self.delete_channel(before.channel))
-                            return
-                        elif before.channel.id == after.channel.id:
-                            return
+                        if before.channel.id == after.channel.id: return
                         
                         setup = self.get_setup(member.guild)
+                        if before.channel.id in setup['temporary_channels']:
+                            _ = asyncio.create_task(self.delete_channel(before.channel))
+                            return
 
                         overwrites = {
                             member: nextcord.PermissionOverwrite(
@@ -105,6 +104,7 @@ class TemporaryChannels(commands.Cog):
                             _ = asyncio.create_task(self.delete_channel(vocal_channel))
 
                     else:
+                        setup = self.get_setup(member.guild)
                         if before.channel.id in setup["temporary_channels"]:
                             _ = asyncio.create_task(self.delete_channel(before.channel))
                             return
