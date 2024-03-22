@@ -6,11 +6,11 @@ import nextcord
 import asyncio
 import os
 
+config = JsonFile('./config/config.jsonc')
 logger = getlogger()
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
-        config = JsonFile('./config/config.jsonc')
         self.setups_cache = TTLCache(config['maxcachedguildsettings'],ttl=config['cachetimetolive'])
         self.bot = bot
 
@@ -51,14 +51,16 @@ class TemporaryChannels(commands.Cog):
     def get_setup(self, guild : nextcord.Guild) -> JsonFile:
         setup_path = f'./data/guilds/{guild.id}/{TemporaryChannels.__name__}/setup.json'
         if guild.id not in self.setups_cache:
+            logger.info(f'Successfully added guild config for guild \'{guild.name}\' with id: {guild.id}.')
             self.setups_cache[guild.id] = JsonFile(setup_path)
+        logger.info(f'Saving config files for {self.setups_cache.currsize} server/s.')
+        logger.info(f'Getting config file for guild \'{guild.name}\' with id: {guild.id}.')
         return self.setups_cache[guild.id]
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         if str(member.guild.id) in os.listdir('./data/guilds') and os.path.exists(f'./data/guilds/{member.guild.id}/{TemporaryChannels.__name__}/setup.json'):
             try:
-                logger.debug(f'Cache is currently saving config for this ids: {self.setups_cache.keys()}')
                 setup = self.get_setup(member.guild)
 
                 if after.channel is not None and after.channel.id == setup['setup_channel_id']:
@@ -76,12 +78,19 @@ class TemporaryChannels(commands.Cog):
                             priority_speaker=True
                         )
                     }
+
                     vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
-                        name=f'{str(member.name).capitalize()}\'s Vocal Channel',
-                        category=self.bot.get_channel(setup["temporary_channels_category_id"]),
-                        overwrites=overwrites)
+                        reason='TEMPORARY_CHANNEL',
+                        name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
+                        category=self.bot.get_channel(setup["temporary_channels_category_id"]))
+                    logger.info(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
                     
-                    await member.move_to(vocal_channel,reason='Temporary Channel Created')
+                    await member.move_to(vocal_channel)
+                    logger.info(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
+                    
+                    await vocal_channel.edit(overwrites=overwrites)
+                    logger.info(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
+
                     setup["temporary_channels"].append(vocal_channel.id)
                     _ = asyncio.create_task(self.delete_channel(vocal_channel))
 
@@ -93,21 +102,26 @@ class TemporaryChannels(commands.Cog):
                         if before.channel.id in setup["temporary_channels"]:
                             _ = asyncio.create_task(self.delete_channel(before.channel))
 
-            except nextcord.errors.HTTPException as e: print(e)
+            except nextcord.errors.HTTPException as e:
+                logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
     
     async def delete_channel(self,channel : nextcord.VoiceChannel):
         try:
             setup = self.get_setup(channel.guild)
             await asyncio.sleep(setup["timeout"])
-            assert len(channel.members) <= 0
+            logger.info(f'Waited {setup["timeout"]} seconds before deleting channel \'{channel.name}\' with id: {channel.id}')
+            assert len(channel.members) <= 0, f'Temporary channel \"{channel.name}\" with id: {channel.id} not deleted there is/are {len(channel.members)} user/s inside the channel'
             
-            await channel.delete(reason='Temporary Channel Deleted')
-        except AssertionError as e: pass
+            await channel.delete()
+        except AssertionError as e: 
+            logger.warning(e)
         except nextcord.NotFound:
-            if channel.id in setup["temporary_channels"]: setup["temporary_channels"].remove(channel.id)
+            if channel.id in setup["temporary_channels"]: 
+                setup["temporary_channels"].remove(channel.id)
         except nextcord.Forbidden as e: 
             logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')
-        except nextcord.HTTPException as e: logger.error(f'delete_channel HTTPException error: {e} args: [{e.args}]')
+        except nextcord.HTTPException as e: 
+            logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
         else:
             setup["temporary_channels"].remove(channel.id)
 
