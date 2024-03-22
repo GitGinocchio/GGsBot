@@ -47,7 +47,7 @@ class TemporaryChannels(commands.Cog):
                         logger.info(f'Temporary channel \"{channel.name}\" with id: {channel_id} deleted')
                         file['temporary_channels'].remove(channel_id)
                     else:
-                        logger.warning(f'Temporary channel \"{channel.name}\" with id: {channel_id} not deleted there is/are {len(channel.members)} user/s inside the channel')
+                        logger.warning(f'Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel')
 
     def get_setup(self, guild : nextcord.Guild) -> JsonFile:
         setup_path = f'./data/guilds/{guild.id}/{TemporaryChannels.__name__}/setup.json'
