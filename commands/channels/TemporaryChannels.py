@@ -34,7 +34,7 @@ class TemporaryChannels(commands.Cog):
         logger.info("TemporaryChannels.py ready, clearing unused temporary channels")
         for i,guild_id in enumerate([file for file in os.listdir('./data/guilds/') if os.path.isfile(f'./data/guilds/{file}/{TemporaryChannels.__name__}/setup.json')]):
             logger.info(f"Fetching data.guilds.{guild_id}")
-            guild = self.bot.get_guild(guild_id)
+            guild = self.bot.get_guild(int(guild_id))
             file = self.get_setup(guild)
             #file = JsonFile(f'./data/guilds/{guild_id}/{TemporaryChannels.__name__}/setup.json')
             if len(temporary_channels:=file['temporary_channels']) == 0:
