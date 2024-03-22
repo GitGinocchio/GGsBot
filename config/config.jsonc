@@ -9,7 +9,7 @@
     "COMMAND_PREFIX": "/",
 
     // Bot settings
-    "ignore_commands" : ["__pycache__"],         // Do not load the specified commands
+    "ignore_commands" : ["__pycache__","placeholder.txt"],         // Do not load the specified commands
     "ignore_categories" : [],                    // Do not load the specified categories of commands
     "max_guilds" : -1,                           // Maximum number of guilds
 
@@ -29,7 +29,7 @@
 
     // Logger settings
     "loggername" : "GGsBot",
-    "loglevel" : "INFO",
+    "loglevel" : "DEBUG",
     "logdir" : "./logs",
     "logtofile" : false
 }
