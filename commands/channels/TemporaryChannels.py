@@ -62,49 +62,44 @@ class TemporaryChannels(commands.Cog):
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         if str(member.guild.id) in os.listdir('./data/guilds') and os.path.exists(f'./data/guilds/{member.guild.id}/{TemporaryChannels.__name__}/setup.json'):
             try:
-                if before.channel is not None:
-                    if after.channel is not None:
+                if after.channel is not None:
+                    if before.channel is not None:
                         if before.channel.id == after.channel.id: return
+
+                    setup = self.get_setup(member.guild)
+                    overwrites = {
+                        member: nextcord.PermissionOverwrite(
+                            view_channel=True,
+                            connect=True,
+                            speak=True,
+                            stream=True,
+                            manage_channels=True,
+                            manage_permissions=True,
+                            move_members=True,
+                            mute_members=True,
+                            deafen_members=True,
+                            priority_speaker=True
+                        )
+                    }
+                    if after.channel.id == setup['setup_channel_id']:
+                        vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
+                            reason='TEMPORARY_CHANNEL',
+                            name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
+                            category=self.bot.get_channel(setup["temporary_channels_category_id"]))
+                        logger.info(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
                         
-                        setup = self.get_setup(member.guild)
-                        if before.channel.id in setup['temporary_channels']:
-                            _ = asyncio.create_task(self.delete_channel(before.channel))
-                            return
-                    else:
-                        setup = self.get_setup(member.guild)
-                        if before.channel.id in setup["temporary_channels"]:
-                            _ = asyncio.create_task(self.delete_channel(before.channel))
-                            return
+                        await member.move_to(vocal_channel)
+                        logger.info(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
+                        
+                        await vocal_channel.edit(overwrites=overwrites)
+                        logger.info(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
+
+                        setup["temporary_channels"].append(vocal_channel.id)
 
                 setup = self.get_setup(member.guild)
-                overwrites = {
-                    member: nextcord.PermissionOverwrite(
-                        view_channel=True,
-                        connect=True,
-                        speak=True,
-                        stream=True,
-                        manage_channels=True,
-                        manage_permissions=True,
-                        move_members=True,
-                        mute_members=True,
-                        deafen_members=True,
-                        priority_speaker=True
-                    )
-                }
-                if after.channel is not None and after.channel.id == setup['setup_channel_id']:
-                    vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
-                        reason='TEMPORARY_CHANNEL',
-                        name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
-                        category=self.bot.get_channel(setup["temporary_channels_category_id"]))
-                    logger.info(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
-                    
-                    await member.move_to(vocal_channel)
-                    logger.info(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
-                    
-                    await vocal_channel.edit(overwrites=overwrites)
-                    logger.info(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
-
-                    setup["temporary_channels"].append(vocal_channel.id)
+                if before.channel.id in setup['temporary_channels']:
+                    _ = asyncio.create_task(self.delete_channel(before.channel))
+            
             except nextcord.errors.HTTPException as e:
                 logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
     
