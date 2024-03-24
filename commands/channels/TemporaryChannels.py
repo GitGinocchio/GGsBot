@@ -91,7 +91,7 @@ class TemporaryChannels(commands.Cog):
                         priority_speaker=True
                     )
                 }
-                if after.channel.id == setup['setup_channel_id']:
+                if after.channel is not None and after.channel.id == setup['setup_channel_id']:
                     vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
                         reason='TEMPORARY_CHANNEL',
                         name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
