@@ -62,8 +62,8 @@ class TemporaryChannels(commands.Cog):
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
         if str(member.guild.id) in os.listdir('./data/guilds') and os.path.exists(f'./data/guilds/{member.guild.id}/{TemporaryChannels.__name__}/setup.json'):
             try:
-                if after.channel is not None:
-                    if before.channel is not None:
+                if after.channel:
+                    if before.channel:
                         if before.channel.id == after.channel.id: return
 
                     setup = self.get_setup(member.guild)
@@ -96,9 +96,10 @@ class TemporaryChannels(commands.Cog):
 
                         setup["temporary_channels"].append(vocal_channel.id)
 
-                setup = self.get_setup(member.guild)
-                if before.channel.id in setup['temporary_channels']:
-                    _ = asyncio.create_task(self.delete_channel(before.channel))
+                if before.channel:
+                    setup = self.get_setup(member.guild)
+                    if before.channel.id in setup['temporary_channels']:
+                        _ = asyncio.create_task(self.delete_channel(before.channel))
             
             except nextcord.errors.HTTPException as e:
                 logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
