@@ -15,7 +15,7 @@
 
     // Temporary Channels
     "maxcachedguildsettings" : 100,
-    "cachetimetolive" : 3600,
+    "cachetimetolive" : 7200,
 
     // Music settings
     "music": {
