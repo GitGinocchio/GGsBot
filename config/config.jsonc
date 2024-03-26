@@ -3,15 +3,15 @@
     "TOKEN": "MTIxOTY2NTY1MzAwMzE5MDI5Mw.GypaZ8.MdXT0kLOAQq6_bXAuT7gBn_eaK8cr6yPzGaxGE",
     "PUBLIC_KEY": "ca45f7970a4502faea7d294d81ebf97f8390bf6bbea6ae450130cbf015f638cf",
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
+    "CLIENT_SECRET" : "NDn81SZw1xdL5J2HvYQVIk0-m3Ipb2mC",
     "APPLICATION_ID": 1219665653003190293,
     "CLIENT_ID": 1219665653003190293,
-    "CLIENT_SECRET" : "NDn81SZw1xdL5J2HvYQVIk0-m3Ipb2mC",
     "COMMAND_PREFIX": "/",
 
     // Bot settings
-    "ignore_commands" : ["__pycache__","placeholder.txt"],         // Do not load the specified commands
-    "ignore_categories" : [],                    // Do not load the specified categories of commands
-    "max_guilds" : -1,                           // Maximum number of guilds
+    "ignore_commands" : ["__pycache__","placeholder.txt"],          // Do not load the specified commands
+    "ignore_categories" : [],                                       // Do not load the specified categories of commands
+    "max_guilds" : -1,                                              // Maximum number of guilds
 
     // Temporary Channels
     "maxcachedguildsettings" : 100,
@@ -20,11 +20,22 @@
     // Music settings
     "music": {
         "ffmpeg_path" : "./bin/win64/ffmpeg.exe",
+        "defaultvolume" : 3.0,
         "spotify": {
             "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
             "secretKEY" : "9ab2f8fcafc74b0cb50fdb91a9ba9869"
         },
-        "youtube": {}
+        "youtube": {
+            "ytdl_params" : {
+                "format": "bestaudio",
+                "quiet": true,
+                "postprocessor" : {
+                    "key" : "FFmpegExtractAudio",
+                    "preferredcodec" : "mp3",
+                    "preferredquality" : "192"
+                    }
+                }
+        }
     },
 
     // Logger settings
