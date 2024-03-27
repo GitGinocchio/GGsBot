@@ -1,5 +1,6 @@
 
 
 
-def is_valid_spotify_url(url : str):
-    pass
+class SpotifyExtension:
+    def __init__(self):
+        pass

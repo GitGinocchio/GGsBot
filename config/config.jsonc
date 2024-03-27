@@ -19,7 +19,7 @@
 
     // Music settings
     "music": {
-        "ffmpeg_path" : "./bin/win64/ffmpeg.exe",
+        "ffmpeg_path" : "./bin/x64/ffmpeg.exe",
         "defaultvolume" : 3.0,
         "spotify": {
             "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
@@ -27,14 +27,15 @@
         },
         "youtube": {
             "ytdl_params" : {
-                "format": "bestaudio",
+                "format": "bestaudio/best",
                 "quiet": true,
                 "postprocessor" : {
                     "key" : "FFmpegExtractAudio",
                     "preferredcodec" : "mp3",
                     "preferredquality" : "192"
                     }
-                }
+                },
+                "cookiefile": "./data/cookies/cookies.txt"
         }
     },
 
