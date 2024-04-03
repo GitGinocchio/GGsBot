@@ -1,4 +1,6 @@
 {
+    // -- Bot Settings -- 
+    
     // Constants
     "TOKEN": "MTIxOTY2NTY1MzAwMzE5MDI5Mw.GypaZ8.MdXT0kLOAQq6_bXAuT7gBn_eaK8cr6yPzGaxGE",
     "PUBLIC_KEY": "ca45f7970a4502faea7d294d81ebf97f8390bf6bbea6ae450130cbf015f638cf",
@@ -8,18 +10,30 @@
     "CLIENT_ID": 1219665653003190293,
     "COMMAND_PREFIX": "/",
 
-    // Bot settings
+    // Command settings
     "ignore_commands" : ["__pycache__","placeholder.txt"],          // Do not load the specified commands
     "ignore_categories" : [],                                       // Do not load the specified categories of commands
     "max_guilds" : -1,                                              // Maximum number of guilds
 
+    // Logger settings
+    "logger" : {
+        "level" : "INFO",
+        "dir" : "./logs",
+        "tofile" : false,
+        "datefmt" : "%Y-%m-%d %H:%M:%S"
+    },
+
+    // -- Cogs Settings --
+
     // Temporary Channels
-    "maxcachedguildsettings" : 100,
-    "cachetimetolive" : 7200,
+    "temporary-channels" : {
+        "maxcachedguilds" : 100,
+        "cachettl" : 7200
+    },
 
     // Music settings
     "music": {
-        "ffmpeg_path" : "./bin/x64/ffmpeg.exe",
+        "ffmpeg_path" : "./bin/win/ffmpeg.exe",
         "defaultvolume" : 3.0,
         "spotify": {
             "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
@@ -29,19 +43,15 @@
             "ytdl_params" : {
                 "format": "bestaudio/best",
                 "quiet": true,
-                "postprocessor" : {
+                "postprocessors" : [
+                    {
                     "key" : "FFmpegExtractAudio",
                     "preferredcodec" : "mp3",
                     "preferredquality" : "192"
                     }
-                },
+                ],
                 "cookiefile": "./data/cookies/cookies.txt"
+            }
         }
-    },
-
-    // Logger settings
-    "loggername" : "GGsBot",
-    "loglevel" : "INFO",
-    "logdir" : "./logs",
-    "logtofile" : false
+    }
 }

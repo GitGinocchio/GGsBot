@@ -1,11 +1,10 @@
 from nextcord import Embed,Color,utils,channel,Permissions,Interaction
 from .YoutubeExtension import YoutubeExtension
-from utils.jsonfile import JsonFile
 from utils.terminal import getlogger
 from nextcord.ext import commands
+from utils.config import config
 import nextcord
 
-config = JsonFile('./config/config.jsonc')
 logger = getlogger()
 
 class MusicCommands(commands.Cog):

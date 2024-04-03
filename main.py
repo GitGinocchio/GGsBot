@@ -1,6 +1,6 @@
+from utils.terminal import clear, erase, getlogger
 from nextcord.ext import commands
-from utils.jsonfile import JsonFile
-from utils.terminal import clear, erase_last_line, getlogger
+from utils.config import config
 from config.intents import get
 import nextcord
 import asyncio
@@ -8,8 +8,6 @@ import time
 import sys
 import os
 
-
-config = JsonFile('./config/config.jsonc')
 logger = getlogger()
 
 Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
@@ -55,7 +53,7 @@ def run():
                 for i in range(0, int(retry_after)):
                     logger.warning(f"Retrying after {int(retry_after)-i} seconds...")
                     time.sleep(1)
-                    erase_last_line()
+                    erase()
                 logger.warning(f"Re-starting bot after {retry_after} seconds...")
                 run()
             case _:

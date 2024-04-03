@@ -1,17 +1,18 @@
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
 from utils.terminal import getlogger
+from utils.config import config
 from cachetools import TTLCache
 import nextcord
 import asyncio
 import os
 
-config = JsonFile('./config/config.jsonc')
 logger = getlogger()
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
-        self.setups_cache = TTLCache(config['maxcachedguildsettings'],ttl=config['cachetimetolive'])
+
+        self.setups_cache = TTLCache(config["temporary-channels"]['maxcachedguilds'],ttl=config['cachettl"'])
         self.bot = bot
 
     @nextcord.slash_command("temporarychannels_setup","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
