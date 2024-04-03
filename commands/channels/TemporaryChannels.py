@@ -12,7 +12,7 @@ logger = getlogger()
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
 
-        self.setups_cache = TTLCache(config["temporary-channels"]['maxcachedguilds'],ttl=config['cachettl"'])
+        self.setups_cache = TTLCache(config["temporary-channels"]['maxcachedguilds'],ttl=config["temporary-channels"]['cachettl"'])
         self.bot = bot
 
     @nextcord.slash_command("temporarychannels_setup","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
