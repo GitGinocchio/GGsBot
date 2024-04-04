@@ -44,6 +44,7 @@
             "ytdl_params" : {
                 "format": "bestaudio/best",
                 "quiet": true,
+                "ignoreerrors": true,
                 "postprocessors" : [
                     {
                         "key" : "FFmpegExtractAudio",
