@@ -2,11 +2,13 @@ from utils.terminal import clear, erase, getlogger
 from nextcord.ext import commands
 from utils.config import config
 from utils.intents import get
+from utils.system import getsysteminfo
 import nextcord
 import time
 import os
 
 clear()
+getsysteminfo()
 logger = getlogger()
 
 Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
