@@ -34,6 +34,8 @@ class MusicCommands(commands.Cog):
                 pass #aggiungere in coda...
         except AssertionError as e:
             await interaction.response.send_message(e,ephemeral=True,delete_after=5.0)
+        except nextcord.errors.ClientException as e:
+            logger.fatal(e)
 
     @nextcord.slash_command('music_volume','Set volume for current stream',default_member_permissions=8,dm_permission=False)
     async def volume(self, interaction : nextcord.Interaction, volume : float = config['music']['defaultvolume']):
