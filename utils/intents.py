@@ -8,7 +8,7 @@ FLAGS = Intents.VALID_FLAGS
 FLAGS['all'] = Intents.all().value
 FLAGS['default'] = Intents.default().value
 
-def get():
+def getintents():
     flags = config.get('INTENTS',Intents.default())
     if isinstance(flags,Intents):
         logger.warning(f'No intents specified will be used the default intents configuration')

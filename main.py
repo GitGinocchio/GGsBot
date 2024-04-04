@@ -1,7 +1,7 @@
-from utils.terminal import clear, erase, getlogger
+from utils.terminal import clear, erase, getlogger,F
 from nextcord.ext import commands
 from utils.config import config
-from utils.intents import get
+from utils.intents import getintents
 from utils.system import getsysteminfo
 import nextcord
 import time
@@ -11,13 +11,13 @@ clear()
 getsysteminfo()
 logger = getlogger()
 
-Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
+Bot = commands.Bot(intents=getintents(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
     for category in categories:
-        logger.info(f'Looking in commands.{category}...')
+        logger.info(f'Looking in {F.LIGHTMAGENTA_EX}commands.{category}{F.RESET}...')
         for filename in os.listdir(f'./commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
@@ -30,7 +30,7 @@ def load_commands():
                 except commands.NoEntryPointError as e:
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
-                    logger.info(f'Imported command {category}.{filename[:-3]}')
+                    logger.info(f'{F.LIGHTMAGENTA_EX}Imported command {category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_files']:
                 pass
             else:
