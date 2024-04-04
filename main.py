@@ -2,7 +2,7 @@ from utils.terminal import clear, erase, getlogger
 from nextcord.ext import commands
 from utils.config import config
 from utils.intents import get
-from utils.system import getos
+from utils.system import getos,getarch
 import nextcord
 import time
 import os
@@ -62,5 +62,6 @@ def run():
         logger.critical(f'Unhandled Exception occurred: {e}')
 
 if __name__ == '__main__':
-    getos()
+    print(getos())
+    print(getarch())
     run()
