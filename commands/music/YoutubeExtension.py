@@ -9,6 +9,8 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
         self.loop = loop
     
     def isvalid(self, url : str):
+        #https://www.youtube.com/watch?v=XXYlFuWEuKI
+        #https://www.youtube.com/watch?v=XXYlFuWEuKI&list=PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj
         parsed = parse.urlparse(url)
         if 'youtube.com' in parsed.netloc and parsed.path == '/watch':
             return True
@@ -20,7 +22,11 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
         else: url = f'ytsearch: {queryorurl}'
 
         data = await self.loop.run_in_executor(None, lambda: self.extract_info(url, download=False))
-        
-        #print(data.keys())
 
-        return data
+        if not 'entries' in data:
+            return dict(data) if data else None
+        
+        tracks = []
+        for entrie in data['entries']:
+            if 'url' in entrie: tracks.append(entrie)
+        return tracks
