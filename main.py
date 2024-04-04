@@ -62,5 +62,5 @@ def run():
         logger.critical(f'Unhandled Exception occurred: {e}')
 
 if __name__ == '__main__':
-    print(getos())
+    getos()
     run()

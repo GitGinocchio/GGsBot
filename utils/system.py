@@ -2,4 +2,7 @@ import platform
 
 
 def getos():
-    return platform.platform()
+    print(platform.architecture())
+    print(platform.platform())
+    print(platform.machine())
+    print(platform.processor())
