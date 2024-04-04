@@ -5,6 +5,7 @@ from nextcord.ext import commands
 from utils.config import config
 from utils.system import OS,ARCH
 import nextcord
+import sys
 
 logger = getlogger()
 
@@ -25,7 +26,7 @@ class MusicCommands(commands.Cog):
             if not interaction.guild.voice_client.is_playing():
                 interaction.guild.voice_client.stop()
                 info = await self.yt.get_info(queryorurl)
-                source = nextcord.FFmpegPCMAudio(info['url'],executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=logger.error)
+                source = nextcord.FFmpegPCMAudio(info['url'],executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=sys.stderr)
                 interaction.guild.voice_client.play(nextcord.PCMVolumeTransformer(source, config['music']['defaultvolume']))
                 await interaction.response.send_message(f"{interaction.user.mention} playing {info['title']}...",ephemeral=True,delete_after=5.0)
             else:

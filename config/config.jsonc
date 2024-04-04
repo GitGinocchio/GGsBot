@@ -35,7 +35,7 @@
     // Music settings
     "music": {
         "ffmpeg_path" : "./bin/{os}/{arch}/ffmpeg.exe",
-        "defaultvolume" : 3.0,
+        "defaultvolume" : 100.0,
         "spotify": {
             "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
             "secretKEY" : "9ab2f8fcafc74b0cb50fdb91a9ba9869"

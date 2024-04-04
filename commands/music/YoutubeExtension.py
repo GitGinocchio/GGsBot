@@ -21,6 +21,6 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
 
         data = await self.loop.run_in_executor(None, lambda: self.extract_info(url, download=False))
         
-        print(data.keys())
+        #print(data.keys())
 
         return data
