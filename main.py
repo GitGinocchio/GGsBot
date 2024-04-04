@@ -30,7 +30,7 @@ def load_commands():
                 except commands.NoEntryPointError as e:
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
-                    logger.info(f'{F.LIGHTMAGENTA_EX}Imported command {category}.{filename[:-3]}{F.RESET}')
+                    logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
             elif filename in config['ignore_files']:
                 pass
             else:
