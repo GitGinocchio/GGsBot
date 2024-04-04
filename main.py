@@ -17,7 +17,7 @@ def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
     for category in categories:
-        logger.info(f'Looking in {F.LIGHTMAGENTA_EX}commands.{category}{F.RESET}...')
+        logger.info(f'Looking in commands.{category}...')
         for filename in os.listdir(f'./commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
