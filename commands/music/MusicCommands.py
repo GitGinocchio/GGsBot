@@ -54,10 +54,10 @@ class MusicCommands(commands.Cog):
             assert not interaction.guild.voice_client, f'{interaction.user.mention} I am currently in a voice channel!'
 
             await interaction.user.voice.channel.connect()
-            await interaction.response.send_message(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=2.5)
+            await interaction.response.send_message(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
 
         except AssertionError as e:
-            await interaction.response.send_message(e,ephemeral=True,delete_after=5)
+            await interaction.response.send_message(e,ephemeral=True,delete_after=5.0)
         
     @nextcord.slash_command('music_leave',"The bot will leave your vocal channel!",default_member_permissions=8,dm_permission=False)
     async def leave(self, interaction : nextcord.Interaction):
