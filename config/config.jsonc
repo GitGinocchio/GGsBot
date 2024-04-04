@@ -9,9 +9,10 @@
     "APPLICATION_ID": 1219665653003190293,
     "CLIENT_ID": 1219665653003190293,
     "COMMAND_PREFIX": "/",
+    "INTENTS" : "all",
 
     // Command settings
-    "ignore_commands" : ["__pycache__","placeholder.txt"],          // Do not load the specified commands
+    "ignore_files" : ["__pycache__","placeholder.txt"],             // Do not load the specified commands
     "ignore_categories" : [],                                       // Do not load the specified categories of commands
     "max_guilds" : -1,                                              // Maximum number of guilds
 
@@ -20,10 +21,10 @@
         "level" : "INFO",
         "dir" : "./logs",
         "tofile" : false,
-        "datefmt" : "%Y-%m-%d %H:%M:%S"
+        "datefmt" : "%H:%M:%S"
     },
 
-    // -- Cogs Settings --
+    // -- Commands Settings --
 
     // Temporary Channels
     "temporary-channels" : {
@@ -33,7 +34,7 @@
 
     // Music settings
     "music": {
-        "ffmpeg_path" : "./bin/win/ffmpeg.exe",
+        "ffmpeg_path" : "./bin/{}/ffmpeg.exe",
         "defaultvolume" : 3.0,
         "spotify": {
             "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
@@ -45,12 +46,12 @@
                 "quiet": true,
                 "postprocessors" : [
                     {
-                    "key" : "FFmpegExtractAudio",
-                    "preferredcodec" : "mp3",
-                    "preferredquality" : "192"
+                        "key" : "FFmpegExtractAudio",
+                        "preferredcodec" : "mp3",
+                        "preferredquality" : "192"
                     }
                 ],
-                "cookiefile": "./data/cookies/cookies.txt"
+                "cookiefile": "./data/cookies/ytdl-cookies.txt"
             }
         }
     }

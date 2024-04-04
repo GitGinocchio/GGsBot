@@ -5,6 +5,7 @@ import inspect
 import logging
 import sys
 import os
+import re
 
 def clear():
     """call the command for clearing the terminal depending on your system"""
@@ -17,17 +18,16 @@ def erase():
     sys.stdout.write('\033[K')
 
 levels = {
-    "DEBUG":    (logging.DEBUG,      F.GREEN),
-    "INFO":     (logging.INFO,       F.WHITE),
-    "WARNING":  (logging.WARNING,    F.LIGHTYELLOW_EX),
-    "ERROR":    (logging.ERROR,      F.YELLOW),
-    "CRITICAL": (logging.CRITICAL,   F.LIGHTRED_EX),
-    "FATAL":    (logging.FATAL,      F.RED)
+    "DEBUG"      :   (logging.DEBUG,      F.GREEN          ),
+    "INFO"       :   (logging.INFO,       F.WHITE          ),
+    "WARNING"    :   (logging.WARNING,    F.LIGHTYELLOW_EX ),
+    "ERROR"      :   (logging.ERROR,      F.YELLOW         ),
+    "CRITICAL"   :   (logging.CRITICAL,   F.LIGHTRED_EX    ),
+    "FATAL"      :   (logging.FATAL,      F.RED            )
 }
 
-
 class CustomColorsFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord):
+    def format(self, record : logging.LogRecord):
         color = levels.get(record.levelname, F.WHITE)
         record.name = f"{F.LIGHTMAGENTA_EX}[{record.name}]{F.RESET}"
         record.msg = f": {color[1]}{record.msg}{F.RESET}"
@@ -51,11 +51,9 @@ if config["logger"]["tofile"]:
 level = levels.get(config["logger"]["level"], logging.INFO)
 
 
-def getlogger():
+def getlogger() -> logging.Logger:
     filename = inspect.stack()[1].filename
-    filename = filename.split('/')[-1]
-    filename = filename.split('\\')[-1]
-    filename = filename.split('.')[:-1][0]
+    filename = re.match(r".*[\\/](.+?)(\.[^.]*$|$)", filename).group(1)
 
     logger = logging.getLogger(filename)
 
@@ -68,4 +66,5 @@ def getlogger():
 
     if config["logger"]["tofile"]:
         logger.addHandler(logfile)
+    
     return logger

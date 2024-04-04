@@ -1,25 +1,24 @@
 from utils.terminal import clear, erase, getlogger
 from nextcord.ext import commands
 from utils.config import config
-from config.intents import get
+from utils.intents import get
+from utils.system import getos
 import nextcord
-import asyncio
 import time
-import sys
 import os
 
+clear()
 logger = getlogger()
 
 Bot = commands.Bot(intents=get(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
-clear()
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
     for category in categories:
         logger.info(f'Looking in commands.{category}...')
-        for j, filename in enumerate(os.listdir(f'./commands/{category}')):
-            if filename.endswith('.py') and filename not in config['ignore_commands']:
+        for filename in os.listdir(f'./commands/{category}'):
+            if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionFailed,
@@ -31,7 +30,7 @@ def load_commands():
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
                     logger.info(f'Imported command {category}.{filename[:-3]}')
-            elif filename in config['ignore_commands']:
+            elif filename in config['ignore_files']:
                 pass
             else:
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
@@ -63,4 +62,5 @@ def run():
         logger.critical(f'Unhandled Exception occurred: {e}')
 
 if __name__ == '__main__':
+    print(getos())
     run()
