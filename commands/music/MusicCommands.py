@@ -92,6 +92,8 @@ class MusicCommands(commands.Cog):
             await interaction.user.voice.channel.connect()
         except AssertionError as e:
             await interaction.send(str(e),ephemeral=True,delete_after=5.0)
+        except Exception as e:
+            logger.error(e)
         else:
             await interaction.send(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
 
