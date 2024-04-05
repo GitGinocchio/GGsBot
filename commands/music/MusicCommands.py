@@ -17,10 +17,11 @@ class MusicCommands(commands.Cog):
         self.bot = bot
         self.volume = config['music']['defaultvolume']
     #2147483648
-        
+    
     @nextcord.slash_command('music_play',"Play songs with the bot in your channel",default_member_permissions=8,dm_permission=False)
     async def play(self, interaction : nextcord.Interaction, queryorurl : str = None):
         try:
+            await interaction.response.defer(ephemeral=True,with_message=True)
             assert interaction.user.voice.channel, f'{interaction.user.mention} You have to join a voice channel first!'
             assert interaction.guild.voice_client, f'{interaction.user.mention} You have to call */join* command first!'
 
@@ -53,6 +54,7 @@ class MusicCommands(commands.Cog):
     @nextcord.slash_command('music_add',"Add a song to the end of the queue",default_member_permissions=8,dm_permission=False)
     async def add(self, interaction : nextcord.Interaction, queryorurl : str):
         try:
+            await interaction.response.defer(ephemeral=True,with_message=True)
             assert interaction.user.voice.channel, f'{interaction.user.mention} You have to join a voice channel first!'
             assert interaction.guild.voice_client, f'{interaction.user.mention} You have to call */join* command first!'
 
@@ -86,6 +88,7 @@ class MusicCommands(commands.Cog):
     @nextcord.slash_command("music_join","Bring the bot on your current voice channel",default_member_permissions=8,dm_permission=False)
     async def join(self, interaction : nextcord.Interaction):
         try:
+            await interaction.response.defer(ephemeral=True,with_message=True)
             assert interaction.user.voice, f'{interaction.user.mention} You have to join a voice channel first!'
             assert not interaction.guild.voice_client, f'{interaction.user.mention} I am currently in a voice channel!'
 
@@ -97,14 +100,17 @@ class MusicCommands(commands.Cog):
         else:
             await interaction.send(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
 
-        
     @nextcord.slash_command('music_leave',"The bot will leave your vocal channel",default_member_permissions=8,dm_permission=False)
     async def leave(self, interaction : nextcord.Interaction):
-        if interaction.guild.voice_client is not None:
-            await interaction.guild.voice_client.disconnect()
-            await interaction.response.send_message(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
-        else:
-            await interaction.response.send_message(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
+        try:
+            await interaction.response.defer(ephemeral=True,with_message=True)
+            if interaction.guild.voice_client is not None:
+                await interaction.guild.voice_client.disconnect()
+                await interaction.response.send_message(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
+            else:
+                await interaction.response.send_message(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
+        except Exception as e:
+            logger.error(str(e))
 
 
 
