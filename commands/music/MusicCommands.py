@@ -93,9 +93,9 @@ class MusicCommands(commands.Cog):
             assert not interaction.guild.voice_client, f'{interaction.user.mention} I am currently in a voice channel!'
 
             await interaction.user.voice.channel.connect()
-            await interaction.edit(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
+            await interaction.send(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
         except AssertionError as e:
-            await interaction.edit(str(e),ephemeral=True,delete_after=5.0)
+            await interaction.send(str(e),ephemeral=True,delete_after=5.0)
         except Exception as e:
             logger.error(e)
 
@@ -104,9 +104,9 @@ class MusicCommands(commands.Cog):
         await interaction.response.defer(ephemeral=True,with_message=True)
         if interaction.guild.voice_client is not None:
             await interaction.guild.voice_client.disconnect()
-            await interaction.edit(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
+            await interaction.send(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
         else:
-            await interaction.edit(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
+            await interaction.send(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
 
 
 
