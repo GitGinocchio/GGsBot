@@ -5,5 +5,5 @@ asyncio
 pytube
 spotipy
 PyNaCl
-youtube_dl
+yt-dlp
 cachetools

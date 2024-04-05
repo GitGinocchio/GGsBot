@@ -48,8 +48,8 @@
                 "postprocessors" : [
                     {
                         "key" : "FFmpegExtractAudio",
-                        "preferredcodec" : "mp3",
-                        "preferredquality" : "192"
+                        "preferredcodec" : "opus",
+                        "preferredquality" : "128" // 64 96 128 192
                     }
                 ],
                 "cookiefile": "./data/cookies/ytdl-cookies.txt"

@@ -1,4 +1,3 @@
-from typing import Literal
 from utils.terminal import getlogger
 import platform
 

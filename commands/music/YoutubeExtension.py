@@ -1,7 +1,7 @@
+from .MusicUtilities import Song
+import yt_dlp as youtube_dl
 from urllib import parse
-import youtube_dl
 import asyncio
-
 
 class YoutubeExtension(youtube_dl.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):
@@ -16,17 +16,17 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
             return True
         else:
             return False
-    
+
     async def get_info(self, queryorurl : str):
         if self.isvalid(queryorurl): url = queryorurl
         else: url = f'ytsearch: {queryorurl}'
 
         data = await self.loop.run_in_executor(None, lambda: self.extract_info(url, download=False))
 
-        if not 'entries' in data:
-            return dict(data) if data else None
-        
-        tracks = []
-        for entrie in data['entries']:
-            if 'url' in entrie: tracks.append(entrie)
+        if not data: return None
+
+        if not 'entries' in data: return Song(data)
+
+        tracks = [Song(entrie) for entrie in data['entries'] if 'url' in entrie]
+
         return tracks
