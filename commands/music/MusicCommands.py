@@ -106,9 +106,9 @@ class MusicCommands(commands.Cog):
             await interaction.response.defer(ephemeral=True,with_message=True)
             if interaction.guild.voice_client is not None:
                 await interaction.guild.voice_client.disconnect()
-                await interaction.response.send_message(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
+                await interaction.send(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
             else:
-                await interaction.response.send_message(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
+                await interaction.send(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
         except Exception as e:
             logger.error(str(e))
 
