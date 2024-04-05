@@ -102,15 +102,12 @@ class MusicCommands(commands.Cog):
 
     @nextcord.slash_command('music_leave',"The bot will leave your vocal channel",default_member_permissions=8,dm_permission=False)
     async def leave(self, interaction : nextcord.Interaction):
-        try:
-            await interaction.response.defer(ephemeral=True,with_message=True)
-            if interaction.guild.voice_client is not None:
-                await interaction.guild.voice_client.disconnect()
-                await interaction.send(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
-            else:
-                await interaction.send(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
-        except Exception as e:
-            logger.error(str(e))
+        await interaction.response.defer(ephemeral=True,with_message=True)
+        if interaction.guild.voice_client is not None:
+            await interaction.guild.voice_client.disconnect()
+            await interaction.send(f"{interaction.user.mention} I left the voice channel!",ephemeral=True,delete_after=5)
+        else:
+            await interaction.send(f"{interaction.user.mention} I am not in a vocal channel!",ephemeral=True,delete_after=5)
 
 
 
