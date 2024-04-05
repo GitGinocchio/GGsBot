@@ -91,9 +91,9 @@ class MusicCommands(commands.Cog):
 
             await interaction.user.voice.channel.connect()
         except AssertionError as e:
-            await interaction.response.send_message(str(e),ephemeral=True,delete_after=5.0)
+            await interaction.send(str(e),ephemeral=True,delete_after=5.0)
         else:
-            await interaction.response.send_message(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
+            await interaction.send(f"{interaction.user.mention} I joined your voice channel!", ephemeral=True, delete_after=5.0)
 
         
     @nextcord.slash_command('music_leave',"The bot will leave your vocal channel",default_member_permissions=8,dm_permission=False)
