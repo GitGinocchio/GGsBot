@@ -96,7 +96,6 @@ class Session:
         source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
         
-        self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
         await interaction.channel.send(f"{self.owner.mention} playing {song.title}...",delete_after=5.0)
