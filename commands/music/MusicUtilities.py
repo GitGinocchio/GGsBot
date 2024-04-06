@@ -63,17 +63,19 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class BytesIOWithCallback(io.BytesIO):
-    def __init__(self, callback : Callable = None):
+class TextIOWithCallback(io.StringIO):
+    def __init__(self, callback=None, *args, **kwargs):
         super().__init__()
         self.callback = callback
+        self.args = args
+        self.kwargs = kwargs
 
-    def write(self, b):
+    def write(self, s):
         # Chiamare il metodo write della classe base
-        super().write(b)
-        # Se è stato definito un callback, chiamarlo passando i bytes scritti
+        super().write(s)
+        # Se è stato definito un callback, chiamarlo passando la stringa scritta
         if self.callback:
-            self.callback(b)
+            self.callback(s,self.args,self.kwargs)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
@@ -110,7 +112,7 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
         
-        filelike = BytesIOWithCallback(self._on_ffmpeg_error)
+        filelike = TextIOWithCallback(self._on_ffmpeg_error)
         
         source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=filelike)
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
