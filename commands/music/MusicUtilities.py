@@ -3,12 +3,13 @@ from utils.system import OS, ARCH
 from utils.config import config
 from utils.terminal import getlogger
 from collections import deque
-from typing import Iterable
+from typing import Iterable, Callable
 from enum import Enum
 import nextcord
 import asyncio
 import random
 import sys
+import io
 
 logger = getlogger()
 
@@ -62,6 +63,18 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
+class BytesIOWithCallback(io.BytesIO):
+    def __init__(self, callback : Callable = None):
+        super().__init__()
+        self.callback = callback
+
+    def write(self, b):
+        # Chiamare il metodo write della classe base
+        super().write(b)
+        # Se è stato definito un callback, chiamarlo passando i bytes scritti
+        if self.callback:
+            self.callback(b)
+
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
@@ -84,6 +97,11 @@ class Session:
             coro = self.playsong(interaction,lastsong if self.loop else None)
             self.task = self.bot.loop.create_task(coro)
 
+    def _on_ffmpeg_error(self, b : bytes):
+        print(b.decode())
+        if b.decode() == '[in#0/matroska,webm @ 0x6e1fa00] Error retrieving a packet from demuxer: Input/output error':
+            print('ciao')
+
     async def playsong(self, interaction : nextcord.Interaction, song : Song = None):
         self.guild.voice_client.stop()
 
@@ -92,9 +110,10 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
         
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
-        ciao = self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
-        print(ciao)
+        filelike = BytesIOWithCallback(self._on_ffmpeg_error)
+        
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=filelike)
+        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
