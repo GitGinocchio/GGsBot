@@ -67,8 +67,11 @@ class Queue(deque):
 
 class CustomStderrWithCallback(io.TextIOWrapper):
     def __init__(self, callback : Callable = None):
-        io.TextIOWrapper.__init__(self,sys.stderr)
+        super().__init__(sys.stderr)
         self.callback = callback
+
+    def fileno(self):
+        return sys.stderr.fileno()
 
     def write(self, data):
         print('scrivendo: ', data)
