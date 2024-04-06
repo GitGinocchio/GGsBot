@@ -1,15 +1,15 @@
+from typing import Iterable, Callable
 from nextcord.ext import commands
 from utils.system import OS, ARCH
 from utils.config import config
 from utils.terminal import getlogger
 from collections import deque
-from typing import Iterable, Callable
 from enum import Enum
 import nextcord
+import tempfile
 import asyncio
 import random
 import sys
-import io
 
 logger = getlogger()
 
@@ -63,20 +63,15 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class TextIOWithCallback(io.TextIOBase):
-    def __init__(self, callback=None, *args, **kwargs):
-        super().__init__()
-        self.buffer = io.StringIO()
+class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
+    def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback : Callable = None):
+        super().__init__(max_size=max_size, mode=mode, suffix=suffix, prefix=prefix, dir=dir)
         self.callback = callback
-        self.args = args
-        self.kwargs = kwargs
 
-    def write(self, s):
-        # Scrivi i dati nel buffer
-        self.buffer.write(s)
-        # Se è stato definito un callback, chiamarlo passando la stringa scritta
+    def write(self, data):
+        super().write(data)
         if self.callback:
-            self.callback(s,self.args,self.kwargs)
+            self.callback(data)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
@@ -102,7 +97,7 @@ class Session:
 
     def _on_ffmpeg_error(self, b : bytes):
         print(b.decode())
-        if b.decode() == '[in#0/matroska,webm @ 0x6e1fa00] Error retrieving a packet from demuxer: Input/output error':
+        if 'Error retrieving a packet from demuxer: Input/output error' in b.decode():
             print('ciao')
 
     async def playsong(self, interaction : nextcord.Interaction, song : Song = None):
@@ -113,9 +108,9 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
         
-        filelike = TextIOWithCallback(self._on_ffmpeg_error)
-        
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=filelike)
+        tempfile = SpooledTemporaryFileWithCallback(callback=self._on_ffmpeg_error)
+
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=tempfile)
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
