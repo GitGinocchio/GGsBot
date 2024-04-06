@@ -6,6 +6,7 @@ from collections import deque
 from typing import Iterable
 from enum import Enum
 import nextcord
+import asyncio
 import random
 import sys
 
@@ -82,8 +83,6 @@ class Session:
         if len(self.queue) > 0:
             coro = self.playsong(interaction,lastsong if self.loop else None)
             self.task = self.bot.loop.create_task(coro)
-        else:
-            return
 
     async def playsong(self, interaction : nextcord.Interaction, song : Song = None):
         self.guild.voice_client.stop()
@@ -94,8 +93,8 @@ class Session:
             return
         
         source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
-        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
-        
+        future : asyncio.Future = self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction),wait_finish=True)
+
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
         await interaction.channel.send(f"{self.owner.mention} playing {song.title}...",delete_after=5.0)
@@ -103,6 +102,8 @@ class Session:
         self.currentsong = song
         self.history.append(song)
         self.queue.popleft()
+
+    async def playsong_at(self): pass
 
     async def skip(self, interaction : nextcord.Interaction):
         self.guild.voice_client.stop()
