@@ -56,7 +56,8 @@ class MusicCommands(commands.Cog):
                 else:
                     pass # error getting song or songs (tracks = None)
 
-            if interaction.guild.voice_client.is_playing(): return
+            elif interaction.guild.voice_client.is_playing() and not queryorurl:
+                await interaction.send(f"{interaction.user.mention} The bot is already playing music...",ephemeral=True,delete_after=5.0)
             else:
                 await session.playsong(interaction)
     
