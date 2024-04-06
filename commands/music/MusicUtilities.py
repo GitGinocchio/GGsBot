@@ -71,20 +71,16 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
 
     def write(self, data):
         print('scrivendo: ', data)
-        super().write(data)
-        if self.callback:
-            self.callback(data)
+        if self.callback: self.callback(data)
 
     def writelines(self, iterable : Iterable):
-        super().writelines(iterable)
         print('scrivendo: ', ''.join(iterable))
         
-        if self.callback:
-            self.callback(iterable)
+        if self.callback: self.callback(iterable)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.tempfile = SpooledTemporaryFileWithCallback(1024,prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
+        self.tempfile = SpooledTemporaryFileWithCallback(prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
@@ -115,10 +111,10 @@ class Session:
             song : Song = self.queue[0]
         elif not song and len(self.queue) == 0:
             return
-        
+
         with SpooledTemporaryFileWithCallback(1024,prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error) as tempfile:
             source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=tempfile)
-            
+
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
