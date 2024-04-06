@@ -93,7 +93,8 @@ class Session:
             return
         
         source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
-        future : asyncio.Future = self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction),wait_finish=True)
+        ciao = self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
+        print(ciao)
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
