@@ -115,7 +115,7 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
 
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.tempfile)
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.customstderr)
 
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
