@@ -1,4 +1,4 @@
-from typing import Iterable, Callable
+from typing import Iterable, Callable, TextIO, BinaryIO
 from nextcord.ext import commands
 from utils.system import OS, ARCH
 from utils.config import config
@@ -11,6 +11,7 @@ import tempfile
 import asyncio
 import random
 import sys
+import io
 
 logger = getlogger()
 
@@ -64,9 +65,9 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
-    def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback:Callable=None):
-        super().__init__(max_size=max_size, mode=mode, suffix=suffix, prefix=prefix, dir=dir)
+class CustomStderrWithCallback(io.TextIOWrapper):
+    def __init__(self, callback : Callable = None):
+        io.TextIOWrapper.__init__(self,sys.stderr)
         self.callback = callback
 
     def write(self, data):
@@ -75,12 +76,11 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
 
     def writelines(self, iterable : Iterable):
         print('scrivendo: ', ''.join(iterable))
-        
         if self.callback: self.callback(iterable)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.tempfile = SpooledTemporaryFileWithCallback(prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
+        self.tempfile = CustomStderrWithCallback(callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
@@ -112,8 +112,7 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
 
-        with SpooledTemporaryFileWithCallback(1024,prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error) as tempfile:
-            source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=tempfile)
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.tempfile)
 
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
