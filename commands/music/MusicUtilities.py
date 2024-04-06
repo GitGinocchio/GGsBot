@@ -75,7 +75,7 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.tempfile = SpooledTemporaryFileWithCallback(suffix="ffmpeg-stderr",callback=self._on_ffmpeg_error)
+        self.tempfile = SpooledTemporaryFileWithCallback(prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
