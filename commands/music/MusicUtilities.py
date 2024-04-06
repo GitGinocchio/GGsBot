@@ -5,10 +5,7 @@ from utils.config import config
 from utils.terminal import getlogger
 from collections import deque
 from enum import Enum
-import subprocess
 import nextcord
-import tempfile
-import asyncio
 import random
 import sys
 import io
@@ -65,20 +62,16 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class StderrWithCallback(io.TextIOWrapper):
+class StderrWithCallback(TextIO):
     def __init__(self, callback : Callable = None):
-        super().__init__(sys.stderr)
+        super().__init__()
         self.callback = callback
 
     def write(self, data):
-        super().write(data)
-        super().flush()
         logger.log('data: ', data)
         if self.callback: self.callback(data)
 
     def writelines(self, iterable : Iterable):
-        super().writelines(iterable)
-        super().flush()
         logger.log('data: ', ''.join(iterable))
         if self.callback: self.callback(iterable)
 
