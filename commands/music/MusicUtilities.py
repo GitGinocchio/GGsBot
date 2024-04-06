@@ -5,6 +5,7 @@ from utils.config import config
 from utils.terminal import getlogger
 from collections import deque
 from enum import Enum
+import subprocess
 import nextcord
 import tempfile
 import asyncio
@@ -114,8 +115,10 @@ class Session:
             song : Song = self.queue[0]
         elif not song and len(self.queue) == 0:
             return
-
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.tempfile)
+        
+        with SpooledTemporaryFileWithCallback(1024,prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error) as tempfile:
+            source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=tempfile)
+            
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
