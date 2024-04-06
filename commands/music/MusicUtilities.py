@@ -64,8 +64,8 @@ class Queue(deque):
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
-        self.history = History()
-        self.queue = Queue()
+        self.history : History[Song] = History()
+        self.queue : Queue[Song] = Queue()
         self.currentsong : Song
         self.guild = guild
         self.owner = owner
@@ -89,7 +89,7 @@ class Session:
         self.guild.voice_client.stop()
 
         if not song and len(self.queue) > 0:
-            song = self.queue[0]
+            song : Song = self.queue[0]
         elif not song and len(self.queue) == 0:
             return
         
