@@ -63,16 +63,17 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class TextIOWithCallback(io.StringIO):
+class TextIOWithCallback(io.TextIOBase):
     def __init__(self, callback=None, *args, **kwargs):
         super().__init__()
+        self.buffer = io.StringIO()
         self.callback = callback
         self.args = args
         self.kwargs = kwargs
 
     def write(self, s):
-        # Chiamare il metodo write della classe base
-        super().write(s)
+        # Scrivi i dati nel buffer
+        self.buffer.write(s)
         # Se è stato definito un callback, chiamarlo passando la stringa scritta
         if self.callback:
             self.callback(s,self.args,self.kwargs)
