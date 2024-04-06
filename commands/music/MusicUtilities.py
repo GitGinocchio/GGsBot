@@ -67,12 +67,20 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
     def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback:Callable=None):
         super().__init__(max_size=max_size, mode=mode, suffix=suffix, prefix=prefix, dir=dir)
         self.callback = callback
+        self.writelines()
 
     def write(self, data):
         print('scrivendo: ', data)
         super().write(data)
         if self.callback:
             self.callback(data)
+
+    def writelines(self, iterable : Iterable):
+        super().writelines(iterable)
+        print('scrivendo: ', ''.join(iterable))
+        
+        if self.callback:
+            self.callback(iterable)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
