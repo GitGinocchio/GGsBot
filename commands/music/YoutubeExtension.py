@@ -20,7 +20,9 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
 
         if not data: return None
 
-        if not 'entries' in data: return Song(data)
+        if not 'entries' in data: 
+            print("download url: ", data.get('url'))
+            return Song(data)
 
         tracks = [Song(entrie) for entrie in data['entries'] if 'url' in entrie]
 
