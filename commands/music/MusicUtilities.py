@@ -71,20 +71,21 @@ class CustomStderrWithCallback(io.TextIOWrapper):
         self.callback = callback
         self.buffer.write = self.write
         self.buffer.writelines = self.writelines
+        print(self.buffer.read())
 
     def write(self, data):
         super().write(data)
-        print('scrivendo: ', data)
+        logger.log('data: ', data)
         if self.callback: self.callback(data)
 
     def writelines(self, iterable : Iterable):
         super().writelines(iterable)
-        print('scrivendo: ', ''.join(iterable))
+        logger.log('data: ', ''.join(iterable))
         if self.callback: self.callback(iterable)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.tempfile = CustomStderrWithCallback(callback=self._on_ffmpeg_error)
+        self.customstderr = CustomStderrWithCallback(callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
