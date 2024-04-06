@@ -118,9 +118,6 @@ class MusicCommands(commands.Cog):
             assert interaction.guild.voice_client.is_playing(), f'{interaction.user.mention} I am not playing anything at the moment!'
             
             interaction.guild.voice_client.stop()
-                
-            session : Session = self.sessions[interaction.guild.id]
-            session.queue.popleft()
 
             await interaction.send(f"{interaction.user.mention} I !",ephemeral=True,delete_after=5)
         

@@ -64,18 +64,19 @@ class Queue(deque):
         del self[origin]
 
 class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
-    def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback : Callable = None):
+    def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback:Callable=None):
         super().__init__(max_size=max_size, mode=mode, suffix=suffix, prefix=prefix, dir=dir)
         self.callback = callback
 
     def write(self, data):
+        print('scrivendo: ', data)
         super().write(data)
         if self.callback:
             self.callback(data)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.tempfile = SpooledTemporaryFileWithCallback(prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
+        self.tempfile = SpooledTemporaryFileWithCallback(1024,prefix="ffmpeg-stderr-",suffix='.log',callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()

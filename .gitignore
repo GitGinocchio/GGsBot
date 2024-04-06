@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 *.exe
 /data
+data/cookies/ytdl-cookies.txt
