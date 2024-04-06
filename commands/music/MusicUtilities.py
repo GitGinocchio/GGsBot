@@ -69,6 +69,8 @@ class CustomStderrWithCallback(io.TextIOWrapper):
     def __init__(self, callback : Callable = None):
         super().__init__(sys.stderr)
         self.callback = callback
+        self.buffer.write = self.write
+        self.buffer.writelines = self.writelines
 
     def write(self, data):
         super().write(data)
