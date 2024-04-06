@@ -62,9 +62,9 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class StderrWithCallback(TextIO):
+class StderrWithCallback(io.BufferedRWPair):
     def __init__(self, callback : Callable = None):
-        super().__init__()
+        super().__init__(sys.stderr.buffer)
         self.callback = callback
 
     def write(self, data):

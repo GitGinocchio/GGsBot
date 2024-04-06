@@ -63,8 +63,6 @@ class MusicCommands(commands.Cog):
     
         except AssertionError as e:
             await interaction.send(e,ephemeral=True,delete_after=5.0)
-        except nextcord.errors.ClientException as e:
-            logger.error(e)
 
     @nextcord.slash_command('music_add',"Add a song to the end of the queue",default_member_permissions=8,dm_permission=False)
     async def add(self, interaction : nextcord.Interaction, queryorurl : str):
