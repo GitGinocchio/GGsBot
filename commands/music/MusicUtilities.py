@@ -67,7 +67,6 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
     def __init__(self, max_size=0, mode='w+b', suffix='', prefix='tmp', dir=None, callback:Callable=None):
         super().__init__(max_size=max_size, mode=mode, suffix=suffix, prefix=prefix, dir=dir)
         self.callback = callback
-        self.writelines()
 
     def write(self, data):
         print('scrivendo: ', data)
