@@ -65,7 +65,7 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class CustomStderrWithCallback(io.TextIOWrapper):
+class StderrWithCallback(io.TextIOWrapper):
     def __init__(self, callback : Callable = None):
         super().__init__(sys.stderr)
         self.callback = callback
@@ -78,12 +78,13 @@ class CustomStderrWithCallback(io.TextIOWrapper):
 
     def writelines(self, iterable : Iterable):
         super().writelines(iterable)
+        super().flush()
         logger.log('data: ', ''.join(iterable))
         if self.callback: self.callback(iterable)
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.customstderr = CustomStderrWithCallback(callback=self._on_ffmpeg_error)
+        self.stderr = StderrWithCallback(callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
@@ -115,7 +116,7 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
 
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.customstderr)
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.stderr)
 
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
