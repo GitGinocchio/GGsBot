@@ -117,7 +117,7 @@ class MusicCommands(commands.Cog):
             assert interaction.guild.voice_client, f'{interaction.user.mention} I am not in a vocal channel!'
             assert interaction.guild.voice_client.is_playing(), f'{interaction.user.mention} I am not playing anything at the moment!'
             
-            await interaction.guild.voice_client.stop()
+            interaction.guild.voice_client.stop()
                 
             session : Session = self.sessions[interaction.guild.id]
             session.queue.popleft()
@@ -161,8 +161,8 @@ class MusicCommands(commands.Cog):
             await interaction.response.defer(ephemeral=True,with_message=True)
             assert interaction.guild.voice_client, f'{interaction.user.mention} I am not in a vocal channel!'
 
-            await interaction.guild.voice_client.stop()
-            await interaction.guild.voice_client.disconnect()
+            interaction.guild.voice_client.stop()
+            interaction.guild.voice_client.disconnect()
             
             session : Session = self.sessions[interaction.guild.id]
             session.queue.clear()
