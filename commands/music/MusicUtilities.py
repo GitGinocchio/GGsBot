@@ -71,10 +71,10 @@ class CustomStderrWithCallback(io.TextIOWrapper):
         self.callback = callback
         self.buffer.write = self.write
         self.buffer.writelines = self.writelines
-        print(self.buffer.read())
 
     def write(self, data):
         super().write(data)
+        super().flush()
         logger.log('data: ', data)
         if self.callback: self.callback(data)
 
