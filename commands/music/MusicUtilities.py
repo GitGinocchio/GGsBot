@@ -70,9 +70,6 @@ class CustomStderrWithCallback(io.TextIOWrapper):
         super().__init__(sys.stderr)
         self.callback = callback
 
-    def fileno(self):
-        return sys.stderr.fileno()
-
     def write(self, data):
         print('scrivendo: ', data)
         if self.callback: self.callback(data)
