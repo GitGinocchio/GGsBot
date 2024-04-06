@@ -75,6 +75,7 @@ class SpooledTemporaryFileWithCallback(tempfile.SpooledTemporaryFile):
 
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
+        self.tempfile = SpooledTemporaryFileWithCallback(suffix="ffmpeg-stderr",callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
@@ -95,10 +96,8 @@ class Session:
             coro = self.playsong(interaction,lastsong if self.loop else None)
             self.task = self.bot.loop.create_task(coro)
 
-    def _on_ffmpeg_error(self, b : bytes):
-        print(b.decode())
-        if 'Error retrieving a packet from demuxer: Input/output error' in b.decode():
-            print('ciao')
+    def _on_ffmpeg_error(self, data):
+        print(data)
 
     async def playsong(self, interaction : nextcord.Interaction, song : Song = None):
         self.guild.voice_client.stop()
@@ -107,10 +106,8 @@ class Session:
             song : Song = self.queue[0]
         elif not song and len(self.queue) == 0:
             return
-        
-        tempfile = SpooledTemporaryFileWithCallback(callback=self._on_ffmpeg_error)
 
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=tempfile)
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.tempfile)
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
 
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
