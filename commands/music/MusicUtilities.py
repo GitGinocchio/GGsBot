@@ -93,7 +93,7 @@ class Session:
         elif not song and len(self.queue) == 0:
             return
         
-        source = nextcord.FFmpegPCMAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
+        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH))
         self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
         
         self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
