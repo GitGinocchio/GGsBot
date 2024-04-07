@@ -20,7 +20,11 @@ class YoutubeExtension(youtube_dl.YoutubeDL):
 
         if not data: return None
 
+        print(data.keys())
+        print(data['_type'])
+
         if not 'entries' in data: return Song(data)
+        elif len(data['entries']) == 1: return Song(data['entries'][0])
 
         tracks = [Song(entrie) for entrie in data['entries'] if 'url' in entrie]
 

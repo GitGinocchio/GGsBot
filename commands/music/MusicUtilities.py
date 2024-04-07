@@ -7,6 +7,7 @@ from collections import deque
 from enum import Enum
 import nextcord
 import random
+import time
 import sys
 import io
 
@@ -21,31 +22,17 @@ class LinkType(Enum):
 
     UnknownLink = "Unknown"
 
-def get_url_type(url : str) -> LinkType:
-
-    if "https://www.youtu" in url or "https://youtu.be" in url:
-        return LinkType.YoutubeLink
-    elif ("https://www.youtu" in url or "https://youtu.be" in url) and "&list=":
-        return LinkType.YoutubePlaylistLink
-
-    elif "https://open.spotify.com/track" in url:
-        return LinkType.SpotifyLink
-    elif "https://open.spotify.com/playlist" in url or "https://open.spotify.com/album" in url:
-        return LinkType.SpotifyPlaylistLink
-
-    return LinkType.UnknownLink
-
 class Song:
     def __init__(self, rawinfo : dict):
-        self.webpage_url = rawinfo['webpage_url']
-        self.channel_url = rawinfo['channel_id']
-        self.thumbnail = rawinfo['thumbnail']
-        self.duration = rawinfo['duration']
-        self.uploader = rawinfo['uploader']
-        self.channel = rawinfo['channel']
-        self.title = rawinfo['title']
-        self.url = rawinfo['url']
-        self._raw = rawinfo
+        self.webpage_url : str = rawinfo['webpage_url']
+        self.channel_url : str = rawinfo['channel_id']
+        self.thumbnail : str = rawinfo['thumbnail']
+        self.duration : float = rawinfo['duration']
+        self.uploader : str = rawinfo['uploader']
+        self.channel : str= rawinfo['channel']
+        self.title : str = rawinfo['title']
+        self.url : str = rawinfo['url']
+        self._raw : dict = rawinfo
 
 class History(deque):
     def __init__(self, *, songs : Iterable = [], maxlen : int = None):
@@ -62,22 +49,8 @@ class Queue(deque):
         self.insert(dest,self.__getitem__(origin))
         del self[origin]
 
-class StderrWithCallback(io.BufferedRWPair):
-    def __init__(self, callback : Callable = None):
-        super().__init__(sys.stderr.buffer)
-        self.callback = callback
-
-    def write(self, data):
-        logger.log('data: ', data)
-        if self.callback: self.callback(data)
-
-    def writelines(self, iterable : Iterable):
-        logger.log('data: ', ''.join(iterable))
-        if self.callback: self.callback(iterable)
-
 class Session:
     def __init__(self, bot : commands.Bot, guild : nextcord.Guild, owner : nextcord.User):
-        self.stderr = StderrWithCallback(callback=self._on_ffmpeg_error)
         self.volume : float = float(config['music'].get('defaultvolume',100.0))
         self.history : History[Song] = History()
         self.queue : Queue[Song] = Queue()
@@ -89,37 +62,42 @@ class Session:
         self.cycle = False
         self.task = None
     
-    def _next(self, error : Exception, lastsong : Song, interaction : nextcord.Interaction):
+    def _next(self, error : Exception, lastsong : Song, start_time : float = time.time()):
         """Invoked after a song is finished. Plays the next song if there is one."""
 
         if error: logger.error(f'Discord Stream audio Error: {error}')
 
-        if len(self.queue) > 0:
-            coro = self.playsong(interaction,lastsong if self.loop else None)
-            self.task = self.bot.loop.create_task(coro)
+        h,m,s = 0,0,0
+        if (ptime:=time.time() - start_time) >= lastsong.duration:
+            self.history.append(lastsong)
+            self.queue.popleft()
+        else:
+            h,m,s = convert_seconds(ptime)
+            print('Non e\' stata riprodotta fino alla fine!')
+        
+        coro = self.playsong(lastsong if self.loop else None,h=h,m=m,s=s)
+        self.task = self.bot.loop.create_task(coro)
 
-    def _on_ffmpeg_error(self, data):
-        print(data)
-
-    async def playsong(self, interaction : nextcord.Interaction, song : Song = None):
+    async def playsong(self, song : Song = None, *, h : int = 0, m : int = 0, s : int = 0):
         self.guild.voice_client.stop()
 
         if not song and len(self.queue) > 0:
-            song : Song = self.queue[0]
+            song = self.queue[0]
         elif not song and len(self.queue) == 0:
             return
 
-        source = nextcord.FFmpegOpusAudio(song.url,executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),stderr=self.stderr)
-
-        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,interaction=interaction))
-
+        source = nextcord.FFmpegPCMAudio(
+            source=song.url,
+            executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),
+            before_options=f'-ss {h}:{m}:{s}.000'
+            )
+        
+        start_time = time.time() if sum([h,m,s]) == 0 else convert_time(h,m,s)
+        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,start_time=start_time))
+        self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
-        await interaction.channel.send(f"{self.owner.mention} playing {song.title}...",delete_after=5.0)
-
         self.currentsong = song
-        self.history.append(song)
-        self.queue.popleft()
 
     async def playsong_at(self): pass
 
@@ -127,3 +105,25 @@ class Session:
         self.guild.voice_client.stop()
         self.queue.popleft()
         await self.playsong(interaction)
+
+def get_url_type(url : str) -> LinkType:
+
+    if "https://www.youtu" in url or "https://youtu.be" in url:
+        return LinkType.YoutubeLink
+    elif ("https://www.youtu" in url or "https://youtu.be" in url) and "&list=":
+        return LinkType.YoutubePlaylistLink
+
+    elif "https://open.spotify.com/track" in url:
+        return LinkType.SpotifyLink
+    elif "https://open.spotify.com/playlist" in url or "https://open.spotify.com/album" in url:
+        return LinkType.SpotifyPlaylistLink
+
+    return LinkType.UnknownLink
+
+def convert_seconds(s : float):
+    """convert from a given time in seconds to an hours, minutes and seconds format"""
+    return s // 3600, (s % 3600) // 60, s % 60
+
+def convert_time(h : float, m : float, s : float):
+    """convert from a given hours, minutes and seconds format to a seconds format"""
+    return h * 3600 + m * 60 + s

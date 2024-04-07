@@ -45,19 +45,20 @@ class MusicCommands(commands.Cog):
             if queryorurl:
                 with self.yt as ytdl:
                     tracks = await ytdl.get_info(queryorurl)
-                
+                    print(type(tracks))
+
                 if tracks:
                     if isinstance(tracks, list):
-                        await interaction.send(f"{interaction.user.mention} added {len(tracks)} songs to the queue...",ephemeral=True,delete_after=5.0)
                         session.queue.extend(tracks)
+                        await interaction.send(f"{interaction.user.mention} added {len(tracks)} songs to the queue. Now playing {session.queue[0].title}",ephemeral=True,delete_after=5.0)
                     elif isinstance(tracks,Song):
-                        await interaction.send(f"{interaction.user.mention} {tracks.title} added to the queue...",ephemeral=True,delete_after=5.0)
+                        await interaction.send(f"{interaction.user.mention} playing {tracks.title}",ephemeral=True,delete_after=5.0)
                         session.queue.append(tracks)
                 else:
                     pass # error getting song or songs (tracks = None)
 
             if interaction.guild.voice_client.is_playing() and not queryorurl:
-                await interaction.send(f"{interaction.user.mention} The bot is already playing music...",ephemeral=True,delete_after=5.0)
+                await interaction.send(f"{interaction.user.mention} The bot is already playing music",ephemeral=True,delete_after=5.0)
             else:
                 await session.playsong(interaction)
     
@@ -157,7 +158,7 @@ class MusicCommands(commands.Cog):
             assert interaction.guild.voice_client, f'{interaction.user.mention} I am not in a vocal channel!'
 
             interaction.guild.voice_client.stop()
-            interaction.guild.voice_client.disconnect()
+            await interaction.guild.voice_client.disconnect()
             
             session : Session = self.sessions[interaction.guild.id]
             session.queue.clear()
