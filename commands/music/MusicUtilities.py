@@ -75,10 +75,10 @@ class Session:
             h,m,s = convert_seconds(ptime)
             print('Non e\' stata riprodotta fino alla fine!')
         
-        coro = self.playsong(lastsong if self.loop else None,h=h,m=m,s=s)
+        coro = self.play(lastsong if self.loop else None,h=h,m=m,s=s)
         self.task = self.bot.loop.create_task(coro)
 
-    async def playsong(self, song : Song = None, *, h : int = 0, m : int = 0, s : int = 0):
+    async def play(self, song : Song = None, *, h : int = 0, m : int = 0, s : int = 0):
         self.guild.voice_client.stop()
 
         if not song and len(self.queue) > 0:
