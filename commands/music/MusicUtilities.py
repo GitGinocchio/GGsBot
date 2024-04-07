@@ -101,10 +101,10 @@ class Session:
 
     async def playsong_at(self): pass
 
-    async def skip(self, interaction : nextcord.Interaction):
+    async def skip(self):
         self.guild.voice_client.stop()
         self.queue.popleft()
-        await self.playsong(interaction)
+        await self.playsong()
 
 def get_url_type(url : str) -> LinkType:
 
