@@ -99,8 +99,6 @@ class Session:
 
         self.currentsong = song
 
-    async def playsong_at(self): pass
-
     async def skip(self):
         self.guild.voice_client.stop()
         self.queue.popleft()
