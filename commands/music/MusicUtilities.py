@@ -120,7 +120,7 @@ def get_url_type(url : str) -> LinkType:
 
 def convert_seconds(s : float):
     """convert from a given time in seconds to an hours, minutes and seconds format"""
-    return s // 3600, (s % 3600) // 60, s % 60
+    return int(s // 3600), int((s % 3600) // 60), int(s % 60)
 
 def convert_time(h : float, m : float, s : float):
     """convert from a given hours, minutes and seconds format to a seconds format"""
