@@ -1,11 +1,11 @@
 from .MusicUtilities import *
 import yt_dlp as youtube_dl
-from os.path import exists
+from os import makedirs
 import asyncio
 
 class YoutubeExtension(youtube_dl.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):
-        if not exists(path:=params["cookiefile"]): open(path,'x').close()
+        makedirs(params["cookiefile"],exist_ok=True)
         super().__init__(params)
         self.loop = loop
 
