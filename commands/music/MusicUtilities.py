@@ -22,6 +22,28 @@ class LinkType(Enum):
 
     UnknownLink = "Unknown"
 
+def get_url_type(url : str) -> LinkType:
+
+    if "https://www.youtu" in url or "https://youtu.be" in url:
+        return LinkType.YoutubeLink
+    elif ("https://www.youtu" in url or "https://youtu.be" in url) and "&list=":
+        return LinkType.YoutubePlaylistLink
+
+    elif "https://open.spotify.com/track" in url:
+        return LinkType.SpotifyLink
+    elif "https://open.spotify.com/playlist" in url or "https://open.spotify.com/album" in url:
+        return LinkType.SpotifyPlaylistLink
+
+    return LinkType.UnknownLink
+
+def fromseconds(s : float):
+    """convert from a given time in seconds to an hours, minutes and seconds format"""
+    return (int(s//3600),int((s%3600)//60),int(s%60))
+
+def fromformat(time : tuple[int,int,int]):
+    """convert from a given hours, minutes and seconds format to a seconds format"""
+    return time[0] * 3600 + time[1] * 60 + time[2]
+
 class Song:
     def __init__(self, rawinfo : dict):
         self.webpage_url : str = rawinfo['webpage_url']
@@ -62,38 +84,43 @@ class Session:
         self.cycle = False
         self.task = None
     
-    def _next(self, error : Exception, lastsong : Song, start_time : float = time.time()):
+    def _next(self, error : Exception, lastsong : Song, stime : float, attempts : int = 0):
         """Invoked after a song is finished. Plays the next song if there is one."""
 
         if error: logger.error(f'Discord Stream audio Error: {error}')
 
-        h,m,s = 0,0,0
-        if (ptime:=time.time() - start_time) >= lastsong.duration:
+        # Se il tempo di riproduzione e' minore della durata della canzone e i tentativi di riproduzione sono meno di un tot
+        if (ptime:=time.time() - stime < lastsong.duration or error) and attempts < config['music']['attempts']:
+            # Riproduci la canzone da dove si era interrotta
+            print('Non e\' stata riprodotta fino alla fine')
+            ftime = fromseconds(ptime)
+        else:
+            # Altrimenti toglila dalla queue
+            ftime = (0,0,0)
             self.history.append(lastsong)
             self.queue.popleft()
-        else:
-            h,m,s = convert_seconds(ptime)
-            print('Non e\' stata riprodotta fino alla fine!')
         
-        coro = self.play(lastsong if self.loop else None,h=h,m=m,s=s)
+        coro = self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
         self.task = self.bot.loop.create_task(coro)
 
-    async def play(self, song : Song = None, *, h : int = 0, m : int = 0, s : int = 0):
-        self.guild.voice_client.stop()
+    async def play(self, song : Song = None, *, st : tuple, attempts : int = 0):
+        self.guild.voice_client.stop() # Assicuriamo che non ci sia altro in riproduzione
 
         if not song and len(self.queue) > 0:
-            song = self.queue[0]
-        elif not song and len(self.queue) == 0:
-            return
-
+            song = self.queue[0] # Se non e' stata specificata una canzone prende la successiva nella coda
+        elif not song and len(self.queue) == 0: 
+            return  # Se non e' stata specificata una canzone e la coda e vuota allora non c'e' nulla da riprodurre
+        
         source = nextcord.FFmpegPCMAudio(
             source=song.url,
             executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),
-            before_options=f'-ss {h}:{m}:{s}.000'
+            before_options=f'-ss {st[0]}:{st[1]}:{st[2]}.000'
             )
         
-        start_time = time.time() if sum([h,m,s]) == 0 else convert_time(h,m,s)
-        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,start_time=start_time))
+        stime = time.time() if sum(st) == 0 else fromformat(st)
+        
+        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,start_time=stime,attempts=attempts))
+        
         self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
 
@@ -102,26 +129,13 @@ class Session:
     async def skip(self):
         self.guild.voice_client.stop()
         self.queue.popleft()
-        await self.playsong()
+        await self.play()
 
-def get_url_type(url : str) -> LinkType:
+    async def replay(self):
+        self.guild.voice_client.stop()
 
-    if "https://www.youtu" in url or "https://youtu.be" in url:
-        return LinkType.YoutubeLink
-    elif ("https://www.youtu" in url or "https://youtu.be" in url) and "&list=":
-        return LinkType.YoutubePlaylistLink
-
-    elif "https://open.spotify.com/track" in url:
-        return LinkType.SpotifyLink
-    elif "https://open.spotify.com/playlist" in url or "https://open.spotify.com/album" in url:
-        return LinkType.SpotifyPlaylistLink
-
-    return LinkType.UnknownLink
-
-def convert_seconds(s : float):
-    """convert from a given time in seconds to an hours, minutes and seconds format"""
-    return int(s // 3600), int((s % 3600) // 60), int(s % 60)
-
-def convert_time(h : float, m : float, s : float):
-    """convert from a given hours, minutes and seconds format to a seconds format"""
-    return h * 3600 + m * 60 + s
+        if self.guild.voice_client.is_playing():
+            await self.play()
+        else:
+            song = self.history[0]
+            await self.play(song)
