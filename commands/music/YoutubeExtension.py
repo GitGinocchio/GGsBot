@@ -5,7 +5,7 @@ import asyncio
 
 class YoutubeExtension(youtube_dl.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):
-        open(params['cookiefile'],'t').close()
+        open(params['cookiefile'],'a').close()
         super().__init__(params)
         self.loop = loop
 
