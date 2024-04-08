@@ -103,7 +103,7 @@ class Session:
         coro = self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
         self.task = self.bot.loop.create_task(coro)
 
-    async def play(self, song : Song = None, *, st : tuple, attempts : int = 0):
+    async def play(self, song : Song = None, *, st : tuple = (0,0,0), attempts : int = 0):
         self.guild.voice_client.stop() # Assicuriamo che non ci sia altro in riproduzione
 
         if not song and len(self.queue) > 0:
