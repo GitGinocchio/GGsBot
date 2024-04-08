@@ -1,6 +1,5 @@
 from .MusicUtilities import *
 import yt_dlp as youtube_dl
-from os import fdopen
 import asyncio
 
 class YoutubeExtension(youtube_dl.YoutubeDL):
