@@ -119,7 +119,7 @@ class Session:
         
         stime = time.time() if sum(st) == 0 else fromformat(st)
         
-        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,start_time=stime,attempts=attempts))
+        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,stime=stime,attempts=attempts))
         
         self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
         self.guild.voice_client.source.volume = float(self.volume) / 100.0
