@@ -1,11 +1,12 @@
 from .MusicUtilities import *
 import yt_dlp as youtube_dl
-from urllib import parse
+from os.path import exists
 import asyncio
 
 class YoutubeExtension(youtube_dl.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):
         super().__init__(params)
+        if not exists(path:=params['music']["youtube"]["cookiefile"]): open(path,'w').close()
         self.loop = loop
 
     async def get_info(self, queryorurl : str):
