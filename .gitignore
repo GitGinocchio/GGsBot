@@ -153,3 +153,5 @@ cython_debug/
 *.exe
 /data/guilds/*
 /data/cookies/*
+.replit
+replit.nix
