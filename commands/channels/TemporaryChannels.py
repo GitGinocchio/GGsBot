@@ -98,7 +98,7 @@ class TemporaryChannels(commands.Cog):
 
                 if before.channel:
                     setup = self.get_setup(member.guild)
-                    if before.channel.id in setup['temporary_channels']:
+                    if before.channel.id in setup['temporary_channels'] and len(before.channel.members) == 0:
                         _ = asyncio.create_task(self.delete_channel(before.channel))
             
             except nextcord.errors.HTTPException as e:
