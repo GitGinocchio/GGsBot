@@ -1,1 +1,1 @@
-bot: ./startup.sh
+bot: python main.py
