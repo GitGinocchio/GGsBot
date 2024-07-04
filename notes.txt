@@ -1,0 +1,6 @@
+1. Se ho caricato un estensione che richiede un file come per esempio ffmpeg per una determinata piattaforma lo scarico durante il setup dell'estensione inoltre controllo anche
+   per dei permessi speciali che devono avere quei file (es. 755 su linux)
+2. Se non viene trovato l'eseguibile mandare un messaggio di errore specifico (altrimenti e' poco chiaro)
+3. Ricreare Song e Capire quali sono le informazioni necessarie da salvare, al momento ci sono molti dati duplicati all'interno di una canzone, all'interno di album sono contenute anche le canzoni ecc.
+
+   Creare un oggetto Generatore Album e Playlist

@@ -36,8 +36,6 @@ def load_commands():
             else:
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
 
-
-
 def run():
     logger.info("Starting bot...")
     load_commands()

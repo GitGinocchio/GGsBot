@@ -7,3 +7,4 @@ spotipy
 PyNaCl
 yt-dlp
 cachetools
+valo_api

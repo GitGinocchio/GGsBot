@@ -1,0 +1,30 @@
+<mxfile host="app.diagrams.net" modified="2024-05-29T21:00:11.986Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" etag="8JIzq0jeTvcvcKrTPVvY" version="24.4.10" type="device">
+  <diagram name="Pagina-1" id="rAaBpno7LFqQUQD0DyNs">
+    <mxGraphModel dx="515" dy="399" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="G5OBTeYebYiN7KgiScqo-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="G5OBTeYebYiN7KgiScqo-1" target="G5OBTeYebYiN7KgiScqo-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="280" y="100" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="G5OBTeYebYiN7KgiScqo-1" value="Se e&#39; un link di spotify" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="G5OBTeYebYiN7KgiScqo-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="G5OBTeYebYiN7KgiScqo-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="279.9999999999999" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="G5OBTeYebYiN7KgiScqo-3" value="Otteniamo tutti i metadati della canzone/album/playlist&lt;br&gt;(piu&#39; precisi)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="195" y="110" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G5OBTeYebYiN7KgiScqo-6" value="Con i metadati trovati da spotify otteniamo solamente lo url del file audio del video youtube" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="196.25" y="240" width="167.5" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

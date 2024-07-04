@@ -36,21 +36,30 @@
     "music": {
         "ffmpeg_path" : "./bin/{os}/{arch}/ffmpeg",
         "defaultvolume" : 100.0,
-        "attempts" : 3, // Maximum number of attempts (for song) that can be made before give up
+        "attempts" : 5, // Maximum number of attempts (for song) that can be made before give up
         "spotify": {
-            "clientID" : "7fe554bb7974407cb0349fe30d9e5eec",
-            "secretKEY" : "9ab2f8fcafc74b0cb50fdb91a9ba9869"
+            "auth" : {
+                "client_id" : "5dbe47629f79428397828a14984cb315",
+                "client_secret" : "31d935bbf8194590bc293b94406e9323"
+            },
+            "params" : {
+                //"proxies" : {
+                    //"http" : "http://185.241.149.168:3128",
+                    //"https" : "http://185.241.149.168:3128"
+                //}
+            }
         },
         "youtube": {
             "ytdl_params" : {
                 "format": "bestaudio/best",
-                "quiet": true,
+                "quiet" : true,
+                //"proxy" : "http://185.241.149.168:3128",
                 "ignoreerrors": true,
                 "postprocessors" : [
                     {
                         "key" : "FFmpegExtractAudio",
-                        "preferredcodec" : "opus",
-                        "preferredquality" : "128" // 64 96 128 192
+                        "preferredcodec" : "mp3", // aac mp3 opus
+                        "preferredquality" : "96" // 64 96 128 192
                     }
                 ],
                 "cookiefile": "./data/cookies/ytdlcookies.txt"
