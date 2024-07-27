@@ -3,6 +3,7 @@ from nextcord.ext import commands
 from utils.config import config
 from utils.intents import getintents
 from utils.system import getsysteminfo
+from dotenv import load_dotenv
 import nextcord
 import time
 import os
@@ -10,6 +11,8 @@ import os
 clear()
 getsysteminfo()
 logger = getlogger()
+
+load_dotenv()
 
 Bot = commands.Bot(intents=getintents(),command_prefix=config['COMMAND_PREFIX'],application_id=os.environ['APPLICATION_ID'])
 
