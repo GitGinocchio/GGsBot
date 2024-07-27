@@ -104,7 +104,6 @@ def main():
     clone_or_update_repo()
     install_requirements()
     print("Setup completed successfully")
-    start_bot()
 
 if __name__ == "__main__":
     main()

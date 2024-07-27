@@ -82,29 +82,12 @@ install_requirements() {
   fi
 }
 
-# Function to start the bot
-start_bot() {
-  cd "$REPO_DIR"
-  if [ -f "$MAIN_SCRIPT" ]; then
-    echo "Starting bot..."
-    python "$MAIN_SCRIPT"
-    if [ $? -eq 0 ]; then
-      echo "Bot started successfully"
-    else
-      echo "Error starting bot"
-    fi
-  else
-    echo "$MAIN_SCRIPT not found in $REPO_DIR"
-  fi
-}
-
 # Main function
 main() {
   echo "Starting setup..."
   clone_or_update_repo
   install_requirements
   echo "Setup completed successfully"
-  start_bot
 }
 
 # Execute the main function

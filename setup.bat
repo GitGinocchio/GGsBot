@@ -55,16 +55,3 @@ if exist "%REPO_DIR%\requirements.txt" (
 ) else (
     echo Requirements file requirements.txt not found in %REPO_DIR%
 )
-
-REM Start bot
-cd "%REPO_DIR%"
-if exist "%MAIN_SCRIPT%" (
-    echo Starting bot...
-    python "%MAIN_SCRIPT%"
-    echo Bot started successfully
-) else (
-    echo %MAIN_SCRIPT% not found in %REPO_DIR%
-)
-
-REM Pause to keep window open
-pause
