@@ -124,7 +124,7 @@ class JsonFile(dict):
             fileobj = cache[fp]
             super().__init__(fileobj)
 
-    def __getitem__(self, key) -> _JsonDict | _JsonList:
+    def __getitem__(self, key) -> _JsonDict | dict:
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
