@@ -1,94 +1,93 @@
 #!/bin/bash
 
 # Constants
-REPO_URL="https://github.com/GitGinocchio/GGsBot.git"
-REPO_DIR="GGsBot"
+REPO_URL="GitGinocchio/GGsBot"
 MAIN_SCRIPT="main.py"
 
-# Function to prompt for username and password/token
-prompt_credentials() {
-  read -p "Enter your repository username: " USERNAME
-  read -s -p "Enter your repository password/token: " PASSWORD
-  echo ""
-}
-
-# Function to clone or update the repository
 clone_or_update_repo() {
-  # Check if REPO_DIR exists, create it if not
-  if [ ! -d "$REPO_DIR" ]; then
-    mkdir -p "$REPO_DIR"
-  fi
+    # Check if .git directory exists in the current directory
+    if [ -d ".git" ]; then
+        # Check if .git-credentials exists in the current directory
+        if [ ! -f ".git-credentials" ]; then
+            read -p "Enter your repository username: " username
+            read -s -p "Enter your repository password/token: " password
+            echo
 
-  # Check if .git directory exists in REPO_DIR
-  if [ -d "$REPO_DIR/.git" ]; then
-    # Check if .git-credentials exists in REPO_DIR
-    if [ ! -f "$REPO_DIR/.git-credentials" ]; then
-      prompt_credentials
-      CREDENTIALS="https://$USERNAME:$PASSWORD@github.com"
-      echo "$CREDENTIALS" > "$REPO_DIR/.git-credentials"
-      echo "Created .git-credentials"
-    fi
+            credentials="https://$username:$password@github.com"
 
-    # Set Git config for pull.rebase to false
-    git -C "$REPO_DIR" config pull.rebase false
-    if [ $? -eq 0 ]; then
-      echo "Git pull rebase strategy set to false"
-    else
-      echo "Error setting git config"
-    fi
+            echo $credentials > .git-credentials
+            echo "Created .git-credentials"
+        fi
 
-    # Pull updates if .git-credentials exists
-    git -C "$REPO_DIR" pull
-    if [ $? -eq 0 ]; then
-      echo "Repository updated successfully"
+        # Set Git config for pull.rebase to false
+        git config pull.rebase false
+        if [ $? -ne 0 ]; then
+            echo "Error setting git config"
+            exit 1
+        else
+            echo "Git pull rebase strategy set to false"
+        fi
+
+        # Pull updates if .git-credentials exists
+        git pull
+        if [ $? -ne 0 ]; then
+            echo "Error updating repository"
+            exit 1
+        else
+            echo "Repository updated successfully"
+        fi
     else
-      echo "Error updating repository"
+        # Clone repository with credentials included in URL
+        read -p "Enter your repository username: " username
+        read -s -p "Enter your repository password/token: " password
+        echo
+
+        clone_url="https://$username:$password@github.com/$REPO_URL"
+        git clone $clone_url .
+        if [ $? -ne 0 ]; then
+            echo "Error cloning repository"
+            exit 1
+        else
+            echo "Repository cloned successfully"
+
+            # Create .git-credentials file
+            credentials="https://$username:$password@github.com"
+            echo $credentials > .git-credentials
+            echo "Created .git-credentials"
+
+            # Set Git config for pull.rebase to false
+            git config pull.rebase false
+            if [ $? -ne 0 ]; then
+                echo "Error setting git config"
+                exit 1
+            else
+                echo "Git pull rebase strategy set to false"
+            fi
+        fi
     fi
-  else
-    # Clone repository with credentials included in URL
-    prompt_credentials
-    CLONE_URL="https://$USERNAME:$PASSWORD@github.com/$REPO_URL"
-    git clone "$CLONE_URL" "$REPO_DIR"
-    if [ $? -eq 0 ]; then
-      echo "Repository cloned successfully"
-      CREDENTIALS="https://$USERNAME:$PASSWORD@github.com"
-      echo "$CREDENTIALS" > "$REPO_DIR/.git-credentials"
-      echo "Created .git-credentials"
-      git -C "$REPO_DIR" config pull.rebase false
-      if [ $? -eq 0 ]; then
-        echo "Git pull rebase strategy set to false"
-      else
-        echo "Error setting git config"
-      fi
-    else
-      echo "Error cloning repository"
-    fi
-  fi
 }
 
-# Function to install requirements
 install_requirements() {
-  REQUIREMENTS_FILE="$REPO_DIR/requirements.txt"
-  if [ -f "$REQUIREMENTS_FILE" ]; then
-    echo "Installing requirements..."
-    pip install -r "$REQUIREMENTS_FILE"
-    if [ $? -eq 0 ]; then
-      echo "Requirements installed successfully"
+    # Check if REQUIREMENTS_FILE exists in the current directory
+    if [ -f "requirements.txt" ]; then
+        echo "Installing requirements..."
+        pip install -r requirements.txt
+        if [ $? -ne 0 ]; then
+            echo "Error installing requirements"
+            exit 1
+        else
+            echo "Requirements installed successfully"
+        fi
     else
-      echo "Error installing requirements"
+        echo "Requirements file requirements.txt not found"
     fi
-  else
-    echo "Requirements file requirements.txt not found in $REPO_DIR"
-  fi
 }
 
-# Main function
 main() {
-  echo "Starting setup..."
-  clone_or_update_repo
-  install_requirements
-  echo "Setup completed successfully"
+    echo "Starting setup..."
+    clone_or_update_repo
+    install_requirements
+    echo "Setup completed successfully"
 }
 
-# Execute the main function
 main

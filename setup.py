@@ -5,19 +5,14 @@ import os
 
 # Constants
 REPO_URL = "GitGinocchio/GGsBot"
-REPO_DIR = os.path.basename(REPO_URL)  # 'GGsBot'
 MAIN_SCRIPT = "main.py"
 
 def clone_or_update_repo():
-    # Check if REPO_DIR exists, create it if not
-    if not os.path.exists(REPO_DIR):
-        os.makedirs(REPO_DIR)
-
-    # Check if .git directory exists in REPO_DIR
-    git_dir = os.path.join(REPO_DIR, ".git")
+    # Check if .git directory exists in the current directory
+    git_dir = os.path.join(".git")
     if os.path.exists(git_dir):
-        # Check if .git-credentials exists in REPO_DIR
-        credentials_file = os.path.join(REPO_DIR, ".git-credentials")
+        # Check if .git-credentials exists in the current directory
+        credentials_file = os.path.join(".git-credentials")
         if not os.path.exists(credentials_file):
             print("Enter your repository username: ")
             username = input()
@@ -32,14 +27,14 @@ def clone_or_update_repo():
 
         # Set Git config for pull.rebase to false
         try:
-            subprocess.run(["git", "-C", REPO_DIR, "config", "pull.rebase", "false"], check=True)
+            subprocess.run(["git", "config", "pull.rebase", "false"], check=True)
             print("Git pull rebase strategy set to false")
         except subprocess.CalledProcessError as e:
             print(f"Error setting git config: {e}")
 
         # Pull updates if .git-credentials exists
         try:
-            subprocess.run(["git", "-C", REPO_DIR, "pull"], check=True)
+            subprocess.run(["git", "pull"], check=True)
             print("Repository updated successfully")
         except subprocess.CalledProcessError as e:
             print(f"Error updating repository: {e}")
@@ -51,21 +46,21 @@ def clone_or_update_repo():
         password = getpass.getpass()
 
         clone_url = f"https://{username}:{password}@github.com/{REPO_URL}"
-        clone_command = f"git clone {clone_url} {REPO_DIR}"
+        clone_command = f"git clone {clone_url} ."
         try:
             subprocess.run(clone_command, shell=True, check=True)
             print("Repository cloned successfully")
 
             # Create .git-credentials file
             credentials = f"https://{username}:{password}@github.com\n"
-            credentials_file = os.path.join(REPO_DIR, ".git-credentials")
+            credentials_file = os.path.join(".git-credentials")
             with open(credentials_file, 'w') as file:
                 file.write(credentials)
             print("Created .git-credentials")
 
             # Set Git config for pull.rebase to false
             try:
-                subprocess.run(["git", "-C", REPO_DIR, "config", "pull.rebase", "false"], check=True)
+                subprocess.run(["git", "config", "pull.rebase", "false"], check=True)
                 print("Git pull rebase strategy set to false")
             except subprocess.CalledProcessError as e:
                 print(f"Error setting git config: {e}")
@@ -74,8 +69,8 @@ def clone_or_update_repo():
             print(f"Error cloning repository: {e}")
 
 def install_requirements():
-    # Check if REQUIREMENTS_FILE exists in REPO_DIR
-    requirements_file_path = os.path.join(REPO_DIR, "requirements.txt")
+    # Check if REQUIREMENTS_FILE exists in the current directory
+    requirements_file_path = "requirements.txt"
     if os.path.exists(requirements_file_path):
         print("Installing requirements...")
         try:
@@ -84,20 +79,7 @@ def install_requirements():
         except subprocess.CalledProcessError as e:
             print(f"Error installing requirements: {e}")
     else:
-        print(f"Requirements file requirements.txt not found in {REPO_DIR}")
-        
-def start_bot():
-    os.chdir(REPO_DIR)
-    # Check if main.py exists in REPO_DIR
-    if os.path.exists(MAIN_SCRIPT):
-        print("Starting bot...")
-        try:
-            subprocess.run(["python", MAIN_SCRIPT], check=True)
-            print("Bot started successfully")
-        except subprocess.CalledProcessError as e:
-            print(f"Error starting bot: {e}")
-    else:
-        print(f"{MAIN_SCRIPT} not found in {REPO_DIR}")
+        print(f"Requirements file requirements.txt not found")
 
 def main():
     print("Starting setup...")
