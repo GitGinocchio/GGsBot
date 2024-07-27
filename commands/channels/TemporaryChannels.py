@@ -32,7 +32,7 @@ class TemporaryChannels(commands.Cog):
         try:
             if os.path.exists(f'{datadir}/config.json'):
                 file = JsonFile(f'{datadir}/config.json')
-                assert generator_channel.id not in file['listeners'], "Error: There is already a configuration with this generator channel!"
+                assert str(generator_channel.id) not in file['listeners'], "Error: There is already a configuration with this generator channel!"
 
                 file['listeners'][generator_channel.id] = {
                     "categoryID" : generated_channels_category.id,
