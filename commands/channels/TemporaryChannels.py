@@ -41,12 +41,12 @@ class TemporaryChannels(commands.Cog):
 
             else:
                 file = JsonFile(f'{datadir}/config.json')
-                file['listeners'] = _JsonDict()
+                file['listeners'] = _JsonDict({},file)
                 file['listeners'][generator_channel.id] = {
                     "categoryID" : generated_channels_category.id,
                     "timeout" : timeout
                 }
-                file['channels'] = _JsonDict()
+                file['channels'] = _JsonDict({},file)
         except AssertionError as e:
             await interaction.followup.send(e, ephemeral=True)
         else:
