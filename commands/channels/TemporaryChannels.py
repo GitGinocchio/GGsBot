@@ -1,5 +1,5 @@
 from nextcord.ext import commands
-from utils.jsonfile import JsonFile
+from utils.jsonfile import JsonFile, _JsonDict
 from utils.terminal import getlogger
 from utils.config import config
 from cachetools import TTLCache
@@ -11,118 +11,151 @@ logger = getlogger()
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
-        self.setups_cache = TTLCache(config["temporary-channels"]['maxcachedguilds'],ttl=config["temporary-channels"]['cachettl'])
+        self.dirfmt = './data/guilds/{guild_id}/' + TemporaryChannels.__name__
         self.bot = bot
 
     @nextcord.slash_command("temporarychannels_setup","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
-    async def setup_temporary_channels(self, interaction : nextcord.Interaction, setup_channel : nextcord.VoiceChannel, temporary_channels_category : nextcord.CategoryChannel, timeout : float):
-        try:
-            os.makedirs(f'./data/guilds/{interaction.guild_id}/{TemporaryChannels.__name__}',exist_ok=True)
-        except OSError as e:
-            await interaction.response.send_message(f"Error occurred while creating directory: {e}", ephemeral=True)
-        else:
-            file = JsonFile(f'./data/guilds/{interaction.guild_id}/{TemporaryChannels.__name__}/setup.json')
-            file['temporary_channels_category_id'] = temporary_channels_category.id
-            file['setup_channel_id'] = setup_channel.id
-            file['temporary_channels'] = []
-            file['timeout'] = timeout
-            file.save()
-            await interaction.response.send_message("Temporary channels setup completed successfully!", ephemeral=True)
+    async def setup_temporary_channels(self, interaction : nextcord.Interaction, generator_channel : nextcord.VoiceChannel, generated_channels_category : nextcord.CategoryChannel, timeout : float):
+        await interaction.response.defer(ephemeral=True)
 
+        datadir = self.dirfmt.format(guild_id=interaction.guild_id)
+
+        try:
+            assert timeout >= 0, "Error: The time before the channel is deleted cannot be negative!"
+            os.makedirs(datadir,exist_ok=True)
+        except AssertionError as e:
+            await interaction.followup.send(e, ephemeral=True)
+        except OSError as e:
+            await interaction.followup.send(f"Error occurred while creating directory: {e}", ephemeral=True)
+            return
+        
+        try:
+            if os.path.exists(f'{datadir}/config.json'):
+                file = JsonFile(f'{datadir}/config.json')
+                assert generator_channel.id not in file['listeners'], "Error: There is already a configuration with this generator channel!"
+
+                file['listeners'][generator_channel.id] = {
+                    "categoryID" : generated_channels_category.id,
+                    "timeout" : timeout
+                }
+
+            else:
+                file = JsonFile(f'{datadir}/config.json')
+                file['listeners'] = _JsonDict()
+                file['listeners'][generator_channel.id] = {
+                    "categoryID" : generated_channels_category.id,
+                    "timeout" : timeout
+                }
+                file['channels'] = _JsonDict()
+        except AssertionError as e:
+            await interaction.followup.send(e, ephemeral=True)
+        else:
+            await interaction.followup.send("Configuration saved successfully!", ephemeral=True)
+            
     @commands.Cog.listener()
     async def on_ready(self):
         logger.info("TemporaryChannels.py ready, clearing unused temporary channels")
-        for i,guild_id in enumerate([file for file in os.listdir('./data/guilds/') if os.path.isfile(f'./data/guilds/{file}/{TemporaryChannels.__name__}/setup.json')]):
-            logger.info(f"Fetching data.guilds.{guild_id}")
-            guild = self.bot.get_guild(int(guild_id))
-            file = self.get_setup(guild)
-            if len(temporary_channels:=file['temporary_channels']) == 0:
-                logger.info(f"No temporary channels found in guild with id: {guild_id}")
-            for j,channel_id in enumerate(temporary_channels):
-                channel = self.bot.get_channel(channel_id)
-                if channel is not None:
-                    logger.info(f"Found channel \"{channel.name}\" with id: {channel_id}")
-                    if len(channel.members) == 0:
-                        await channel.delete(reason='Temporary Channel Deleted')
-                        logger.info(f'Temporary channel \"{channel.name}\" with id: {channel_id} deleted')
-                        file['temporary_channels'].remove(channel_id)
-                    else:
-                        logger.warning(f'Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel')
 
-    def get_setup(self, guild : nextcord.Guild) -> JsonFile:
-        setup_path = f'./data/guilds/{guild.id}/{TemporaryChannels.__name__}/setup.json'
-        if guild.id not in self.setups_cache:
-            logger.debug(f'Successfully added guild config for guild \'{guild.name}\' with id: {guild.id}.')
-            self.setups_cache[guild.id] = JsonFile(setup_path)
-        logger.debug(f'Currently saving config files for {self.setups_cache.currsize} server/s.')
-        logger.debug(f'Getting config file for guild \'{guild.name}\' with id: {guild.id}.')
-        return self.setups_cache[guild.id]
+        guild_ids = [int(guild_id) for guild_id in os.listdir('./data/guilds/') if os.path.exists(f'{self.dirfmt.format(guild_id=guild_id)}/config.json')]
+
+        for guild_id in guild_ids:
+            file = JsonFile(f'{self.dirfmt.format(guild_id=guild_id)}/config.json')
+
+            try:
+                for channel_id in file['channels'].copy():
+                    channel = self.bot.get_channel(int(channel_id))
+                    if not channel: 
+                        file['channels'].pop(channel_id)
+                        continue
+
+                    if len(channel.members) == 0:
+                        await channel.delete(reason='GGsBot::TemporaryChannels')
+                        file['channels'].pop(channel_id)
+                        logger.debug(f'Temporary channel \"{channel.name}\"({channel.id}) in guild \"{channel.guild.name}\"({channel.guild.id}) deleted')
+                    else:
+                        logger.debug(f'Temporary channel \"{channel.name}\"({channel.id}) in guild \"{channel.guild.name}\"({channel.guild.id}) not deleted, there is/are {len(channel.members)} user/s inside the channel')
+            except RuntimeError as e:
+                logger.warning(e)
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceChannel, after : nextcord.VoiceChannel):
-        if str(member.guild.id) in os.listdir('./data/guilds') and os.path.exists(f'./data/guilds/{member.guild.id}/{TemporaryChannels.__name__}/setup.json'):
-            try:
-                if after.channel:
-                    if before.channel:
-                        if before.channel.id == after.channel.id: return
+    async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceState, after : nextcord.VoiceState):
+        datadir = self.dirfmt.format(guild_id=member.guild.id)
 
-                    setup = self.get_setup(member.guild)
-                    overwrites = {
-                        member: nextcord.PermissionOverwrite(
-                            view_channel=True,
-                            connect=True,
-                            speak=True,
-                            stream=True,
-                            manage_channels=True,
-                            manage_permissions=True,
-                            move_members=True,
-                            mute_members=True,
-                            deafen_members=True,
-                            priority_speaker=True
-                        )
-                    }
-                    if after.channel.id == setup['setup_channel_id']:
-                        vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
-                            reason='TEMPORARY_CHANNEL',
-                            name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
-                            category=self.bot.get_channel(setup["temporary_channels_category_id"]))
-                        logger.info(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
-                        
-                        await member.move_to(vocal_channel)
-                        logger.info(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
-                        
-                        await vocal_channel.edit(overwrites=overwrites)
-                        logger.info(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
-
-                        setup["temporary_channels"].append(vocal_channel.id)
-
-                if before.channel:
-                    setup = self.get_setup(member.guild)
-                    if before.channel.id in setup['temporary_channels'] and len(before.channel.members) == 0:
-                        _ = asyncio.create_task(self.delete_channel(before.channel))
-            
-            except nextcord.errors.HTTPException as e:
-                logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
-    
-    async def delete_channel(self,channel : nextcord.VoiceChannel):
         try:
-            setup = self.get_setup(channel.guild)
-            await asyncio.sleep(setup["timeout"])
-            logger.info(f'Waited {setup["timeout"]} seconds before deleting channel \'{channel.name}\' with id: {channel.id}')
-            assert len(channel.members) <= 0, f'Temporary channel not deleted, there is/are {len(channel.members)} user/s inside the channel'
+            assert os.path.exists(f'{datadir}/config.json'), "Temporary channels extension not set."
             
+            if after.channel and before.channel:
+                if before.channel.id == after.channel.id: return
+            
+            file = JsonFile(f'{datadir}/config.json')
+            overwrites = {
+                member: nextcord.PermissionOverwrite(
+                    view_channel=True,
+                    connect=True,
+                    speak=True,
+                    stream=True,
+                    manage_channels=True,
+                    manage_permissions=True,
+                    move_members=True,
+                    mute_members=True,
+                    deafen_members=True,
+                    priority_speaker=True
+                )
+            }
+
+            if after.channel and str(after.channel.id) in file['listeners']:
+                vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
+                    reason='GGsBot::TemporaryChannels',
+                    name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
+                    category=self.bot.get_channel(file['listeners'][str(after.channel.id)]['categoryID'])
+                )
+                logger.debug(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
+
+                await member.move_to(vocal_channel)
+                logger.debug(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
+                
+                await vocal_channel.edit(overwrites=overwrites)
+                logger.debug(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
+
+                file['channels'][str(vocal_channel.id)] = after.channel.id
+
+            if before.channel:
+                file = JsonFile(f'{datadir}/config.json')
+                
+                if str(before.channel.id) in file['channels'] and len(before.channel.members) == 0:
+                    generatorid = file['channels'][str(before.channel.id)]
+                    timeout = file['listeners'][str(generatorid)]['timeout']
+                    _ = asyncio.create_task(self.delete_channel(before.channel,timeout))
+
+        except AssertionError as e: pass
+        except nextcord.errors.HTTPException as e:
+            logger.error(f'An HTTPException with code {e.code} occurred: {e.status}')
+    
+    async def delete_channel(self,channel : nextcord.VoiceChannel, timeout : float):
+        datadir = self.dirfmt.format(guild_id=channel.guild.id)
+        try:
+            await asyncio.sleep(timeout)
+            assert os.path.exists(f'{datadir}/config.json'), "Config file deleted when removing a channel!"
+            assert len(channel.members) == 0, f'Temporary channel \'{channel.name}\'({channel.id}) not deleted, there is/are {len(channel.members)} user/s inside the channel'
+            logger.debug(f'Waited {timeout} seconds before deleting channel \'{channel.name}\'({channel.id})')
+
             await channel.delete()
         except AssertionError as e: 
             logger.warning(e)
         except nextcord.NotFound:
-            if channel.id in setup["temporary_channels"]: 
-                setup["temporary_channels"].remove(channel.id)
+            file = JsonFile(f'{datadir}/config.json')
+
+            if str(channel.id) in file['channels']: 
+                file['channels'].pop(str(channel.id))
         except nextcord.Forbidden as e: 
             logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')
         except nextcord.HTTPException as e: 
-            logger.erorr(f'An HTTPException with code {e.code} occurred: {e.status}')
+            logger.error(f'An HTTPException with code {e.code} occurred: {e.status}')
         else:
-            setup["temporary_channels"].remove(channel.id)
+            file = JsonFile(f'{datadir}/config.json')
+
+            if str(channel.id) in file['channels']: 
+                file['channels'].pop(str(channel.id))
 
 def setup(bot: commands.Bot):
     bot.add_cog(TemporaryChannels(bot))

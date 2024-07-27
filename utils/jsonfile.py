@@ -1,3 +1,4 @@
+from cachetools import LRUCache
 import json
 import os
 
@@ -11,8 +12,17 @@ class _JsonDict(dict):
         if self.file.autosave: self.file.save()
 
     def __delitem__(self, key):
-        self.pop(key)
+        super().__delitem__(key)
         if self.file.autosave: self.file.save()
+    
+    def pop(self, key):
+        item = self[key]
+        super().__delitem__(key)
+        if self.file.autosave: self.file.save()
+        return item
+    
+    def copy(self):
+        return super().copy()
 
 class _JsonList(list):
     def __init__(self, data : list, file : 'JsonFile'):
@@ -24,7 +34,7 @@ class _JsonList(list):
         if self.file.autosave: self.file.save()
 
     def __delitem__(self, index):
-        self.remove(index)
+        super().__delitem__(index)
         if self.file.autosave: self.file.save()
     
     def append(self, value):
@@ -35,7 +45,6 @@ class _JsonList(list):
         super().remove(value)
         if self.file.autosave: self.file.save()
         
-
 class CustomDecoder(json.JSONDecoder):
     def __init__(self, file : 'JsonFile'):
         super().__init__()
@@ -86,28 +95,37 @@ class CustomDecoder(json.JSONDecoder):
                     obj[key] = value
             return obj
 
+cache = LRUCache(maxsize=100)
+
 class JsonFile(dict):
-    def __init__(self, fp : str = None,*, indent : int = 4, encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
+    def __init__(self, fp : str,*, indent : int = 4, encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
         """
         Subclass of dict for loading or creating JSON files.
 
         !! Warning !! 
-        Not all dict methods supports :autosave: attribute.
+        Not all dict methods supports :autosave: feature.
         """
         assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
         self.commented = True if fp.endswith('.jsonc') else commented
         self.encoding = encoding
         self.autosave = autosave
         self.indent = indent
-        self.fp = fp
-        if fp is not None:
-            #assert os.path.exists(fp), "File does not exist."
+        self.fp = os.path.realpath(os.path.normpath(fp))
+
+        if fp not in cache:
             if os.path.exists(fp):
-                with open(fp,encoding=encoding) as jsf: super().__init__(json.load(jsf,cls=CustomDecoder,file=self))
+                with open(fp,encoding=encoding) as jsf:
+                    fileobj = json.load(jsf,cls=CustomDecoder,file=self)
+                    super().__init__(fileobj)
+                    cache[fp] = fileobj
             else:
                 super().__init__()
         else:
-            super().__init__()
+            fileobj = cache[fp]
+            super().__init__(fileobj)
+
+    def __getitem__(self, key) -> _JsonDict | _JsonList:
+        return super().__getitem__(key)
 
     def __setitem__(self, key, value):
         if isinstance(value,dict):

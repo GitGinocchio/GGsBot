@@ -2,12 +2,7 @@
     // -- Bot Settings -- 
     
     // Constants
-    "TOKEN": "MTIxOTY2NTY1MzAwMzE5MDI5Mw.GypaZ8.MdXT0kLOAQq6_bXAuT7gBn_eaK8cr6yPzGaxGE",
-    "PUBLIC_KEY": "ca45f7970a4502faea7d294d81ebf97f8390bf6bbea6ae450130cbf015f638cf",
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
-    "CLIENT_SECRET" : "NDn81SZw1xdL5J2HvYQVIk0-m3Ipb2mC",
-    "APPLICATION_ID": 1219665653003190293,
-    "CLIENT_ID": 1219665653003190293,
     "COMMAND_PREFIX": "/",
     "INTENTS" : "all",
 

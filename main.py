@@ -11,7 +11,7 @@ clear()
 getsysteminfo()
 logger = getlogger()
 
-Bot = commands.Bot(intents=getintents(),command_prefix=config['COMMAND_PREFIX'],application_id=config['APPLICATION_ID'])
+Bot = commands.Bot(intents=getintents(),command_prefix=config['COMMAND_PREFIX'],application_id=os.environ['APPLICATION_ID'])
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
@@ -41,7 +41,7 @@ def run():
     load_commands()
     try:
         logger.info("Loggin in...")
-        Bot.run(token=config['TOKEN'], reconnect=True)
+        Bot.run(token=os.environ['TOKEN'], reconnect=True)
     except nextcord.errors.HTTPException as e:
         logger.error(f"An HTTPException occurred (status code: {e.status})")
         match e.status:
