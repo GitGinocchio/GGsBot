@@ -189,7 +189,7 @@ class StaffCommands(commands.Cog):
         # Avvia il task periodico
         self.check_inactive_staffers.start()
 
-        logger.debug(f"Check inactive staffers schedule started at {datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}")
+        logger.debug(f"Check inactive staffers schedule started at {datetime.datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}")
 
     @tasks.loop(hours=24)
     async def check_inactive_staffers(self):
