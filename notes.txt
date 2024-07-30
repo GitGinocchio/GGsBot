@@ -10,3 +10,5 @@
 
 - Nei ServerMessages dare la possibilita' di scegliere come inviare il messaggio
 - Controllare se ci sono dati di server a cui il bot non e' dentro (in caso eliminare i dati)
+✔ Settare per bene i permessi per i vari comandi, vedere se e' possibile abilitarli o meno...
+- Il manager dei comandi basta che cambia i permessi per accedere ai comandi... (potendolo anche disabilitare mettendo 0)

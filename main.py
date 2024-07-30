@@ -1,9 +1,12 @@
 from utils.terminal import clear, erase, getlogger,F
+from nextcord import Client
 from nextcord.ext import commands
 from utils.config import config
 from utils.intents import getintents
 from utils.system import getsysteminfo
 from dotenv import load_dotenv
+import asyncio
+import traceback
 import nextcord
 import time
 import os
@@ -11,10 +14,11 @@ import os
 clear()
 getsysteminfo()
 logger = getlogger()
+intents = getintents()
 
-load_dotenv()
+load_dotenv('./config/.env')
 
-Bot = commands.Bot(intents=getintents(),command_prefix=config['COMMAND_PREFIX'],application_id=os.environ['APPLICATION_ID'])
+Bot = commands.Bot(intents=intents,command_prefix=config['COMMAND_PREFIX'],application_id=os.environ['APPLICATION_ID'])
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
@@ -29,11 +33,12 @@ def load_commands():
                         commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
-                    logger.critical(f'Loading command error: Cog {e.name} message: \n{e}')
+                    logger.critical(f'Loading command error: Cog {e.name} message: \n{traceback.format_exc()}')
                 except commands.NoEntryPointError as e:
                     pass  # if no entry point found maybe is a file used by the main command file.
                 else:
                     logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
+
             elif filename in config['ignore_files']:
                 pass
             else:

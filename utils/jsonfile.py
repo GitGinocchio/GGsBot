@@ -124,6 +124,8 @@ class JsonFile(dict):
             fileobj = cache[fp]
             super().__init__(fileobj)
 
+        print(f"Currently cached json files: {[key for key, value in cache.items()]}")
+
     def __getitem__(self, key) -> _JsonDict | dict:
         return super().__getitem__(key)
 
@@ -154,7 +156,3 @@ class JsonFile(dict):
 
     def save(self, fp : str = None):
         with open(self.fp if fp is None else fp,'w',encoding=self.encoding) as jsf: json.dump(self,jsf,indent=self.indent)
-
-
-
-#file = JsonFile(r'.\config\config.jsonc')

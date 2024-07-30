@@ -1,7 +1,7 @@
 from nextcord.ext import commands
+from nextcord import Permissions
 from utils.config import config, reload
 from utils.terminal import getlogger, F
-from functools import wraps
 import nextcord
 import os
 
@@ -10,14 +10,24 @@ logger = getlogger()
 DEV_ID = os.environ['DEVELOPER_ID']
 DEVGUILD_ID = os.environ['DEVELOPER_GUILD_ID']
 
+EXTENSIONS = [extension for extension in os.listdir('./commands')]
+
+permissions = Permissions(0)
+
 class Development(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot : commands.Bot):
         self.bot = bot
 
-    @nextcord.slash_command('dev_reload_commands','Reload all Extensions or the specified extension',guild_ids=[DEVGUILD_ID])
-    async def reload_commands(self,interaction : nextcord.Interaction, extension : str = None):
+    @nextcord.slash_command("dev",default_member_permissions=permissions,guild_ids=[int(DEVGUILD_ID)])
+    async def dev(self, interaction : nextcord.Interaction): pass
+
+    @dev.subcommand("reload")
+    async def reload(self, interaction : nextcord.Interaction): pass
+
+    @reload.subcommand('extensions','Reload all Extensions or the specified extension')
+    async def reloadExtensions(self,interaction : nextcord.Interaction, extension : str = nextcord.SlashOption(required=False,choices=EXTENSIONS,default=None)):
         await interaction.response.defer(ephemeral=True)
-        if not interaction.user.id == DEV_ID: 
+        if not interaction.user.id == int(DEV_ID): 
             await interaction.followup.send(f'Only the developer can execute this command!')
             return
         
@@ -47,10 +57,10 @@ class Development(commands.Cog):
                     logger.warning(f'Skipping non-py file: \'{filename}\'')
         await interaction.followup.send(f'Reload Complete...')
 
-    @nextcord.slash_command('dev_reload_config','Reload the config file',guild_ids=[DEVGUILD_ID])
-    async def reload_config(self, interaction : nextcord.Interaction):
+    @reload.subcommand('config','Reload the config file')
+    async def reloadConfig(self, interaction : nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        if not interaction.user.id == DEV_ID: 
+        if not interaction.user.id == int(DEV_ID): 
             await interaction.followup.send(f'Only the developer can execute this command!')
             return
         

@@ -1,21 +1,30 @@
 from nextcord.ext import commands
-from utils.jsonfile import JsonFile, _JsonDict
-from utils.terminal import getlogger
-from utils.config import config
-from cachetools import TTLCache
+from nextcord import Permissions
 import nextcord
 import asyncio
 import os
 
+from utils.jsonfile import JsonFile, _JsonDict
+from utils.terminal import getlogger
+
 logger = getlogger()
+
+permissions = nextcord.Permissions(
+    use_slash_commands=True,
+    manage_channels=True
+)
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
         self.dirfmt = './data/guilds/{guild_id}/' + TemporaryChannels.__name__
+        self.permission = 0
         self.bot = bot
 
-    @nextcord.slash_command("temporarychannels_setup","Set up temporary channels in the server.",default_member_permissions=2147483664,dm_permission=False)
-    async def setup_temporary_channels(self, interaction : nextcord.Interaction, generator_channel : nextcord.VoiceChannel, generated_channels_category : nextcord.CategoryChannel, timeout : float):
+    @nextcord.slash_command("temporarychannels","Very useful set of commands for set and unset vocals channels generators",default_member_permissions=permissions,dm_permission=False)
+    async def temporarychannels(self, interaction : nextcord.Interaction): pass
+
+    @temporarychannels.subcommand("add","Set :channel: to generate channels in :category: and remove them after :timeout: of inactivity")
+    async def add(self, interaction : nextcord.Interaction, channel : nextcord.VoiceChannel, category : nextcord.CategoryChannel, timeout : float):
         await interaction.response.defer(ephemeral=True)
 
         datadir = self.dirfmt.format(guild_id=interaction.guild_id)
@@ -32,26 +41,46 @@ class TemporaryChannels(commands.Cog):
         try:
             if os.path.exists(f'{datadir}/config.json'):
                 file = JsonFile(f'{datadir}/config.json')
-                assert str(generator_channel.id) not in file['listeners'], "Error: There is already a configuration with this generator channel!"
+                assert str(channel.id) not in file['listeners'], "Error: There is already a configuration with this generator channel!"
 
-                file['listeners'][generator_channel.id] = {
-                    "categoryID" : generated_channels_category.id,
+                file['listeners'][channel.id] = {
+                    "categoryID" : category.id,
                     "timeout" : timeout
                 }
 
             else:
                 file = JsonFile(f'{datadir}/config.json')
                 file['listeners'] = _JsonDict({},file)
-                file['listeners'][generator_channel.id] = {
-                    "categoryID" : generated_channels_category.id,
+                file['listeners'][channel.id] = {
+                    "categoryID" : category.id,
                     "timeout" : timeout
                 }
                 file['channels'] = _JsonDict({},file)
         except AssertionError as e:
             await interaction.followup.send(e, ephemeral=True)
         else:
-            await interaction.followup.send("Configuration saved successfully!", ephemeral=True)
-            
+            await interaction.followup.send(f"Channel '{channel.name}' is now a temporary voice channel generator in category '{category.name}', with an inactivity timeout of {timeout}!", ephemeral=True)
+     
+    @temporarychannels.subcommand('remove',"Unset one :channel: generator of temporary voice channels")
+    async def remove(self, interaction : nextcord.Interaction, channel : nextcord.VoiceChannel):
+        await interaction.response.defer(ephemeral=True)
+        datadir = self.dirfmt.format(guild_id=interaction.guild_id)
+
+        try:
+            assert os.path.exists(f'/{datadir}/config.json'), "There are no saved temporary voice channel configurations!"
+            file = JsonFile(f'{datadir}/config.json')
+            assert str(channel.id) in file['listeners'], "The inserted generator channel is not present in the configurations!"
+
+            for channel_id, generator_id in file['channels'].copy().items():
+                if generator_id == channel.id:
+                    file['channels'].pop(channel_id)
+
+            file['listeners'].pop(channel.id)
+        except AssertionError as e:
+            await interaction.followup.send(e, ephemeral=True)
+        else:
+            await interaction.followup.send(f"The channel '{channel.name}' is no longer a temporary channel generator channel!", ephemeral=True)
+
     @commands.Cog.listener()
     async def on_ready(self):
         logger.info("TemporaryChannels.py ready, clearing unused temporary channels")

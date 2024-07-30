@@ -2,6 +2,7 @@ from .MusicApi import MusicApi
 from .MusicUtilities import *
 from utils.terminal import getlogger
 from nextcord.ext import commands
+from nextcord import Permissions
 from utils.config import config
 from typing import Literal
 import nextcord
@@ -12,14 +13,23 @@ import os
 
 logger = getlogger()
 
+permissions = Permissions(
+    use_slash_commands=True,
+    connect=True,
+    speak=True,
+)
+
 class MusicCommands(commands.Cog):
     def __init__(self, bot : commands.Bot):
         self.musicapi = MusicApi(bot.loop)
         self.sessions = {}
         self.bot = bot
         #2147483648
-    
-    @nextcord.slash_command("music_join","Bring the bot on your current voice channel",default_member_permissions=8,dm_permission=False)
+
+    @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8,dm_permissions=False)
+    async def music(self, interaction : nextcord.Interaction): pass
+
+    @music.subcommand("join","Bring the bot on your current voice channel")
     async def join(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -34,7 +44,7 @@ class MusicCommands(commands.Cog):
         except Exception as e:
             logger.error(e)
 
-    @nextcord.slash_command('music_play',"Play songs with the bot in your channel",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('play',"Play songs with the bot in your channel")
     async def play(self, interaction : nextcord.Interaction, queryurl : str = None, searchengine : Literal['Spotify','Youtube'] = 'Spotify'):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -63,7 +73,7 @@ class MusicCommands(commands.Cog):
         except AssertionError as e:
             await interaction.send(e,ephemeral=True,delete_after=5.0)
 
-    @nextcord.slash_command('music_add',"Add a song to the end of the queue",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('add',"Add a song to the end of the queue")
     async def add(self, interaction : nextcord.Interaction, queryurl : str):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -89,7 +99,7 @@ class MusicCommands(commands.Cog):
         except nextcord.errors.ClientException as e:
             logger.fatal(e)
 
-    @nextcord.slash_command('music_skip',"Skip the current playing song",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('skip',"Skip the current playing song")
     async def skip(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -107,7 +117,7 @@ class MusicCommands(commands.Cog):
         except nextcord.errors.ClientException as e:
             logger.fatal(e)
 
-    @nextcord.slash_command('music_stop',"Stop the current playing session",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('stop',"Stop the current playing session")
     async def stop(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -123,7 +133,7 @@ class MusicCommands(commands.Cog):
         except nextcord.errors.ClientException as e:
             logger.fatal(e)
 
-    @nextcord.slash_command('music_pause',"Pause the current playing session",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('pause',"Pause the current playing session")
     async def pause(self, interaction : nextcord.Interaction):
         try:
             assert interaction.guild.voice_client, f'{interaction.user.mention} I am not in a vocal channel!'
@@ -139,7 +149,7 @@ class MusicCommands(commands.Cog):
         else:
             await interaction.send(f"Paused song \'{session.currentsong.name}\'",ephemeral=True,delete_after=5.0)
 
-    @nextcord.slash_command('music_resume',"Resume the current playing session",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('resume',"Resume the current playing session")
     async def resume(self, interaction : nextcord.Interaction):
         try:
             assert interaction.guild.voice_client, f'{interaction.user.mention} I am not in a vocal channel!'
@@ -155,15 +165,15 @@ class MusicCommands(commands.Cog):
         else:
             await interaction.send(f"Resume playing \'{session.currentsong.name}\'",ephemeral=True,delete_after=5.0)
 
-    @nextcord.slash_command('music_replay',"Replay the last song played in the history",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('replay',"Replay the last song played in the history")
     async def replay(self, interaction : nextcord.Interaction):
         pass
 
-    @nextcord.slash_command('music_setvolume','Set volume for the current playing session',default_member_permissions=8,dm_permission=False)
+    @music.subcommand('setvolume','Set volume for the current playing session')
     async def setvolume(self, interaction : nextcord.Interaction, volume : float):
         pass
 
-    @nextcord.slash_command('music_leave',"The bot will leave your vocal channel",default_member_permissions=8,dm_permission=False)
+    @music.subcommand('leave',"The bot will leave your vocal channel")
     async def leave(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
