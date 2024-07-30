@@ -26,7 +26,7 @@ class MusicCommands(commands.Cog):
         self.bot = bot
         #2147483648
 
-    @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8,dm_permissions=False)
+    @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8,dm_permission=False)
     async def music(self, interaction : nextcord.Interaction): pass
 
     @music.subcommand("join","Bring the bot on your current voice channel")
