@@ -8,13 +8,24 @@ import random
 import os
 
 
+permissions = Permissions(
+    use_slash_commands=True,
+    mention_everyone=True,
+    manage_channels=True,
+    manage_messages=True,
+    send_messages=True,
+)
+
 class ServerMessages(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        super().__init__()
+        commands.Cog.__init__(self)
         self.bot = bot
 
-    @nextcord.slash_command("servermessages_setup","Set up server messages in the server.",default_member_permissions=2147493936,dm_permission=False)
-    async def setup_server_messages_channels(self, interaction : nextcord.Interaction, welcome_channel : nextcord.TextChannel, goodbye_channel : nextcord.TextChannel):
+    @nextcord.slash_command("servermessages",default_member_permissions=permissions,dm_permission=False)
+    async def servermessages(self, interaction : nextcord.Interaction): pass
+
+    @servermessages.subcommand("setup","Set up server messages in the server.")
+    async def setup(self, interaction : nextcord.Interaction, welcome_channel : nextcord.TextChannel, goodbye_channel : nextcord.TextChannel):
         try:
             os.makedirs(f'./data/guilds/{interaction.guild_id}/ServerMessages',exist_ok=True)
         except OSError as e:
@@ -26,6 +37,15 @@ class ServerMessages(commands.Cog):
             file['goodbye_channel_id'] = goodbye_channel.id
             file.save()
             await interaction.response.send_message("Server Messages setup completed successfully!", ephemeral=True)
+
+    @servermessages.subcommand("teardown","Teardown server messages in the server.")
+    async def teardown(self, interaction : nextcord.Interaction):
+        try:
+            pass
+        except Exception as e:
+            pass
+        else:
+            pass
 
     @commands.Cog.listener()
     async def on_member_join(self, member : nextcord.Member):

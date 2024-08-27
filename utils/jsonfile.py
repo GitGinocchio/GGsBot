@@ -118,13 +118,13 @@ class JsonFile(dict):
                     fileobj = json.load(jsf,cls=CustomDecoder,file=self)
                     super().__init__(fileobj)
                     cache[fp] = fileobj
+                    print(f"Currently cached json files: {[key for key, value in cache.items()]}")
             else:
                 super().__init__()
         else:
             fileobj = cache[fp]
+            
             super().__init__(fileobj)
-
-        print(f"Currently cached json files: {[key for key, value in cache.items()]}")
 
     def __getitem__(self, key) -> _JsonDict | dict:
         return super().__getitem__(key)
