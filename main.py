@@ -3,7 +3,7 @@ from nextcord.ext import commands
 from utils.config import config
 from utils.intents import getintents
 from utils.system import getsysteminfo
-from server impot run_http_server
+from server import run_http_server
 from dotenv import load_dotenv
 import traceback
 import nextcord
