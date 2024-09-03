@@ -4,6 +4,7 @@ from utils.config import config
 from utils.intents import getintents
 from utils.system import getsysteminfo
 from dotenv import load_dotenv
+from server import run_http_server
 import traceback
 import nextcord
 import time
@@ -43,6 +44,8 @@ def load_commands():
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
 
 def run():
+    logger.info('Starting http server...')
+    run_http_server()
     logger.info("Starting bot...")
     load_commands()
     try:
