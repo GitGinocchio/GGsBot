@@ -3,6 +3,7 @@ from nextcord.ext import commands
 from utils.config import config
 from utils.intents import getintents
 from utils.system import getsysteminfo
+from server import run_http_server
 from dotenv import load_dotenv
 from server import run_http_server
 import traceback
@@ -44,7 +45,7 @@ def load_commands():
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
 
 def run():
-    logger.info('Starting http server...')
+    logger.info("Starting HTTP Server...")
     run_http_server()
     logger.info("Starting bot...")
     load_commands()
