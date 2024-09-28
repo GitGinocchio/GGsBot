@@ -1,12 +1,7 @@
 from nextcord import Embed,Color,utils,channel,Permissions,Interaction
 from nextcord.ext import commands
 from utils.terminal import getlogger
-import datetime
 import nextcord
-import asyncio
-import random
-import shutil
-import os
 
 logger = getlogger()
 
@@ -19,20 +14,19 @@ class General(commands.Cog):
         super().__init__()
         self.bot = bot
 
-    @nextcord.slash_command('mods',"...",default_member_permissions=permissions)
+    @nextcord.slash_command('mods',"A list of moderation commands for the server",default_member_permissions=permissions)
     async def mods(self, interaction : nextcord.Interaction): pass
 
     @mods.subcommand('clear',"A simple command for clearing an amount of messages in a chat!")
     async def clear(self, interaction : nextcord.Interaction, amount : int = None):
         try:
             await interaction.response.defer(ephemeral=True)
-
-            await interaction.channel.purge(limit=amount)
+            messages = await interaction.channel.purge(limit=amount)
         except Exception as e:
             await interaction.followup.send(f'{interaction.user.mention} An error occured!',ephemeral=True,delete_after=2.5)
             logger.error(e)
         else:
-            await interaction.followup.send(f'{interaction.user.mention} Successfully purged {amount} messages!',ephemeral=True,delete_after=2.5)
+            await interaction.followup.send(f'{interaction.user.mention} Successfully purged {len(messages)} messages!',ephemeral=True,delete_after=2.5)
 
 
 

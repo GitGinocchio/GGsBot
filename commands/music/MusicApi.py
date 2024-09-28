@@ -3,13 +3,14 @@ from .MusicUtilities import *
 from .MusicServices import YoutubeExtension,\
                            SpotifyExtension
 import asyncio
+import os
 
 
 
 class MusicApi:
     def __init__(self, loop : asyncio.AbstractEventLoop):
         self.yt = YoutubeExtension(loop=loop,params=config['music']['youtube']['ytdl_params'])
-        self.sp = SpotifyExtension(loop=loop,auth=config['music']['spotify']['auth'],params=config['music']['spotify']['params'])
+        self.sp = SpotifyExtension(loop=loop,auth={'client_id' : os.environ['SPOTIFY_CLIENT_ID'],'client_secret' : os.environ['SPOTIFY_CLIENT_SECRET']},params=config['music']['spotify']['params'])
 
     async def get(self, queryurl : str, searchengine : str):
 

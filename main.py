@@ -5,7 +5,6 @@ from utils.intents import getintents
 from utils.system import getsysteminfo
 from server import run_http_server
 from dotenv import load_dotenv
-from server import run_http_server
 import traceback
 import nextcord
 import time

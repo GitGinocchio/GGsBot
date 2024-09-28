@@ -9,6 +9,5 @@ PyNaCl
 yt-dlp
 cachetools
 valo_api
-ollama
-langchain
-langchain-ollama
+requests
+jinja2

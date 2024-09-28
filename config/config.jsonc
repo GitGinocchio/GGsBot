@@ -2,14 +2,22 @@
     // -- Bot Settings -- 
     
     // Constants
-    "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={}&permissions={}&scope=bot",
+    "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions={PERMISSIONS}&scope=bot",
     "COMMAND_PREFIX": "/",
     "INTENTS" : "all",
 
     // Command settings
     "ignore_files" : ["__pycache__","placeholder.txt"],                         // Do not load the specified commands
-    "ignore_categories" : ["aichatbot"],                                        // Do not load the specified categories of commands
+    "ignore_categories" : [],                                                   // Do not load the specified categories of commands
     "max_guilds" : -1,                                                          // Maximum number of guilds
+
+    // Proxies
+    "proxies" : [
+        {
+            "http" : "http://185.241.149.168:3128",
+            "https" : "http://185.241.149.168:3128"
+        }
+    ],
 
     // Logger settings
     "logger" : {
@@ -23,8 +31,6 @@
 
     // Temporary Channels
     "temporary-channels" : {
-        "maxcachedguilds" : 100,
-        "cachettl" : 7200
     },
 
     // Music settings
@@ -33,10 +39,6 @@
         "defaultvolume" : 100.0,
         "attempts" : 5, // Maximum number of attempts (for song) that can be made before give up
         "spotify": {
-            "auth" : {
-                "client_id" : "5dbe47629f79428397828a14984cb315",
-                "client_secret" : "31d935bbf8194590bc293b94406e9323"
-            },
             "params" : {
                 //"proxies" : {
                     //"http" : "http://185.241.149.168:3128",
@@ -61,5 +63,4 @@
             }
         }
     }
-    
 }

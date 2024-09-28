@@ -83,10 +83,27 @@ install_requirements() {
     fi
 }
 
+run_main_script() {
+    if [ -f "$MAIN_SCRIPT" ]; then
+        echo "Running $MAIN_SCRIPT..."
+        python $MAIN_SCRIPT &
+        if [ $? -ne 0 ]; then
+            echo "Error running $MAIN_SCRIPT"
+            exit 1
+        else
+            echo "$MAIN_SCRIPT executed successfully"
+        fi
+    else
+        echo "$MAIN_SCRIPT not found"
+        exit 1
+    fi
+}
+
 main() {
     echo "Starting setup..."
     clone_or_update_repo
     install_requirements
+    run_main_script
     echo "Setup completed successfully"
 }
 
