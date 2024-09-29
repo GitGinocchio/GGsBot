@@ -85,14 +85,14 @@ class Summarizer(commands.Cog):
                     model : str = SlashOption(description="The model to use",required=False,default='@cf/facebook/bart-large-cnn',choices=models)
                 ):
         try:
-            await interaction.response.defer(ephemeral=True)
+            await interaction.response.defer(ephemeral=ephemeral)
             response = await self.summarize(text, max_length,model)
 
             assert response["success"], f"Error occured while translating (code: {response['errors']['code']}): {response['errors']['message']}"
         except AssertionError as e:
-            await interaction.followup.send(e,ephemeral=True)
+            await interaction.followup.send(e)
         else:
-            await interaction.followup.send(response['result']['summary'],ephemeral=ephemeral)
+            await interaction.followup.send(response['result']['summary'])
 
     async def summarize(self, text : str, max_length : int, model : str):
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}
