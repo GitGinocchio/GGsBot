@@ -1,10 +1,7 @@
 from nextcord import Embed,Color,Permissions
 from nextcord.ext import commands
 from utils.jsonfile import JsonFile
-import datetime
 import nextcord
-import asyncio
-import random
 import os
 
 
@@ -16,44 +13,19 @@ permissions = Permissions(
     send_messages=True,
 )
 
-class ServerMessages(commands.Cog):
+class Greetings(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
+        self.dirfmt = './data/guilds/{guild_id}/commands.general.Greetings'
         self.bot = bot
-
-    @nextcord.slash_command("servermessages",default_member_permissions=permissions,dm_permission=False)
-    async def servermessages(self, interaction : nextcord.Interaction): pass
-
-    @servermessages.subcommand("setup","Set up server messages in the server.")
-    async def setup(self, interaction : nextcord.Interaction, welcome_channel : nextcord.TextChannel, goodbye_channel : nextcord.TextChannel):
-        try:
-            os.makedirs(f'./data/guilds/{interaction.guild_id}/ServerMessages',exist_ok=True)
-        except OSError as e:
-            await interaction.response.send_message(f"Error occurred while creating directory: {e}", ephemeral=True)
-            return
-        else:
-            file = JsonFile(f'./data/guilds/{interaction.guild_id}/ServerMessages/setup.json')
-            file['welcome_channel_id'] = welcome_channel.id
-            file['goodbye_channel_id'] = goodbye_channel.id
-            file.save()
-            await interaction.response.send_message("Server Messages setup completed successfully!", ephemeral=True)
-
-    @servermessages.subcommand("teardown","Teardown server messages in the server.")
-    async def teardown(self, interaction : nextcord.Interaction):
-        try:
-            pass
-        except Exception as e:
-            pass
-        else:
-            pass
 
     @commands.Cog.listener()
     async def on_member_join(self, member : nextcord.Member):
-        setup_path = f'./data/guilds/{member.guild.id}/ServerMessages/setup.json'
+        workingdir = self.dirfmt.format(guild_id=member.guild.id)
         
-        if os.path.exists(setup_path):
+        if os.path.exists(workingdir + '/config.json'):
             try:
-                setup = JsonFile(setup_path)
+                setup = JsonFile(workingdir + '/config.json')
                 channel = self.bot.get_channel(setup['welcome_channel_id'])
                 embed = Embed(
                     title='Welcome!',
@@ -67,12 +39,12 @@ class ServerMessages(commands.Cog):
                 await channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_member_remove(self,member : nextcord.Member):
-        setup_path = f'./data/guilds/{member.guild.id}/ServerMessages/setup.json'
+    async def on_member_remove(self, member : nextcord.Member):
+        workingdir = self.dirfmt.format(guild_id=member.guild.id)
 
-        if os.path.exists(setup_path):
+        if os.path.exists(workingdir + '/config.json'):
             try:
-                setup = JsonFile(setup_path)
+                setup = JsonFile(workingdir + '/config.json')
                 channel = self.bot.get_channel(setup['goodbye_channel_id'])
                 embed = Embed(
                     title='Goodbye!',
@@ -86,4 +58,4 @@ class ServerMessages(commands.Cog):
                 await channel.send(embed=embed)
 
 def setup(bot : commands.Bot):
-    bot.add_cog(ServerMessages(bot))
+    bot.add_cog(Greetings(bot))

@@ -10,20 +10,19 @@ from utils.terminal import getlogger
 logger = getlogger()
 
 permissions = nextcord.Permissions(
-    use_slash_commands=True,
-    manage_channels=True
+    administrator=True
 )
 
 class TemporaryChannels(commands.Cog):
     def __init__(self,bot : commands.Bot):
-        self.dirfmt = './data/guilds/{guild_id}/' + TemporaryChannels.__name__
+        self.dirfmt = './data/guilds/{guild_id}/commands.channels.TemporaryChannels'
         self.permission = 0
         self.bot = bot
 
-    @nextcord.slash_command("temporarychannels","Very useful set of commands for set and unset vocals channels generators",default_member_permissions=permissions,dm_permission=False)
-    async def temporarychannels(self, interaction : nextcord.Interaction): pass
+    @nextcord.slash_command("tempvc","Very useful set of commands for set and unset vocals channels generators",default_member_permissions=permissions,dm_permission=False)
+    async def tempvc(self, interaction : nextcord.Interaction): pass
 
-    @temporarychannels.subcommand("add","Set :channel: to generate channels in :category: and remove them after :timeout: of inactivity")
+    @tempvc.subcommand("add","Set :channel: to generate channels in :category: and remove them after :timeout: of inactivity")
     async def add(self, interaction : nextcord.Interaction, channel : nextcord.VoiceChannel, category : nextcord.CategoryChannel, timeout : float):
         await interaction.response.defer(ephemeral=True)
 
@@ -61,8 +60,8 @@ class TemporaryChannels(commands.Cog):
         else:
             await interaction.followup.send(f"Channel '{channel.name}' is now a temporary voice channel generator in category '{category.name}', with an inactivity timeout of {timeout}!", ephemeral=True)
      
-    @temporarychannels.subcommand('remove',"Unset one :channel: generator of temporary voice channels")
-    async def remove(self, interaction : nextcord.Interaction, channel : nextcord.VoiceChannel):
+    @tempvc.subcommand('del',"Delete one :channel: generator of temporary voice channels")
+    async def delete(self, interaction : nextcord.Interaction, channel : nextcord.VoiceChannel):
         await interaction.response.defer(ephemeral=True)
         datadir = self.dirfmt.format(guild_id=interaction.guild_id)
 

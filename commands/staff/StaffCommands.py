@@ -11,70 +11,24 @@ from utils.terminal import getlogger
 
 logger = getlogger()
 
-staffers_permissions = Permissions(
-    use_slash_commands=True
-)
-
 staff_permissions = Permissions(
-    administrator=True
+    use_slash_commands=True
 )
 
 class StaffCommands(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
-        self.dirfmt = './data/guilds/{guild_id}/' + StaffCommands.__name__
+        self.dirfmt = './data/guilds/{guild_id}/staff.StaffCommands'
         self.bot = bot
 
-    @nextcord.slash_command('staff',"Set of commands for configuring the Staff extension inside the server",default_member_permissions=staff_permissions,dm_permission=False)
-    async def staff(self, interaction : nextcord.Interaction): pass
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.bot.loop.create_task(self.schedule_periodic_task())
 
-    @staff.subcommand("config","Configure the Staff extension inside the server")
-    async def config(self, 
-                    interaction : nextcord.Interaction,
-                    staffer_role : nextcord.Role = nextcord.SlashOption(description="The role assigned to each staffer",required=True,autocomplete=True),
-                    inactive_role : nextcord.Role = nextcord.SlashOption(description="The role assigned to each staffer who is inactive",required=True,autocomplete=True)
-                    #staffer_commands_accessible_by : list[nextcord.Role] = nextcord.SlashOption(description="...",required=True,autocomplete=True)
-                ): 
-        await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
-        try:
-            assert not os.path.exists(f'{workingdir}/config.json'), "There is already a configuration for staffers"
+    @nextcord.slash_command('staff',"Set of useful commands to set or view the status of staffers",default_member_permissions=staff_permissions,dm_permission=False)
+    async def staf(self, interaction : nextcord.Interaction): pass
 
-            os.makedirs(workingdir,exist_ok=True)
-            
-            file = JsonFile(f'{workingdir}/config.json')
-            file['active_role'] = staffer_role.id
-            file['inactive_role'] = inactive_role.id
-            file['inactive'] = _JsonDict({},file)
-
-            self.bot.loop.create_task(self.schedule_periodic_task())
-
-        except AssertionError as e:
-            await interaction.followup.send(e,ephemeral=True)
-        else:
-            await interaction.followup.send("Staff extension successfully configured",ephemeral=True)
-
-    @staff.subcommand("teardown","Remove Staff extension from server")
-    async def teardown(self, interaction : nextcord.Interaction): 
-        await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
-        try:
-            assert os.path.exists(f'{workingdir}/config.json'), "There is no configuration for staffers"
-
-            os.remove(f'{workingdir}/config.json')
-            os.rmdir(workingdir)
-            
-            if self.check_inactive_staffers.is_running():
-                self.check_inactive_staffers.stop()
-
-        except AssertionError as e: await interaction.followup.send(e,ephemeral=True)
-        except OSError as e: logger.error(e)
-        else: await interaction.followup.send("Staffer configuration successfully deleted",ephemeral=True)
-
-    @nextcord.slash_command('staffers',"Set of useful commands to set or view the status of staffers",default_member_permissions=staffers_permissions,dm_permission=False)
-    async def staffers(self, interaction : nextcord.Interaction): pass
-
-    @staffers.subcommand('show',"Show a list of active and/or inactive staffers")
+    @staf.subcommand('show',"Show a list of active and/or inactive staffers")
     async def show(self, 
                    interaction : nextcord.Interaction, 
                    status : str = nextcord.SlashOption("status","Whether to show only active staffers, inactive staffers, or both",required=True,choices=['active','inactive','both'],default='both')
@@ -122,13 +76,15 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="",value="")
             developer = await self.bot.fetch_user(int(os.environ['DEVELOPER_ID']))
             embed.set_footer(text=f'Developed by {developer.display_name}',icon_url=developer.display_avatar.url)
-                    
+
+            #if not self.check_inactive_staffers.is_running():
+                #self.bot.loop.create_task(self.schedule_periodic_task())
         except AssertionError as e:
             await interaction.followup.send(e,ephemeral=True)
         else:
             await interaction.followup.send(embed=embed,ephemeral=True)
 
-    @staffers.subcommand('set',"Set a staffer as active or inactive")
+    @staf.subcommand('set',"Set a staffer as active or inactive")
     async def set(self, 
                 interaction : nextcord.Interaction, 
                 status : str = nextcord.SlashOption("status","Set a staffer as active or inactive",required=True,choices=['active','inactive'],default='inactive'),
@@ -173,6 +129,7 @@ class StaffCommands(commands.Cog):
                 file['inactive'].pop(str(staffer.id))
                 
                 await interaction.followup.send(f"Staffer <@{staffer.id}> set to 'active'",ephemeral=True)
+        
         except AssertionError as e:
             await interaction.followup.send(e)
 

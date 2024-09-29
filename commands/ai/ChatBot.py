@@ -14,7 +14,7 @@ logger = getlogger()
 templates = [template for template in os.listdir('./data/chatbot-templates')]
 models = [
     '@cf/meta/llama-3-8b-instruct',
-    '@hf/thebloke/llama-2-13b-chat-awq'
+    '@hf/thebloke/llama-2-13b-chat-awq',
     '@cf/mistral/mistral-7b-instruct-v0.1',
     '@hf/google/gemma-7b-it',
     '@hf/nexusflow/starling-lm-7b-beta',
@@ -29,34 +29,11 @@ permissions = Permissions(
 
 class ChatBot(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.dirfmt = './data/guilds/{guild_id}/' + ChatBot.__name__
+        self.dirfmt = './data/guilds/{guild_id}/commands.ai.ChatBot'
         self.bot = bot
 
-    @nextcord.slash_command('ai',"An AI chatbot developed with LLM (Large Language Model) by Ollama",default_member_permissions=permissions,dm_permission=False)
+    @nextcord.slash_command('ai',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,dm_permission=False)
     async def ai(self, interaction : nextcord.Interaction): pass
-
-    @ai.subcommand('setup',"Initialize GG'sBot Ai extension on this server")
-    async def setup(self, 
-                    interaction : nextcord.Interaction,
-                    textchannel : nextcord.TextChannel = nextcord.SlashOption("textchannel","The text channel where the bot can be used and all public or private chats will be created",required=True),
-                    delay : int = nextcord.SlashOption("delay","The number of seconds a user must wait before sending another prompt",required=True,default=5)
-                ):
-        await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
-        try:
-            os.makedirs(workingdir,exist_ok=True)
-        
-            file = JsonFile(f'{workingdir}/config.json')
-            file['aichatbot-text-channel'] = textchannel.id
-            file['aichatbot-chat-delay'] = delay
-            file['threads'] = _JsonDict({},file)
-        
-        except AssertionError as e:
-            await interaction.followup.send(e)
-        except OSError as e:
-            await interaction.followup.send(f"Error occurred while creating directory: {e}", ephemeral=True)
-        else:
-            await interaction.followup.send('ChatBot extension installed successfully')
 
     @ai.subcommand('newchat',"Create a chat with GG'sBot Ai")
     async def newchat(self, 

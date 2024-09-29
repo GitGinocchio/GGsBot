@@ -23,9 +23,10 @@ class UpdateMetadata(commands.Cog):
         for guild in self.bot.guilds:
             datadir = self.dirfmt.format(guild_id=guild.id)
 
-            if not os.path.exists(datadir):
-                logger.warning(f"Leaving guild \'{guild.name}\'({guild.id}) no data found!")
-                await guild.leave()
+            if not os.path.exists(f'{datadir}/metadata.json'):
+                await self.newguild(guild)
+                #logger.warning(f"Leaving guild \'{guild.name}\'({guild.id}) no data found!")
+                #await guild.leave()
 
     @commands.Cog.listener()
     async def on_member_join(self, member : nextcord.Member):

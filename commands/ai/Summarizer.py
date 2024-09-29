@@ -79,7 +79,7 @@ class Summarizer(commands.Cog):
     @nextcord.slash_command(name='summarize',description="Summarize text using AI")
     async def summarize_text(self, 
                     interaction : nextcord.Interaction,
-                    text : str = SlashOption(description="The text that you to summarize",required=True),
+                    text : str = SlashOption(description="The text that you want to summarize",required=True),
                     max_length : int = SlashOption(description="The maximum length of the generated summary in characters",required=False,default=1024),
                     model : str = SlashOption(description="The model to use",required=False,default='@cf/facebook/bart-large-cnn',choices=models)
                 ):
