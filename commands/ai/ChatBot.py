@@ -35,7 +35,10 @@ class ChatBot(commands.Cog):
     @nextcord.slash_command('ai',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,dm_permission=False)
     async def ai(self, interaction : nextcord.Interaction): pass
 
-    @ai.subcommand('newchat',"Create a chat with GG'sBot Ai")
+    @ai.subcommand('chat',"Set of commands to manage Ai chats")
+    async def chat(self, interaction : nextcord.Interaction): pass
+
+    @chat.subcommand('new',"Create a chat with GG'sBot Ai")
     async def newchat(self, 
                       interaction : nextcord.Interaction,
                       public : bool = nextcord.SlashOption('public','Whether the chat between you and the bot should be public or private',required=True,default=False),
@@ -71,10 +74,7 @@ class ChatBot(commands.Cog):
         else:
             await interaction.followup.send("Chat created successfully")
 
-    @ai.subcommand('ask',description="Ask a question to GG'sBot AI")
-    async def ask(self): pass
-
-    @ai.subcommand('delchat',"Delete a chat with GG'sBot Ai")
+    @chat.subcommand('del',"Delete a chat with GG'sBot Ai")
     async def delchat(self,interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
@@ -88,6 +88,9 @@ class ChatBot(commands.Cog):
             file['threads'].pop(str(interaction.channel.id))
         except AssertionError as e:
             await interaction.followup.send(e)
+
+    #@ai.subcommand('ask',description="Ask a question to GG'sBot AI")
+    #async def ask(self): pass
 
     @commands.Cog.listener()
     async def on_message(self, message : nextcord.Message):
