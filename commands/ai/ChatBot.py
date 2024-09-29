@@ -111,7 +111,12 @@ class ChatBot(commands.Cog):
             model = file['threads'][str(message.channel.id)]['aimodel']
             tags = file['threads'][str(message.channel.id)]['tags']
 
-            jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}')
+            response = await message.reply("Sto formulando una risposta...")
+
+            url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
+            headers = {
+                'Content-Type': 'application/json'
+            }
 
             data = [
                 {
@@ -131,6 +136,7 @@ class ChatBot(commands.Cog):
             if template_name:
                 developer = await self.bot.fetch_user(os.environ['DEVELOPER_ID'])
 
+                jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}')
                 template = jinjaenv.get_template(template_name)
                 template_content = template.render({
                     'name' : self.bot.user.name,
@@ -140,13 +146,6 @@ class ChatBot(commands.Cog):
                     'creator' : creator,
                     'tags' : tags,
                 })
-
-                response = await message.reply("Sto formulando una risposta...")
-
-                url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
-                headers = {
-                    'Content-Type': 'application/json'
-                }
 
                 data[0]['query']['messages'].append(
                     {
