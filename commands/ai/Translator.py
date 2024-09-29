@@ -117,6 +117,7 @@ class Translator(commands.Cog):
                 text : str = nextcord.SlashOption(description="Text to translate",required=True),
                 to_lang : str = nextcord.SlashOption(name='to',description='Language to translate to',required=True,choices=languages),
                 from_lang : str = nextcord.SlashOption(name='from',description="Language to translate from",required=False,choices=languages,default='english'),
+                ephemeral : bool = nextcord.SlashOption(name='ephemeral',description="Whether or not to send the translated text as an ephemeral message",required=False,default=True),
                 model : str = nextcord.SlashOption(description="Model to use",required=False,choices=models,default='@cf/meta/m2m100-1.2b')
                 ) -> str:
         try:
@@ -132,9 +133,9 @@ class Translator(commands.Cog):
 
             assert response["success"], f"Error occured while translating (code: {response['errors']['code']}): {response['errors']['message']}"
         except AssertionError as e:
-            await interaction.followup.send(e)
+            await interaction.followup.send(e,ephemeral=True)
         else:
-            await interaction.followup.send(response['result']['translated_text'])
+            await interaction.followup.send(response['result']['translated_text'],ephemeral=ephemeral)
 
     async def translate(self, text : str, from_lang : str, to_lang : str, model : str):
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}

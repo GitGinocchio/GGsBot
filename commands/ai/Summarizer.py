@@ -81,6 +81,7 @@ class Summarizer(commands.Cog):
                     interaction : nextcord.Interaction,
                     text : str = SlashOption(description="The text that you want to summarize",required=True),
                     max_length : int = SlashOption(description="The maximum length of the generated summary in characters",required=False,default=1024),
+                    ephemeral : bool = SlashOption(description="Whether the response should be ephemeral or not",required=False,default=True),
                     model : str = SlashOption(description="The model to use",required=False,default='@cf/facebook/bart-large-cnn',choices=models)
                 ):
         try:
@@ -91,7 +92,7 @@ class Summarizer(commands.Cog):
         except AssertionError as e:
             await interaction.followup.send(e,ephemeral=True)
         else:
-            await interaction.followup.send(response['result']['summary'],ephemeral=True)
+            await interaction.followup.send(response['result']['summary'],ephemeral=ephemeral)
 
     async def summarize(self, text : str, max_length : int, model : str):
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}

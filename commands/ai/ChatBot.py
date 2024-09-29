@@ -113,25 +113,6 @@ class ChatBot(commands.Cog):
 
             jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}')
 
-            developer = await self.bot.fetch_user(os.environ['DEVELOPER_ID'])
-
-            template = jinjaenv.get_template(template_name)
-            template_content = template.render({
-                'name' : self.bot.user.name,
-                'discriminator' : self.bot.user.discriminator,
-                'developer' : developer.mention,
-                'creator_mention' : creator_mention,
-                'creator' : creator,
-                'tags' : tags,
-            })
-
-            response = await message.reply("Sto formulando una risposta...")
-
-            url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
-            headers = {
-                'Content-Type': 'application/json'
-            }
-
             data = [
                 {
                     "provider": "workers-ai",
@@ -142,14 +123,37 @@ class ChatBot(commands.Cog):
                     },
                     "query": {
                         "messages": [
-                            {
-                                "role":  "system",
-                                "content": template_content
-                            }
                         ]
                     }
                 }
             ]
+
+            if template_name:
+                developer = await self.bot.fetch_user(os.environ['DEVELOPER_ID'])
+
+                template = jinjaenv.get_template(template_name)
+                template_content = template.render({
+                    'name' : self.bot.user.name,
+                    'discriminator' : self.bot.user.discriminator,
+                    'developer' : developer.mention,
+                    'creator_mention' : creator_mention,
+                    'creator' : creator,
+                    'tags' : tags,
+                })
+
+                response = await message.reply("Sto formulando una risposta...")
+
+                url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
+                headers = {
+                    'Content-Type': 'application/json'
+                }
+
+                data[0]['query']['messages'].append(
+                    {
+                        "role":  "system",
+                        "content": template_content
+                    }
+                )
 
             async for history_message in message.channel.history(limit=None,oldest_first=True):
                 if history_message.clean_content == '': continue
@@ -194,27 +198,6 @@ class ChatBot(commands.Cog):
                     else:
                         await message.channel.send(content=current_text)
                     current_text = ''
-
-            """
-            lines = result.split('\n')
-            current_text = lines[0]
-            current_message = await response.edit(content=current_text)
-            for line in lines[1::]:
-                if len(current_text) + len(line) + 5 < 2000:
-                    current_text += f'{line}\n'
-                else:
-                    if current_message:
-                        current_message = await current_message.edit(content=current_text + (r'\n```' if current_text.count('```') % 2 != 0 else ''))
-                        current_text = (r'\n```\n' if current_text.count('```') % 2 != 0 else '') + line + '\n'
-                        current_message = None
-                    else:
-                        current_message = await message.channel.send(content=current_text + (r'\n```' if current_text.count('```') % 2 != 0 else ''))
-            else:
-                if current_text and current_message:
-                    current_message = await current_message.edit(content=current_text)
-                elif current_text:
-                    current_message = await message.channel.send(content=current_text)
-            """
 
         except AssertionError as e:
             pass
