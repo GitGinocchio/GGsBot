@@ -32,7 +32,8 @@ class Greetings(commands.Cog):
                     description=f'Welcome to {member.name}, {member.mention} Enjoy your stay and feel free to look around!',
                     color=Color.green()
                 )
-                if member.avatar is not None: embed.set_thumbnail(url=member.avatar.url)
+
+                embed.set_thumbnail(url=(member.avatar.url if member.avatar else member.default_avatar.url))
             except AssertionError as e:
                 await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
             else:
@@ -51,7 +52,8 @@ class Greetings(commands.Cog):
                     description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',
                     color=Color.green()
                 )
-                if member.avatar is not None: embed.set_thumbnail(url=member.avatar.url)
+
+                embed.set_thumbnail(url=(member.avatar.url if member.avatar else member.default_avatar.url))
             except AssertionError as e:
                 await channel.send(embed=Embed(title="Error:",description=e,color=Color.red()))
             else:
