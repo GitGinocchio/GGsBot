@@ -4,6 +4,7 @@ from typing import Literal
 import datetime
 import nextcord
 import asyncio
+import sys
 import os
 
 from utils.jsonfile import JsonFile, _JsonDict
@@ -76,9 +77,6 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="",value="")
             developer = await self.bot.fetch_user(int(os.environ['DEVELOPER_ID']))
             embed.set_footer(text=f'Developed by {developer.display_name}',icon_url=developer.display_avatar.url)
-
-            #if not self.check_inactive_staffers.is_running():
-                #self.bot.loop.create_task(self.schedule_periodic_task())
         except AssertionError as e:
             await interaction.followup.send(e,ephemeral=True)
         else:
@@ -110,7 +108,7 @@ class StaffCommands(commands.Cog):
                 assert inactive_role not in staffer.roles, "The specified member is already set to inactive"
 
                 if fordays:
-                    timestamp = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=fordays)
+                    timestamp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=fordays)
                 else:
                     timestamp = None
 
@@ -146,7 +144,7 @@ class StaffCommands(commands.Cog):
         # Avvia il task periodico
         self.check_inactive_staffers.start()
 
-        logger.debug(f"Check inactive staffers schedule started at {datetime.datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}")
+        logger.debug(f"Check inactive staffers schedule started at {datetime.datetime.now(datetime.timezone.utc).strftime('%d/%m/%Y, %H:%M:%S')}")
 
     @tasks.loop(hours=24)
     async def check_inactive_staffers(self):
