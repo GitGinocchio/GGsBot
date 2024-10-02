@@ -18,7 +18,7 @@ staff_permissions = Permissions(
 class StaffCommands(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
-        self.dirfmt = './data/guilds/{guild_id}/staff.StaffCommands'
+        self.dirfmt = './data/guilds/{guild_id}/commands.staff.StaffCommands'
         self.bot = bot
 
     @commands.Cog.listener()
@@ -36,7 +36,7 @@ class StaffCommands(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
         try:
-            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/staff config` before using this commands"
+            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/setup staff` before using this commands"
 
             file = JsonFile(f'{workingdir}/config.json')
 
@@ -96,7 +96,7 @@ class StaffCommands(commands.Cog):
         workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
 
         try:
-            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/staff config` before using this commands"
+            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/setup staff` before using this commands"
             file = JsonFile(f'{workingdir}/config.json')
             
             staffer_role = nextcord.utils.get(interaction.guild.roles, id=file['active_role'])
