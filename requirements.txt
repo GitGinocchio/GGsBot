@@ -1,3 +1,4 @@
+setuptools
 python-dotenv
 nextcord
 pypresence
