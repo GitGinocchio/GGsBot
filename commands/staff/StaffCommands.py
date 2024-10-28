@@ -27,9 +27,9 @@ class StaffCommands(commands.Cog):
         self.bot.loop.create_task(self.schedule_periodic_task())
 
     @nextcord.slash_command('staff',"Set of useful commands to set or view the status of staffers",default_member_permissions=staff_permissions,dm_permission=False)
-    async def staf(self, interaction : nextcord.Interaction): pass
+    async def staff(self, interaction : nextcord.Interaction): pass
 
-    @staf.subcommand('show',"Show a list of active and/or inactive staffers")
+    @staff.subcommand('show',"Show a list of active and/or inactive staffers")
     async def show(self, 
                    interaction : nextcord.Interaction, 
                    status : str = nextcord.SlashOption("status","Whether to show only active staffers, inactive staffers, or both",required=True,choices=['active','inactive','both'],default='both')
@@ -82,7 +82,7 @@ class StaffCommands(commands.Cog):
         else:
             await interaction.followup.send(embed=embed,ephemeral=True)
 
-    @staf.subcommand('set',"Set a staffer as active or inactive")
+    @staff.subcommand('set',"Set a staffer as active or inactive")
     async def set(self, 
                 interaction : nextcord.Interaction, 
                 status : str = nextcord.SlashOption("status","Set a staffer as active or inactive",required=True,choices=['active','inactive'],default='inactive'),

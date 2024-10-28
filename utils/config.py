@@ -1,8 +1,7 @@
-from .jsonfile import JsonFile
+from .jsonfile import JsonFile, cache
 
 config = JsonFile('./config/config.jsonc')
 
-
 def reload():
-    global config
-    config = JsonFile('./config/config.jsonc')
+    # Eliminare dalla cache il file vecchio e sovrascriverlo... magari aggiungere un parametro all'oggetto JsonFile
+    return

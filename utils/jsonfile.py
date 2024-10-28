@@ -98,12 +98,23 @@ class CustomDecoder(json.JSONDecoder):
 cache = LRUCache(maxsize=100)
 
 class JsonFile(dict):
-    def __init__(self, fp : str,*, indent : int = 4, encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
+    def __init__(self, fp : str,*, indent : int = '\t', encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
         """
+
+        ---
+
         Subclass of dict for loading or creating JSON files.
 
         !! Warning !! 
-        Not all dict methods supports :autosave: feature.
+        Not all dict methods supports autosave feature.
+
+        ---
+        
+        :fp: the file path of the json file.
+        :indent: the indentation of the file. default to '\\t'
+        :encoding: the encoding of the file. default to 'utf-8'.
+        :autosave: If True, the file is automatically saved after each change.
+        :commented: Specify if there are comments in the json file
         """
         assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
         self.commented = True if fp.endswith('.jsonc') else commented
@@ -113,15 +124,18 @@ class JsonFile(dict):
         self.fp = os.path.realpath(os.path.normpath(fp))
 
         if fp not in cache:
+            #print(f"File '{fp}' not saved in cache, loading it...")
             if os.path.exists(fp):
                 with open(fp,encoding=encoding) as jsf:
                     fileobj = json.load(jsf,cls=CustomDecoder,file=self)
                     super().__init__(fileobj)
                     cache[fp] = fileobj
-                    print(f"Currently cached json files: {[key for key, value in cache.items()]}")
+                    print(F"Updated cached JsonFiles list: {[key for key, _ in cache.items()]}")
             else:
                 super().__init__()
+                cache[fp] = _JsonDict({},self)
         else:
+            #print(f"File '{fp}' already saved in cache")
             fileobj = cache[fp]
             
             super().__init__(fileobj)
@@ -149,7 +163,7 @@ class JsonFile(dict):
             raise KeyError(f"Key '{key}' not found in '{self.fp}'.")
     
     def __iter__(self):
-        return iter(self.content)
+        return dict.__iter__(self)
 
     def copy(self):
         return JsonFile(self.fp,indent=self.indent,encoding=self.encoding,autosave=self.autosave)
