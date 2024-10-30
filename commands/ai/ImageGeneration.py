@@ -70,6 +70,8 @@ class ImageGeneration(commands.Cog):
                        spoiler : bool = SlashOption(description="Whether the generated image should be a spoiler or not",required=False,default=False),
                        ):
         try:
+            if interaction.is_expired(): raise SlashCommandException(code="Interaction Expired")
+
             await interaction.response.defer(ephemeral=ephemeral)
 
             url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
@@ -100,6 +102,9 @@ class ImageGeneration(commands.Cog):
         except CloudFlareAIException as e:
             await interaction.followup.send(embed=e.asEmbed())
             logger.error(e)
+        except SlashCommandException as e:
+            if e.code == 'Interaction Expired':
+                await interaction.channel.send(embed=e.asEmbed())
 
     """
     @image.subcommand('fromimage', "Generate an image from another image and/or from a prompt")

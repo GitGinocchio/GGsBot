@@ -31,8 +31,8 @@ class GGsBotException(Exception):
         embed.set_footer(text=f'contact a moderator for more help')
 
         return embed
-    
 
+        
 
 class CloudFlareAIException(GGsBotException):
     def __init__(self, code : int | str = None, *args) -> None:
