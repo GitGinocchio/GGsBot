@@ -27,6 +27,7 @@ import io
 
 from utils.terminal import getlogger
 from utils.jsonfile import JsonFile, _JsonDict
+from utils.exceptions import *
 
 logger = getlogger()
 
@@ -42,12 +43,7 @@ txt2txt_models = [
 ]
 
 txt2img_models = [
-    #"@cf/runwayml/stable-diffusion-v1-5-inpainting",
     "@cf/black-forest-labs/flux-1-schnell",
-    #"@cf/bytedance/stable-diffusion-xl-lightning",
-    #"@cf/lykon/dreamshaper-8-lcm",
-    #"@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    #"@cf/runwayml/stable-diffusion-v1-5-img2img"
 ]
 
 img2img_models = [
@@ -66,7 +62,6 @@ permissions = Permissions(
     use_slash_commands=True
     #administrator=True
 )
-
 
 class ChatBot(commands.Cog):
     def __init__(self, bot : commands.Bot):
@@ -90,10 +85,11 @@ class ChatBot(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
         try:
-            assert os.path.exists(f'{workingdir}/config.json'), "The ChatBot extension is not configured on the server"
+            if not os.path.exists(f'{workingdir}/config.json'): raise ExtensionException("Not Configured")
+
             file = JsonFile(f'{workingdir}/config.json')
 
-            assert interaction.channel.id == int(file['aichatbot-text-channel']), f"You can create an Ai chat only in the channel <@{file['aichatbot-text-channel']}>"
+            if not interaction.channel.id == int(file['aichatbot-text-channel']): raise SlashCommandException("Invalid Channel")
 
             thread : Thread = await interaction.channel.create_thread(
                                                             name="New Chat",
@@ -110,8 +106,8 @@ class ChatBot(commands.Cog):
                 "creator-mention" : interaction.user.mention,
                 "tags" : tags
                 }
-        except AssertionError as e:
-            await interaction.followup.send(e)
+        except (ExtensionException,SlashCommandException) as e:
+            await interaction.followup.send(embed=e.asEmbed())
         else:
             await interaction.followup.send("Chat created successfully")
 
@@ -119,16 +115,19 @@ class ChatBot(commands.Cog):
     async def delchat(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
-            assert os.path.exists(f'{workingdir}/config.json'), "GG'sBot Ai extensions is not configured"
+
+            if not str(interaction.channel.id) in file['threads']: raise SlashCommandException("Invalid Channel")
             
+            workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
+            if not os.path.exists(f'{workingdir}/config.json'): raise ExtensionException("Not Configured")
+
             file = JsonFile(f'{workingdir}/config.json')
-            assert str(interaction.channel.id) in file['threads'], "You need to call this command in a GG'sBot Ai thread"
 
             await interaction.channel.delete()
             file['threads'].pop(str(interaction.channel.id))
-        except AssertionError as e:
-            await interaction.followup.send(e)
+        except (SlashCommandException, ExtensionException) as e:
+            await interaction.followup.send(embed=e.asEmbed())
+            logger.log(e)
 
     @ai.subcommand('ask',description="Ask a question to GG'sBot AI")
     async def ask(self,
@@ -161,7 +160,8 @@ class ChatBot(commands.Cog):
             ]
 
             content = requests.get(url, headers=headers, data=json.dumps(data)).json()
-            assert content['success'], f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}"
+
+            if not content['success']: raise CloudFlareAIException(code=content['errors'][0]['code'])
             result : str = content['result']['response']
 
             max_length = 1000
@@ -185,7 +185,8 @@ class ChatBot(commands.Cog):
             embed.set_author(name=interaction.user.name,icon_url=interaction.user.avatar.url if interaction.user.avatar else interaction.user.default_avatar.url)
 
             await interaction.followup.send(embed=embed)
-        except AssertionError as e:
+        except CloudFlareAIException as e:
+            await interaction.followup.send(embed=e.asEmbed())
             logger.error(e)
 
     @ai.subcommand('image', "Set of commands to manage and create Ai generated images")
@@ -208,7 +209,9 @@ class ChatBot(commands.Cog):
             data = { "prompt" : prompt, "steps" : steps}
 
             content = requests.post(url, headers=headers, json=data).json()
-            assert content['success'], f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}"
+
+            if not content['success']: raise CloudFlareAIException(code=content['errors'][0]['code'])
+
             b64image = content['result']['image']
 
             embed = Embed(
@@ -218,7 +221,7 @@ class ChatBot(commands.Cog):
             )
             embed.add_field(name="Model:", value=f"**{model}**", inline=True)
             embed.add_field(name="Diffusion Steps: ", value=steps, inline=True)
-            embed.add_field(name="Prompt:", value=prompt, inline=False)
+            embed.add_field(name="Prompt:", value=prompt[:1021] + '...' if len(prompt) > 1024 else prompt, inline=False)
             embed.set_footer(
                 text=f"Generated by {self.bot.user.name} powered by Cloudflare Ai Workers", 
                 icon_url="https://static-00.iconduck.com/assets.00/cloudflare-icon-512x512-c1lpcyo0.png"
@@ -226,7 +229,8 @@ class ChatBot(commands.Cog):
             embed.set_author(name=interaction.user.name,icon_url=interaction.user.avatar.url if interaction.user.avatar else interaction.user.default_avatar.url)
 
             await interaction.followup.send(embed=embed, file=File(io.BytesIO(base64.b64decode(b64image)), filename="image.png",description=f"Image generated by GGsBot", spoiler=spoiler))
-        except AssertionError as e:
+        except CloudFlareAIException as e:
+            await interaction.followup.send(embed=e.asEmbed())
             logger.error(e)
 
     """

@@ -1,7 +1,9 @@
 from .jsonfile import JsonFile, cache
 
 config = JsonFile('./config/config.jsonc')
+exceptions = JsonFile('./config/exceptions.jsonc')
 
 def reload():
-    # Eliminare dalla cache il file vecchio e sovrascriverlo... magari aggiungere un parametro all'oggetto JsonFile
-    return
+    global config, exceptions
+    config = JsonFile('./config/config.jsonc', force_load=True)
+    exceptions = JsonFile('./config/exceptions.jsonc', force_load=True)

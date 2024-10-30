@@ -98,7 +98,7 @@ class CustomDecoder(json.JSONDecoder):
 cache = LRUCache(maxsize=100)
 
 class JsonFile(dict):
-    def __init__(self, fp : str,*, indent : int = '\t', encoding : str = 'utf-8', autosave : bool = True, commented : bool = False):
+    def __init__(self, fp : str,*, indent : int = '\t', encoding : str = 'utf-8', autosave : bool = True, commented : bool = False, force_load : bool = False):
         """
 
         ---
@@ -115,6 +115,7 @@ class JsonFile(dict):
         :encoding: the encoding of the file. default to 'utf-8'.
         :autosave: If True, the file is automatically saved after each change.
         :commented: Specify if there are comments in the json file
+        :force_load: Force to load the file.
         """
         assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
         self.commented = True if fp.endswith('.jsonc') else commented
@@ -123,7 +124,7 @@ class JsonFile(dict):
         self.indent = indent
         self.fp = os.path.realpath(os.path.normpath(fp))
 
-        if fp not in cache:
+        if fp not in cache or force_load:
             #print(f"File '{fp}' not saved in cache, loading it...")
             if os.path.exists(fp):
                 with open(fp,encoding=encoding) as jsf:

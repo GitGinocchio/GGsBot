@@ -4,11 +4,9 @@
 3. Ricreare Song e Capire quali sono le informazioni necessarie da salvare, al momento ci sono molti dati duplicati all'interno di una canzone, all'interno di album sono contenute anche le canzoni ecc.
    Creare un oggetto Generatore Album e Playlist
 
-- Prima di rispondere alle interazioni ricordarsi di fare il defer cosi' il bot puo' rispondere anche dopo un po' di tempo
-- Piu' configurazioni insieme per i canali temporanei.
-✔ Rimuovere la cache per i file config dei canali temporanei (visto che e' stata sostituita da una cache generale per tutti i file config)
-
 - Nei ServerMessages dare la possibilita' di scegliere come inviare il messaggio
 - Controllare se ci sono dati di server a cui il bot non e' dentro (in caso eliminare i dati)
 ✔ Settare per bene i permessi per i vari comandi, vedere se e' possibile abilitarli o meno...
 - Il manager dei comandi basta che cambia i permessi per accedere ai comandi... (potendolo anche disabilitare mettendo 0)
+
+- File Transfer in discord per tutti all'interno del server utilizzando lo spazio di discord
