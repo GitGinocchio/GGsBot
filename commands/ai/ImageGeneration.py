@@ -70,8 +70,6 @@ class ImageGeneration(commands.Cog):
                        spoiler : bool = SlashOption(description="Whether the generated image should be a spoiler or not",required=False,default=False),
                        ):
         try:
-            if interaction.is_expired(): raise SlashCommandException(code="Interaction Expired")
-
             await interaction.response.defer(ephemeral=ephemeral)
 
             url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
