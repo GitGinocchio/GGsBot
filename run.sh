@@ -28,6 +28,9 @@ clone_or_update_repo() {
         fi
 
         # Pull updates
+        git reset --hard HEAD
+        git clean -fd
+        git pull
         git pull
         if [ $? -ne 0 ]; then
             echo "Error updating repository"
