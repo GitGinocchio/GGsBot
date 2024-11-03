@@ -17,7 +17,12 @@ intents = getintents()
 
 load_dotenv('./config/.env')
 
-Bot = commands.Bot(intents=intents,command_prefix=config['COMMAND_PREFIX'],application_id=os.environ['APPLICATION_ID'])
+Bot = commands.Bot(intents=intents,
+                   command_prefix=config['COMMAND_PREFIX'],
+                   application_id=os.environ['APPLICATION_ID'],
+                   default_guild_ids=[os.environ['DEVELOPER_GUILD_ID']],
+                   owner_id=os.environ['DEVELOPER_ID']
+                   )
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]

@@ -16,6 +16,7 @@ import os
 from commands.ai import ChatBot
 from commands.general import Greetings
 from commands.staff import StaffCommands
+
 from utils.jsonfile import JsonFile, _JsonDict
 from utils.terminal import getlogger
 
@@ -32,8 +33,11 @@ class CommandsManager(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.bot.sync_all_application_commands()
-        await self.bot.discover_application_commands(guild_id=os.environ['DEVELOPER_GUILD_ID'])
+        try:
+            await self.bot.discover_application_commands(guild_id=os.environ['DEVELOPER_GUILD_ID'])
+            await self.bot.sync_all_application_commands()
+        except nextcord.errors.NotFound as e:
+            logger.error(e)
     
     @slash_command(name='setup', description='Setup a bot extension',default_member_permissions=permissions,dm_permission=False)
     async def setup(self, interaction : Interaction): pass
