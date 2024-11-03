@@ -20,7 +20,6 @@ load_dotenv('./config/.env')
 Bot = commands.Bot(intents=intents,
                    command_prefix=config['COMMAND_PREFIX'],
                    application_id=os.environ['APPLICATION_ID'],
-                   default_guild_ids=[os.environ['DEVELOPER_GUILD_ID']],
                    owner_id=os.environ['DEVELOPER_ID']
                    )
 
