@@ -31,6 +31,7 @@ class CommandsManager(commands.Cog):
         commands.Cog.__init__(self)
         self.bot = bot
 
+    """
     @commands.Cog.listener()
     async def on_ready(self):
         try:
@@ -38,6 +39,7 @@ class CommandsManager(commands.Cog):
             await self.bot.sync_all_application_commands()
         except nextcord.errors.NotFound as e:
             logger.error(e)
+    """
     
     @slash_command(name='setup', description='Setup a bot extension',default_member_permissions=permissions,dm_permission=False)
     async def setup(self, interaction : Interaction): pass
