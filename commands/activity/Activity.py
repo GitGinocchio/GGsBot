@@ -57,6 +57,8 @@ class Activity(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def update_activity(self):
+        await self.bot.change_presence(status=Status.offline)
+
         activity = nextcord.Activity(
             type=nextcord.ActivityType.playing,
             name=(name:=random.choice(self.names_keys)),
