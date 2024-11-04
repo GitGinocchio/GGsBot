@@ -61,7 +61,7 @@ class Activity(commands.Cog):
 
             self.command = name
 
-            logger.info(f"Changing bot activity to: {name}")
+            #logger.info(f"Changing bot activity to: {name}")
             await self.bot.change_presence(activity=activity)
         except Exception as e:
             logger.error(e)

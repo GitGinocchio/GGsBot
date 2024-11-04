@@ -99,7 +99,7 @@ class Translator(commands.Cog):
         self.bot = bot
         self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
 
-    @nextcord.message_command(name="translate",default_member_permissions=permissions)
+    @nextcord.message_command(name="translate",default_member_permissions=permissions, dm_permission=True)
     async def translate_message(self,
                                 interaction : Interaction,
                                 message : nextcord.Message
@@ -111,12 +111,12 @@ class Translator(commands.Cog):
         except AssertionError as e:
             await interaction.response.send_message(e,ephemeral=True,delete_after=5)
 
-    @nextcord.slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions)
+    @nextcord.slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions, dm_permission=True)
     async def translate_text(self, 
                 interaction : Interaction,
                 text : str = nextcord.SlashOption(description="Text to translate",required=True),
                 to_lang : str = nextcord.SlashOption(name='to',description='Language to translate to',required=True,choices=languages),
-                from_lang : str = nextcord.SlashOption(name='from',description="Language to translate from",required=False,choices=languages,default='english'),
+                from_lang : str = nextcord.SlashOption(name='from',description="Language to translate from",required=False,choices=languages,default=None),
                 ephemeral : bool = nextcord.SlashOption(name='ephemeral',description="Whether or not to send the translated text as an ephemeral message",required=False,default=True),
                 model : str = nextcord.SlashOption(description="Model to use",required=False,choices=models,default='@cf/meta/m2m100-1.2b')
                 ) -> str:
@@ -131,15 +131,19 @@ class Translator(commands.Cog):
                                     model=model
                                 )
 
-            assert response["success"], f"Error occured while translating (code: {response['errors']['code']}): {response['errors']['message']}"
+            assert response["success"], f"Error occured while translating (code: {response['errors'][0]['code']}): {response['errors'][0]['message']}"
         except AssertionError as e:
             await interaction.followup.send(e)
         else:
             await interaction.followup.send(response['result']['translated_text'])
 
-    async def translate(self, text : str, from_lang : str, to_lang : str, model : str):
+    async def translate(self, text : str, to_lang : str, model : str, from_lang : str | None = None):
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}
-        return requests.post(self.api + model, json={'text' : text,'source_lang': from_lang, 'target_lang' : to_lang}, headers=headers).json()
 
-def setup(bot: commands.Bot):
+        payload = {'text' : text,'target_lang' : to_lang}
+        if from_lang is not None: payload['source_lang'] = from_lang
+
+        return requests.post(self.api + model, json=payload, headers=headers).json()
+
+def setup(bot: commands.Bot): 
     bot.add_cog(Translator(bot))

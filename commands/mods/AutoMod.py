@@ -22,6 +22,9 @@ models = [
     '@cf/huggingface/distilbert-sst-2-int8'
 ]
 
+translation_model = '@cf/meta/m2m100-1.2b'
+punctuation_marks = [":", ".", ",", "/", "?", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "=", "+", "[", "]", "{", "}", ";", "'", '"', "\\", "|", "<", ">", "~", "`"]
+
 logger = getlogger()
 
 session = requests.Session()
@@ -37,12 +40,22 @@ class AutoMod(commands.Cog):
     # Aggiungere una lista di parole bannate
 
     async def evaluate_message(self, message : Message):
-        api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
-        headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}" }
+        try:
+            api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
+            headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}" }
 
-        response : requests.Response = session.post(api + models[0], json={'text' : message.clean_content}, headers=headers).json()
+            translated : requests.Response = session.post(api + translation_model, json={'text' : message.clean_content, 'target_lang' : 'english'}, headers=headers).json()
 
-        return (response, message)
+            assert translated["success"], f"Error occured while translating (code: {translated['errors'][0]['code']}): {translated['errors'][0]['message']}"
+
+            table = str.maketrans('','', ''.join(punctuation_marks))
+            text = translated['result']['translated_text'].translate(table).lower()
+
+            response : requests.Response = session.post(api + models[0], json={'text' : text}, headers=headers).json()
+        except Exception as e:
+            logger.error(e)
+        else:
+            return (response, message)
 
     async def send_timeout(self, message : Message, time : timedelta, reason : str):
         try:
@@ -66,7 +79,7 @@ class AutoMod(commands.Cog):
 
             logger.info(f'{message.author.name}({message.author.mention}) [{negative * 100:.2f}% ({negative}) negative, {positive * 100:.2f}% ({positive}) positive]: {message.clean_content}')
 
-            if positive < 0.007:
+            if positive < 0.60:
                 await self.send_timeout(message, timedelta(minutes=5), f'This message has been flagged as {negative * 100:.2f}% negative, you will take a timeout')
         except AssertionError as e:
             await message.reply(e)
