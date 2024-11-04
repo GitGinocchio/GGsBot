@@ -44,6 +44,7 @@ class Activity(commands.Cog):
         }
         self.names_keys = list(self.names.keys())
         self.bot = bot
+        self.update_activity.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
