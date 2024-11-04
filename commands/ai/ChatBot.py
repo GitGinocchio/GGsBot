@@ -55,7 +55,7 @@ class ChatBot(commands.Cog):
     @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,dm_permission=False)
     async def chat(self, interaction : Interaction): pass
 
-    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,dm_permission=False)
+    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,dm_permission=True)
     async def ask(self,
                   interaction : Interaction,
                   prompt : str = SlashOption("prompt","The question you want to ask",required=True),
@@ -156,13 +156,13 @@ class ChatBot(commands.Cog):
     async def delchat(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-
-            if not str(interaction.channel.id) in file['threads']: raise SlashCommandException("Invalid Channel")
             
             workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
             if not os.path.exists(f'{workingdir}/config.json'): raise ExtensionException("Not Configured")
 
             file = JsonFile(f'{workingdir}/config.json')
+
+            if not str(interaction.channel.id) in file['threads']: raise SlashCommandException("Invalid Channel")
 
             await interaction.channel.delete()
             file['threads'].pop(str(interaction.channel.id))

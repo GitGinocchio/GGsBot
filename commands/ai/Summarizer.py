@@ -62,7 +62,6 @@ class Summarizer(commands.Cog):
         self.bot = bot
         self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
 
-    """
     @nextcord.message_command(name='summarize')
     async def summarize_message(self,
                     interaction : Interaction,
@@ -74,9 +73,8 @@ class Summarizer(commands.Cog):
             await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
         except AssertionError as e:
             await interaction.response.send_message(e,ephemeral=True,delete_after=5)
-    """
 
-    @nextcord.slash_command(name='summarize',description="Summarize text using AI")
+    @nextcord.slash_command(name='summarize',description="Summarize text using AI", dm_permission=True)
     async def summarize_text(self, 
                     interaction : nextcord.Interaction,
                     text : str = SlashOption(description="The text that you want to summarize",required=True),

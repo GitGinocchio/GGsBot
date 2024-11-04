@@ -57,7 +57,7 @@ class ImageGeneration(commands.Cog):
         self.dirfmt = './data/guilds/{guild_id}/commands.ai.ChatBot'
         self.bot = bot
 
-    @slash_command('image', "Set of commands to manage and create Ai generated images")
+    @slash_command('image', "Set of commands to manage and create Ai generated images", dm_permission=True)
     async def image(self, interaction : Interaction): pass
 
     @image.subcommand('fromtext', "Generate an image from a prompt")
