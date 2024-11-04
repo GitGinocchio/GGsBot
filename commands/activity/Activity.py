@@ -1,6 +1,7 @@
 from nextcord.ext import commands, tasks
 from nextcord import \
-    Status
+    Status, \
+    ActivityType
 import nextcord
 import random
 
@@ -42,31 +43,28 @@ class Activity(commands.Cog):
             '/translate' : "Use /translate to translate a text from one language to another.",
             '/summarize' : "Use /summarize to summarize a text with GGsBot AI."
         }
-        self.names_keys = list(self.names.keys())
+        self.commands = list(self.names.keys())
+        self.command : str = None
         self.bot = bot
-        self.update_activity.start()
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        activity = nextcord.Activity(
-            type=nextcord.ActivityType.playing,
-            name=(name:=random.choice(self.names_keys)),
-            state=self.names[name]
-        )
-        logger.info(f"Setting bot activity to: {name}")
-        await self.bot.change_presence(activity=activity)
+    async def on_ready(self): self.update_activity.start()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=10)
     async def update_activity(self):
-        await self.bot.change_presence(status=Status.offline)
+        try:
+            activity = nextcord.Activity(
+                type=ActivityType.playing,
+                name=(name:=random.choice([n for n in self.commands if n != self.command] if self.command else self.commands)),
+                state=self.names[name]
+            )
 
-        activity = nextcord.Activity(
-            type=nextcord.ActivityType.playing,
-            name=(name:=random.choice(self.names_keys)),
-            state=self.names[name]
-        )
-        logger.info(f"Changing bot activity to: {name}")
-        await self.bot.change_presence(activity=activity)
+            self.command = name
+
+            logger.info(f"Changing bot activity to: {name}")
+            await self.bot.change_presence(activity=activity)
+        except Exception as e:
+            logger.error(e)
 
 
 def setup(bot: commands.Bot) -> None:
