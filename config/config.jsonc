@@ -7,7 +7,7 @@
     "INTENTS" : "all",
 
     // Command settings
-    "ignore_files" : ["__pycache__","placeholder.txt"],                         // Do not load the specified commands
+    "ignore_files" : ["__pycache__","placeholder.txt","AutoMod.py"],                         // Do not load the specified commands
     "ignore_categories" : [],                                                   // Do not load the specified categories of commands
     "max_guilds" : -1,                                                          // Maximum number of guilds
 
