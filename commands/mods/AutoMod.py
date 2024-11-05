@@ -79,7 +79,7 @@ class AutoMod(commands.Cog):
 
             logger.info(f'{message.author.name}({message.author.mention}) [{negative * 100:.2f}% ({negative}) negative, {positive * 100:.2f}% ({positive}) positive]: {message.clean_content}')
 
-            if positive < 0.60:
+            if negative > 0.95:
                 await self.send_timeout(message, timedelta(minutes=5), f'This message has been flagged as {negative * 100:.2f}% negative, you will take a timeout')
         except AssertionError as e:
             await message.reply(e)
