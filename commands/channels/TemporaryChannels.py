@@ -43,15 +43,15 @@ class TemporaryChannels(commands.Cog):
                 assert str(channel.id) not in file['listeners'], "Error: There is already a configuration with this generator channel!"
 
                 file['listeners'][channel.id] = {
-                    "categoryID" : category.id,
+                    "categoryID" : str(category.id),
                     "timeout" : timeout
                 }
 
             else:
                 file = JsonFile(f'{datadir}/config.json')
                 file['listeners'] = _JsonDict({},file)
-                file['listeners'][channel.id] = {
-                    "categoryID" : category.id,
+                file['listeners'][str(channel.id)] = {
+                    "categoryID" : str(category.id),
                     "timeout" : timeout
                 }
                 file['channels'] = _JsonDict({},file)
@@ -71,10 +71,10 @@ class TemporaryChannels(commands.Cog):
             assert str(channel.id) in file['listeners'], "The inserted generator channel is not present in the configurations!"
 
             for channel_id, generator_id in file['channels'].copy().items():
-                if generator_id == channel.id:
+                if str(generator_id) == str(channel.id):
                     file['channels'].pop(channel_id)
 
-            file['listeners'].pop(channel.id)
+            file['listeners'].pop(str(channel.id))
         except AssertionError as e:
             await interaction.followup.send(e, ephemeral=True)
         else:
@@ -135,7 +135,7 @@ class TemporaryChannels(commands.Cog):
                 vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
                     reason='GGsBot::TemporaryChannels',
                     name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
-                    category=self.bot.get_channel(file['listeners'][str(after.channel.id)]['categoryID'])
+                    category=self.bot.get_channel(int(file['listeners'][str(after.channel.id)]['categoryID']))
                 )
                 logger.debug(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
 
@@ -145,7 +145,7 @@ class TemporaryChannels(commands.Cog):
                 await vocal_channel.edit(overwrites=overwrites)
                 logger.debug(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
 
-                file['channels'][str(vocal_channel.id)] = after.channel.id
+                file['channels'][str(vocal_channel.id)] = str(after.channel.id)
 
             if before.channel:
                 file = JsonFile(f'{datadir}/config.json')

@@ -124,22 +124,20 @@ class JsonFile(dict):
         self.indent = indent
         self.fp = os.path.realpath(os.path.normpath(fp))
 
-        if fp not in cache or force_load:
-            #print(f"File '{fp}' not saved in cache, loading it...")
-            if os.path.exists(fp):
-                with open(fp,encoding=encoding) as jsf:
+        if self.fp not in cache or force_load:
+            if os.path.exists(self.fp):
+                #print(f"File '{self.fp}' not saved in cache, loading it...")
+                with open(self.fp,encoding=encoding) as jsf:
                     fileobj = json.load(jsf,cls=CustomDecoder,file=self)
-                    super().__init__(fileobj)
-                    cache[fp] = fileobj
-                    print(F"Updated cached JsonFiles list: {[key for key, _ in cache.items()]}")
+                    cache[self.fp] = _JsonDict(fileobj, self)
+                    super().__init__(cache[self.fp])
+                    #print(F"Updated cached JsonFiles list: {[key for key, _ in cache.items()]}")
             else:
-                super().__init__()
-                cache[fp] = _JsonDict({},self)
+                cache[self.fp] = _JsonDict({},self)
+                super().__init__(cache[self.fp])
         else:
-            #print(f"File '{fp}' already saved in cache")
-            fileobj = cache[fp]
-            
-            super().__init__(fileobj)
+            #print(f"File '{self.fp}' already saved in cache")
+            super().__init__(cache[self.fp])
 
     def __getitem__(self, key) -> _JsonDict | dict:
         return super().__getitem__(key)
@@ -170,4 +168,5 @@ class JsonFile(dict):
         return JsonFile(self.fp,indent=self.indent,encoding=self.encoding,autosave=self.autosave)
 
     def save(self, fp : str = None):
+        cache[self.fp] = self
         with open(self.fp if fp is None else fp,'w',encoding=self.encoding) as jsf: json.dump(self,jsf,indent=self.indent)
