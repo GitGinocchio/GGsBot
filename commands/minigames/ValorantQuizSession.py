@@ -62,12 +62,12 @@ class MapQuizSession(QuizSession):
             self.maps = [(num, map) for num, map in enumerate(self.cache['maps']) if map['displayName'].lower() not in ['kasbah','district','drift','piazza','glitch']]
 
         if self.level == Levels.PRO:
-            filtered_maps = [num for num, map in self.maps if (map['callouts'] if self.mode == MapModes.FRAGMENT else True) and map['displayIcon']]
+            filtered_maps = [num for (num, map) in self.maps if (map['callouts'] if self.mode == MapModes.FRAGMENT else True) and map['displayIcon']]
             if num_rounds <= len(filtered_maps):
-                self.maps : list[int] = random.sample([num for num, map in filtered_maps],k=num_rounds)
+                self.maps : list[int] = random.sample([num for (num, map) in filtered_maps],k=num_rounds)
                 self.num_rounds = num_rounds
             else:
-                self.maps : list[int] = random.choices([num for num, map in filtered_maps],k=num_rounds)
+                self.maps : list[int] = random.choices([num for (num, map) in filtered_maps],k=num_rounds)
                 self.num_rounds = num_rounds
         else:
             self.num_rounds = num_rounds if num_rounds <= (len_maps:=len(self.maps)) else len_maps
