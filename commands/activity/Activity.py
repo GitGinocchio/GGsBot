@@ -50,7 +50,7 @@ class Activity(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self): self.update_activity.start()
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=30)
     async def update_activity(self):
         try:
             activity = nextcord.Activity(

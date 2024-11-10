@@ -11,3 +11,9 @@
 
 - File Transfer in discord per tutti all'interno del server utilizzando lo spazio di discord
 ✔ Sistemare il message command del translate che deve avere per forza la lingua di input...
+
+- Estensione del bot che permette di salvare e mostrare agli altri le configurazioni personali di vari giochi
+
+- [12:28:15] [Activity] [ERROR] : Cannot write to closing transport
+
+- Valorant Quiz - Togliere punti se la persona non risponde, aggiungere i punti in base a quanto la parola e' vicina alla risposta corretta

@@ -1,21 +1,17 @@
 from nextcord.ext import commands
 from nextcord import \
-    Embed, \
-    Color, \
-    utils, \
-    channel, \
     Permissions, \
     Interaction, \
     SlashOption, \
     TextChannel, \
     Role, \
     slash_command
-import nextcord
 import os
 
 from commands.ai import ChatBot
 from commands.general import Greetings
 from commands.staff import StaffCommands
+from commands.minigames import ValorantQuiz
 
 from utils.jsonfile import JsonFile, _JsonDict
 from utils.terminal import getlogger
@@ -116,6 +112,24 @@ class CommandsManager(commands.Cog):
         else:
             await interaction.followup.send("Staff setup completed successfully!",ephemeral=True)
 
+    @setup.subcommand(name='valquiz', description='Initialize ValorantQuiz extension on this server')
+    async def setup_valorantquiz(self,
+                    interaction  : Interaction,
+                ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            workingdir = f'./data/guilds/{interaction.guild.id}/{ValorantQuiz.__name__}'
+            assert not os.path.exists(f'{workingdir}/config.json'), "ValorantQuiz extension already configured for this server"
+
+            os.makedirs(workingdir,exist_ok=True)
+
+            file = JsonFile(f'{workingdir}/config.json')
+            file.save()
+
+        except AssertionError as e:
+            await interaction.followup.send(e,ephemeral=True)
+        else:
+            await interaction.followup.send("ValorantQuiz setup completed successfully!", ephemeral=True)
 
 
     @slash_command(name='teardown', description='Teardown a bot extension',default_member_permissions=permissions,dm_permission=False)
