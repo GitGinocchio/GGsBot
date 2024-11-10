@@ -64,10 +64,10 @@ class MapQuizSession(QuizSession):
         if self.level == Levels.PRO:
             filtered_maps = [num for (num, map) in self.maps if (map['callouts'] if self.mode == MapModes.FRAGMENT else True) and map['displayIcon']]
             if num_rounds <= len(filtered_maps):
-                self.maps : list[int] = random.sample([num for (num, map) in filtered_maps],k=num_rounds)
+                self.maps : list[int] = random.sample([num for num in filtered_maps],k=num_rounds)
                 self.num_rounds = num_rounds
             else:
-                self.maps : list[int] = random.choices([num for (num, map) in filtered_maps],k=num_rounds)
+                self.maps : list[int] = random.choices([num for num in filtered_maps],k=num_rounds)
                 self.num_rounds = num_rounds
         else:
             self.num_rounds = num_rounds if num_rounds <= (len_maps:=len(self.maps)) else len_maps
