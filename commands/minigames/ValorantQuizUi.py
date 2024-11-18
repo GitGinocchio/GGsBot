@@ -217,7 +217,7 @@ class QuizEmbed(Embed):
         self.set_field_at(1,name="Answers",value=f"{num:03}/{self.num_participants:03}")
 
 class LeaderBoardEmbed(Embed):
-    def __init__(self, level : Levels, mode : MapModes, rounds : int, players : set, owner : Member, results : dict[int, dict]):
+    def __init__(self, level : Levels, mode : MapModes, rounds : int, players : set, results : dict[int, dict]):
         Embed.__init__(self)
         self.title = "Valorant Quiz Leaderboard (Guess the map)"
         self.description = "Here is the leaderboard of the quiz on the maps of valorant, the results are ordered by the player who made the most correct answers"
@@ -229,7 +229,6 @@ class LeaderBoardEmbed(Embed):
         self.add_field(name="Rounds", value=rounds, inline=True)
 
         player_scores : dict[Member, int] = {player:0 for player in players}
-        player_scores[owner] = 0
 
         for round_data in results.values():
             for player, answer in round_data.items():
@@ -252,13 +251,14 @@ class AllAnswersEmbed(Embed):
         self.description = f"Here is a list of all the answers that users gave to the {page} round of Valorant map quiz"
         self.timestamp = datetime.now(timezone.utc)
         self.colour = Colour.green()
-        self.page = page
 
-        self.add_field(name="Round", value=self.page, inline=True)
+        #self.add_field(name="Round", value=f'{page:03}/{len(results):03}', inline=True)
 
-        self.add_field(name=f"Correct Answer", value=results.get(self.page,{}).get('correct','**Not generated**'), inline=True)
-        
-        answers = '\n'.join(f'{n+1}. {player.mention} - {results.get(self.page,{}).get(player,"**No answer**")}' for n, player in enumerate(players))
+        #value = results.get(page,{}).get('correct','**Not generated**')
 
-        self.add_field(name=f"Players", value=answers,inline=False)
+        #self.add_field(name=f"Correct Answer", value=value, inline=True)
+
+        #answers = '\n'.join(f'{n+1}. {player.mention} - {results.get(page,{}).get(player,"**No answer**")}' for n, player in enumerate(players))
+
+        #self.add_field(name=f"Players", value=answers,inline=False)
 

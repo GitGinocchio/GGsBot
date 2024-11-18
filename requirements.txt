@@ -12,3 +12,4 @@ cachetools
 valo_api
 requests
 jinja2
+numpy

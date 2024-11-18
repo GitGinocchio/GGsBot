@@ -18,7 +18,7 @@ class ImageTypes(StrEnum):
 
 
 class MapModes(StrEnum):
-    FRAGMENT = 'Fragment'
+    FRAGMENTS = 'Fragments'
     NORMAL = 'Normal'
 
 async def asyncget(url : str, mimetype = 'application/json') -> dict | bytes:

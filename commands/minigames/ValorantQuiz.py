@@ -22,7 +22,7 @@ class ValorantQuiz(commands.Cog):
     async def valquiz(self, interaction : Interaction): pass
 
     @valquiz.subcommand(name='maps', description="Valorant Quiz with ingame maps")
-    async def map_quiz(self, 
+    async def maps(self, 
                 interaction : Interaction,
                 level = SlashOption(description=f"Level of the map quiz. default: Hard", required=False, choices=Levels, default=Levels.HARD),
                 mode = SlashOption(description="Mode of the map quiz. default: Normal", required=False, choices=MapModes, default=MapModes.NORMAL),

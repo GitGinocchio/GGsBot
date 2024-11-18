@@ -62,7 +62,7 @@ class MapQuizSession(QuizSession):
             self.maps = [(num, map) for num, map in enumerate(self.cache['maps']) if map['displayName'].lower() not in ['kasbah','district','drift','piazza','glitch']]
 
         if self.level == Levels.PRO:
-            filtered_maps = [num for (num, map) in self.maps if (map['callouts'] if self.mode == MapModes.FRAGMENT else True) and map['displayIcon']]
+            filtered_maps = [num for (num, map) in self.maps if (map['callouts'] if self.mode == MapModes.FRAGMENTS else True) and map['displayIcon']]
             if num_rounds <= len(filtered_maps):
                 self.maps : list[int] = random.sample([num for num in filtered_maps],k=num_rounds)
                 self.num_rounds = num_rounds
@@ -81,7 +81,7 @@ class MapQuizSession(QuizSession):
         self.preQuizView = PreQuizView(self.on_cancel_quiz,self.on_leave_quiz,self.on_player_joined,self.on_start_quiz)
         self.preQuizEmbed = PreQuizEmbed(author=self.owner, level=self.level, mode=self.mode, rounds=self.num_rounds, time_per_round=time_per_round)
     
-        self.quizView = QuizView(self.on_end_quiz, self.on_leave_during_quiz, self.on_skip_map, self.on_player_submit)
+        self.quizView = QuizView(self.on_end_quiz, self.on_leave_during_quiz, self.on_player_skip, self.on_player_submit)
         self.quizEmbed = QuizEmbed(self.num_rounds)
         self.time_left_task : asyncio.Task = None
 
@@ -149,7 +149,7 @@ class MapQuizSession(QuizSession):
             callouts = self.cache['maps'][self.maps[self.current_round-1]]['callouts']
             
             
-            if key == ImageTypes.PRO and self.mode == MapModes.FRAGMENT and callouts and img_url:
+            if key == ImageTypes.PRO and self.mode == MapModes.FRAGMENTS and callouts and img_url:
                 img_data = await asyncget(img_url, mimetype='image/png')
                 ImageBytesIO = BytesIO(img_data)
 
@@ -203,7 +203,14 @@ class MapQuizSession(QuizSession):
     async def _end_quiz(self):
         self.time_left_task.cancel()
 
-        await self.interaction.edit_original_message(embed=LeaderBoardEmbed(self.level,self.mode,self.num_rounds, self.players, self.owner, self.results), view=self.leaderboardView, attachments=[])
+        print(self.results)
+        print(self.players)
+        
+        await self.interaction.edit_original_message(
+            embed=LeaderBoardEmbed(self.level,self.mode,self.num_rounds, self.players, self.results), 
+            view=self.leaderboardView, 
+            attachments=[]
+        )
 
     async def _update_time_left_task(self):
         minutes, seconds = self.quizEmbed.update_time_left()
@@ -235,7 +242,7 @@ class MapQuizSession(QuizSession):
 
         await self.interaction.edit_original_message(embed=self.preQuizEmbed)
 
-    async def on_skip_map(self, interaction : Interaction):
+    async def on_player_skip(self, interaction : Interaction):
         if interaction.user in self.results[self.current_round]:
             await interaction.followup.send(embed=ErrorEmbed("You have already skipped this map or submitted an answer"), delete_after=5, ephemeral=True)
             return
@@ -272,9 +279,17 @@ class MapQuizSession(QuizSession):
     # --- after quiz ---
 
     async def on_view_answers(self, interaction : Interaction):
+        embed = AllAnswersEmbed(1, self.players, self.results)
+
+        message = await interaction.response.send_message(embed=embed, ephemeral=True)
+
         view = AllAnswersView(self.num_rounds, self.on_next_round, self.on_prev_round)
-        message = await interaction.response.send_message(embed=AllAnswersEmbed(1, self.players, self.results), view=view, ephemeral=True)
         view.message = message
+
+        await message.edit(view=view)
+
+        #view.message = await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
 
     async def on_next_round(self, interaction : Interaction, page : int, message : WebhookMessage):
         await message.edit(embed=AllAnswersEmbed(page, self.players, self.results))
