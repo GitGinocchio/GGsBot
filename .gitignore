@@ -154,7 +154,6 @@ cython_debug/
 
 bin/
 config/
-data/
 .replit
 replit.nix
 config\config.jsonc
