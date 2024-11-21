@@ -21,7 +21,7 @@
 
     // Logger settings
     "logger" : {
-        "level" : "INFO",
+        "level" : "DEBUG",
         "dir" : "./logs",
         "tofile" : false,
         "datefmt" : "%H:%M:%S"

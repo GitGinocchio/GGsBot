@@ -116,11 +116,11 @@ class TemporaryChannels(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceState, after : nextcord.VoiceState):
         try:
-            async with self.db:
-                config = await self.db.getExtensionConfig(member.guild,Extensions.TEMPVC)
-
             if after.channel and before.channel:
                 if before.channel.id == after.channel.id: return
+
+            async with self.db:
+                config = await self.db.getExtensionConfig(member.guild,Extensions.TEMPVC)
         
             overwrites = {
                 member: nextcord.PermissionOverwrite(
