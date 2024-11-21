@@ -105,9 +105,8 @@ class Database:
         self._caller_line = info.lineno
 
         self._start_time = time.perf_counter()
-        async with self._lock:
-            if self._context_count == 0:
-                await self.connect()
+        
+        await self.connect()
         
         self._context_count += 1
         return self
