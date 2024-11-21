@@ -106,7 +106,7 @@ class Database:
 
         self._start_time = time.perf_counter()
         async with self._lock:
-            logger.info(f"entering context ({self._caller}:{self._caller_line})")
+            logger.debug(f"entering context ({self._caller}:{self._caller_line})")
             await self.connect()
         
         self._context_count += 1
@@ -118,8 +118,8 @@ class Database:
         async with self._lock:
             if self._context_count == 0:
                 elapsed_time = time.perf_counter() - self._start_time
-                logger.info(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
-                await self.close()
+                logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
+                #await self.close()
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
