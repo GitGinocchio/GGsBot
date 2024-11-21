@@ -1,5 +1,6 @@
 setuptools
 python-dotenv
+aiosqlite
 nextcord
 pypresence
 colorama
