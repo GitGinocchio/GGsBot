@@ -14,7 +14,7 @@ class GGsBotException(Exception):
         if self.type in exceptions and self.code in exceptions[self.type]:
             self.data = exceptions[self.type][self.code]
         else:
-            raise ValueError(f"Invalid exception type {self.type} or {self.code}")
+            raise ValueError(f"Invalid exception type {self.type} or code {self.code}")
     
     def __str__(self): return f"{self.data['title']} ({self.code}): {self.data['description']}"
 
@@ -37,6 +37,11 @@ class GGsBotException(Exception):
 class CloudFlareAIException(GGsBotException):
     def __init__(self, code : int | str = None, *args) -> None:
         """Set of errors that are raised by the cloudflare AI."""
+        GGsBotException.__init__(self, code, *args)
+
+class DatabaseException(GGsBotException):
+    def __init__(self, code : int | str = None, *args) -> None:
+        """Set of errors that are raised by the database."""
         GGsBotException.__init__(self, code, *args)
 
 class ExtensionException(GGsBotException):

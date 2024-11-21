@@ -10,6 +10,8 @@ import nextcord
 import time
 import os
 
+from utils.db import Database
+
 clear()
 getsysteminfo()
 logger = getlogger()
@@ -22,6 +24,8 @@ Bot = commands.Bot(intents=intents,
                    application_id=os.environ['APPLICATION_ID'],
                    owner_id=os.environ['DEVELOPER_ID']
                    )
+
+db = Database()
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]
@@ -38,12 +42,12 @@ def load_commands():
                         commands.InvalidSetupArguments) as e:
                     logger.critical(f'Loading command error: Cog {e.name} message: \n{traceback.format_exc()}')
                 except commands.NoEntryPointError as e:
-                    pass  # if no entry point found maybe is a file used by the main command file.
+                    continue  # if no entry point found maybe is a file used by the main command file.
                 else:
                     logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
 
             elif filename in config['ignore_files']:
-                pass
+                continue
             else:
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
 

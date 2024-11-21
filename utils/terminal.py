@@ -51,11 +51,11 @@ if config["logger"]["tofile"]:
 level = levels.get(config["logger"]["level"], logging.INFO)
 
 
-def getlogger() -> logging.Logger:
-    filename = inspect.stack()[1].filename
-    filename = re.match(r".*[\\/](.+?)(\.[^.]*$|$)", filename).group(1)
+def getlogger(name : str = None) -> logging.Logger:
+    if name is None:
+        name = re.match(r".*[\\/](.+?)(\.[^.]*$|$)", inspect.stack()[1].filename).group(1)
 
-    logger = logging.getLogger(filename)
+    logger = logging.getLogger(name)
 
     if isinstance(level, tuple):
         logger.setLevel(level[0])

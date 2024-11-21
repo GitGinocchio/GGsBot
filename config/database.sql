@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     guild_member_count INTEGER,
     guild_bots_count INTEGER,
     guild_roles_count INTEGER,
-    guild_description TEXT,
+    guild_description TEXT NULL,
     guild_premium_tier INTEGER,
     guild_premium_subscription_count INTEGER
 );
@@ -33,4 +33,4 @@ CREATE TABLE IF NOT EXISTS extensions (
 
 COMMIT; 
 
-ROLLBACK;                                                           -- Se qualcosa va storto, annulla tutto
+-- ROLLBACK;                                                           -- Se qualcosa va storto, annulla tutto

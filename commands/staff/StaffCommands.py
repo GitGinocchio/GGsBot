@@ -1,12 +1,12 @@
 from nextcord import Embed,Color,utils,channel,Permissions,Interaction,User, Member
 from nextcord.ext import commands, tasks
-from typing import Literal
 import datetime
 import nextcord
 import asyncio
-import sys
 import os
 
+from utils.db import Database, ExtensionException
+from utils.commons import Extensions
 from utils.jsonfile import JsonFile, _JsonDict
 from utils.terminal import getlogger
 
@@ -19,7 +19,7 @@ staff_permissions = Permissions(
 class StaffCommands(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
-        self.dirfmt = './data/guilds/{guild_id}/commands.staff.StaffCommands'
+        self.db = Database()
         self.bot = bot
 
     @commands.Cog.listener()
@@ -35,16 +35,14 @@ class StaffCommands(commands.Cog):
                    status : str = nextcord.SlashOption("status","Whether to show only active staffers, inactive staffers, or both",required=True,choices=['active','inactive','both'],default='both')
                 ):
         await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
         try:
-            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/setup staff` before using this commands"
+            async with self.db:
+                config = await self.db.getExtensionConfig(interaction.guild,Extensions.STAFF)
 
-            file = JsonFile(f'{workingdir}/config.json')
+            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['active_role'])
+            inactive_role = nextcord.utils.get(interaction.guild.roles, id=config['inactive_role'])
 
-            staffer_role = nextcord.utils.get(interaction.guild.roles, id=file['active_role'])
-            inactive_role = nextcord.utils.get(interaction.guild.roles, id=file['inactive_role'])
-
-            inactive_staffers = [(inactive,file['inactive'][staffer]['reason'],file['inactive'][staffer]['timestamp']) for staffer in file['inactive'].keys() if (inactive:=interaction.guild.get_member(int(staffer))) is not None]
+            inactive_staffers = [(inactive,config['inactive'][staffer]['reason'],config['inactive'][staffer]['timestamp']) for staffer in config['inactive'].keys() if (inactive:=interaction.guild.get_member(int(staffer))) is not None]
 
             active_staffers = [member for member in interaction.guild.members if staffer_role in member.roles and not inactive_role in member.roles]
 
@@ -77,8 +75,13 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="",value="")
             developer = await self.bot.fetch_user(int(os.environ['DEVELOPER_ID']))
             embed.set_footer(text=f'Developed by {developer.display_name}',icon_url=developer.display_avatar.url)
+
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.STAFF,config)
         except AssertionError as e:
-            await interaction.followup.send(e,ephemeral=True)
+            await interaction.followup.send(e)
+        except ExtensionException as e:
+            await interaction.followup.send(embed=e.asEmbed())
         else:
             await interaction.followup.send(embed=embed,ephemeral=True)
 
@@ -91,14 +94,13 @@ class StaffCommands(commands.Cog):
                 reason : str | None = nextcord.SlashOption("reason","*(Only if status is inactive)* The reason for the staffer's absence",required=False,default=None)
                 ):
         await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
 
         try:
-            assert os.path.exists(f'{workingdir}/config.json'), "You must first configure the extension using `/setup staff` before using this commands"
-            file = JsonFile(f'{workingdir}/config.json')
+            async with self.db:
+                config = await self.db.getExtensionConfig(interaction.guild, Extensions.STAFF)
             
-            staffer_role = nextcord.utils.get(interaction.guild.roles, id=file['active_role'])
-            inactive_role = nextcord.utils.get(interaction.guild.roles, id=file['inactive_role'])
+            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['active_role'])
+            inactive_role = nextcord.utils.get(interaction.guild.roles, id=config['inactive_role'])
 
             assert staffer_role in interaction.user.roles, "You do not have the necessary permissions to use this command"
 
@@ -112,7 +114,7 @@ class StaffCommands(commands.Cog):
                 else:
                     timestamp = None
 
-                file['inactive'][staffer.id] = {
+                config['inactive'][staffer.id] = {
                     "timestamp" : timestamp.timestamp() if timestamp else None,
                     "reason" : reason
                 }
@@ -123,11 +125,16 @@ class StaffCommands(commands.Cog):
                 assert inactive_role in staffer.roles, "The specified member is already set to active"
                 await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{interaction.user.name}' <@{interaction.user.id}>)")
                 
-                assert str(staffer.id) in file['inactive'], "The specified member is already set to active"
-                file['inactive'].pop(str(staffer.id))
+                assert str(staffer.id) in config['inactive'], "The specified member is already set to active"
+                config['inactive'].pop(str(staffer.id))
                 
                 await interaction.followup.send(f"Staffer <@{staffer.id}> set to 'active'",ephemeral=True)
+            
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.STAFF, config)
         
+        except ExtensionException as e:
+            await interaction.followup.send(embed=e.asEmbed())
         except AssertionError as e:
             await interaction.followup.send(e)
 
@@ -148,31 +155,34 @@ class StaffCommands(commands.Cog):
 
     @tasks.loop(hours=24)
     async def check_inactive_staffers(self):
-        for guild_id in os.listdir('./data/guilds'):
-            workingdir = self.dirfmt.format(guild_id=guild_id)
-            if not os.path.exists(f'{workingdir}/config.json'): continue
+        try:
+            async with self.db:
+                configurations = await self.db.getAllExtensionConfig(Extensions.STAFF)
 
-            file = JsonFile(f'{workingdir}/config.json')
+            for guild_id, config in configurations:
+                current_time = datetime.datetime.now(datetime.timezone.utc)
 
-            current_time = datetime.datetime.now(datetime.timezone.utc)
+                for stafferid, data in config['inactive'].items():
+                    if not data['timestamp']: continue
 
-            for stafferid, data in file['inactive'].items():
-                if not data['timestamp']: continue
+                    saved_time = datetime.datetime.fromtimestamp(data['timestamp'], datetime.timezone.utc)
+                    guild = self.bot.get_guild(int(guild_id))
 
-                saved_time = datetime.datetime.fromtimestamp(data['timestamp'], datetime.timezone.utc)
-                guild = self.bot.get_guild(int(guild_id))
+                    if not guild: continue
 
-                if not guild: continue
+                    staffer = guild.get_member(int(stafferid))
 
-                staffer = guild.get_member(int(stafferid))
+                    if not staffer: continue
 
-                if not staffer: continue
+                    inactive_role = nextcord.utils.get(guild.roles, id=config['inactive_role'])
 
-                inactive_role = nextcord.utils.get(guild.roles, id=file['inactive_role'])
-
-                if current_time > saved_time:
-                    await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{self.bot.user.name}' <@{self.bot.user.id}>)")
-                    file['inactive'].pop(stafferid)
+                    if current_time > saved_time:
+                        await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{self.bot.user.name}' <@{self.bot.user.id}>)")
+                        config['inactive'].pop(stafferid)
+                
+                async with self.db:
+                    await self.db.editExtensionConfig(guild,Extensions.STAFF,config)
+        except ExtensionException as e: pass
 
 def setup(bot : commands.Bot):
     bot.add_cog(StaffCommands(bot))

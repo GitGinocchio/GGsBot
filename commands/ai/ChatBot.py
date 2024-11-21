@@ -26,7 +26,8 @@ import os
 import io
 
 from utils.terminal import getlogger
-from utils.jsonfile import JsonFile, _JsonDict
+from utils.commons import Extensions
+from utils.db import Database
 from utils.exceptions import *
 
 logger = getlogger()
@@ -49,7 +50,7 @@ permissions = Permissions(
 
 class ChatBot(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.dirfmt = './data/guilds/{guild_id}/commands.ai.ChatBot'
+        self.db = Database()
         self.bot = bot
 
     @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,dm_permission=False)
@@ -124,51 +125,61 @@ class ChatBot(commands.Cog):
                       tags: str = SlashOption("tags","Write separated comma Tags used to get more specific answers",required=False,default=''),
                     ):
         await interaction.response.defer(ephemeral=True)
-        workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
+
         try:
-            if not os.path.exists(f'{workingdir}/config.json'): raise ExtensionException("Not Configured")
+            await self.db.connect()
 
-            file = JsonFile(f'{workingdir}/config.json')
+            config = await self.db.getExtensionConfig(interaction.guild, Extensions.AICHATBOT)
 
-            if not interaction.channel.id == int(file['aichatbot-text-channel']): raise SlashCommandException("Invalid Channel")
+            if not interaction.channel.id == int(config['text-channel']): raise SlashCommandException("Invalid Channel")
 
             thread : Thread = await interaction.channel.create_thread(
                                                             name="New Chat",
                                                             reason=f'<@{interaction.user.id}> creates a GG\'Bot AI chat',
                                                             type=ChannelType.public_thread if public else ChannelType.private_thread
                                                             )
-            await thread.edit(slowmode_delay=file['aichatbot-chat-delay'])
+            await thread.edit(slowmode_delay=config['chat-delay'])
             await thread.add_user(interaction.user)
 
-            file['threads'][str(thread.id)] = {
-                "template" : template,
-                "aimodel" : aimodel,
-                "creator" : interaction.user.name,
-                "creator-mention" : interaction.user.mention,
-                "tags" : tags
-                }
-        except (ExtensionException,SlashCommandException) as e:
+            config['threads'][str(thread.id)] = {
+                'template' : template,
+                'aimodel' : aimodel,
+                'creator' : interaction.user.name,
+                'creator-mention' : interaction.user.mention,
+                'tags' : tags
+            }
+
+            await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
+        except (ExtensionException, SlashCommandException) as e:
             await interaction.followup.send(embed=e.asEmbed())
+        except DatabaseException as e:
+            logger.error(str(e))
         else:
             await interaction.followup.send("Chat created successfully")
+        finally:
+            await self.db.close()
 
     @chat.subcommand('del',"Delete a chat with GG'sBot Ai")
     async def delchat(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            
-            workingdir = self.dirfmt.format(guild_id=interaction.guild.id)
-            if not os.path.exists(f'{workingdir}/config.json'): raise ExtensionException("Not Configured")
 
-            file = JsonFile(f'{workingdir}/config.json')
+            await self.db.connect()
 
-            if not str(interaction.channel.id) in file['threads']: raise SlashCommandException("Invalid Channel")
+            config = await self.db.getExtensionConfig(interaction.guild,Extensions.AICHATBOT)
+
+            if not str(interaction.channel.id) in config['threads']: raise SlashCommandException("Invalid Channel")
 
             await interaction.channel.delete()
-            file['threads'].pop(str(interaction.channel.id))
+            config['threads'].pop(str(interaction.channel.id))
+
+            await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
+
         except (SlashCommandException, ExtensionException) as e:
             await interaction.followup.send(embed=e.asEmbed())
             logger.log(e)
+        finally:
+            await self.db.close()
 
     @commands.Cog.listener()
     async def on_message(self, message : Message):
@@ -176,18 +187,16 @@ class ChatBot(commands.Cog):
             assert message.author != self.bot.user
             assert self.bot.user.mentioned_in(message) or any(role.name == self.bot.user.name for role in message.role_mentions)
 
-            workingdir = self.dirfmt.format(guild_id=message.guild.id)
+            async with self.db:
+                config = await self.db.getExtensionConfig(message.guild,Extensions.AICHATBOT)
 
-            assert os.path.exists(f'{workingdir}/config.json')
+            assert str(message.channel.id) in config['threads']
 
-            file = JsonFile(f'{workingdir}/config.json')
-            assert str(message.channel.id) in file['threads']
-
-            template_name = file['threads'][str(message.channel.id)]['template']
-            creator = file['threads'][str(message.channel.id)]['creator']
-            creator_mention = file['threads'][str(message.channel.id)]['creator-mention']
-            model = file['threads'][str(message.channel.id)]['aimodel']
-            tags = file['threads'][str(message.channel.id)]['tags']
+            template_name = config['threads'][str(message.channel.id)]['template']
+            creator = config['threads'][str(message.channel.id)]['creator']
+            creator_mention = config['threads'][str(message.channel.id)]['creator-mention']
+            model = config['threads'][str(message.channel.id)]['aimodel']
+            tags = config['threads'][str(message.channel.id)]['tags']
 
             response = await message.reply("Sto formulando una risposta...")
 
@@ -274,6 +283,8 @@ class ChatBot(commands.Cog):
                     current_text = ''
 
         except AssertionError as e: pass
+        except Exception as e:
+            print(e)
 
 def setup(bot: commands.Bot):
     bot.add_cog(ChatBot(bot))
