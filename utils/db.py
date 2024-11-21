@@ -36,7 +36,7 @@ class Database:
         self._cache_ttl = cache_ttl
         self._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
 
-    def __new__(cls, db_path='./data/database.db', script_path='./data/database.sql', cache_size : int = 1000, cache_ttl : float = 3600):
+    def __new__(cls, db_path : str, script_path : str, cache_size : int, cache_ttl : float):
         """Initialize database one time"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
