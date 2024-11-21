@@ -99,27 +99,28 @@ class Database:
     """
 
     async def __aenter__(self):
+        frame = inspect.currentframe().f_back
+        info = inspect.getframeinfo(frame)
+        self._caller = os.path.basename(info.filename)
+        self._caller_line = info.lineno
+
+        self._start_time = time.perf_counter()
         async with self._lock:
-            frame = inspect.currentframe().f_back
-            info = inspect.getframeinfo(frame)
-            self._caller = os.path.basename(info.filename)
-            self._caller_line = info.lineno
-
-            self._start_time = time.perf_counter()
-
             if self._context_count == 0:
                 await self.connect()
-            self._context_count += 1
-            return self
+        
+        self._context_count += 1
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self._context_count -= 1
+
         async with self._lock:
-            self._context_count -= 1
             if self._context_count == 0:
                 await self.close()
 
-            elapsed_time = time.perf_counter() - self._start_time
-            logger.debug(f"Query executed in {elapsed_time:.4f} seconds ({self._caller}: {self._caller_line})")
+        elapsed_time = time.perf_counter() - self._start_time
+        logger.debug(f"Query executed in {elapsed_time:.4f} seconds ({self._caller}: {self._caller_line})")
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
