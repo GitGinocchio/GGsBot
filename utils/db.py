@@ -28,11 +28,9 @@ class Database:
         self.db_path = db_path
         self.script_path = script_path
         self._connection = None
-        self._context_count = 0
         self._start_time = 0
         self._caller = None
         self._caller_line = None
-        self._lock = asyncio.Lock()
         self._cache_ttl = cache_ttl
         self._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
 
@@ -105,21 +103,15 @@ class Database:
         self._caller_line = info.lineno
 
         self._start_time = time.perf_counter()
-        async with self._lock:
-            logger.debug(f"entering context ({self._caller}:{self._caller_line})")
-            await self.connect()
-        
-        self._context_count += 1
+        logger.debug(f"entering context ({self._caller}:{self._caller_line})")
+        await self.connect()
+
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self._context_count -= 1
-        
-        async with self._lock:
-            if self._context_count == 0:
-                elapsed_time = time.perf_counter() - self._start_time
-                logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
-                #await self.close()
+        elapsed_time = time.perf_counter() - self._start_time
+        logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
+        #await self.close()
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
