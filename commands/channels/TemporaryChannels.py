@@ -96,9 +96,7 @@ class TemporaryChannels(commands.Cog):
 
                 if not channel:
                     config['channels'].pop(channel_id)
-                    continue
-
-                if len(channel.members) == 0:
+                elif len(channel.members) == 0:
                     try:
                         await channel.delete(reason='GGsBot::TemporaryChannels')
                     except nextcord.NotFound as e: pass
@@ -158,10 +156,8 @@ class TemporaryChannels(commands.Cog):
                 timeout = config['listeners'][str(generatorid)]['timeout']
                 _ = asyncio.create_task(self.delete_channel(before.channel,timeout))
 
-            serialized = json.dumps(config)
-
             async with self.db:
-                await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, serialized)
+                await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, config)
 
         except ExtensionException as e: pass
         except nextcord.errors.HTTPException as e:
@@ -187,11 +183,9 @@ class TemporaryChannels(commands.Cog):
             finally:
                 if str(channel.id) in config['channels']:
                     config['channels'].pop(str(channel.id))
-            
-            serialized = json.dumps(config)
 
             async with self.db:
-                await self.db.editExtensionConfig(channel.guild, Extensions.TEMPVC, serialized)
+                await self.db.editExtensionConfig(channel.guild, Extensions.TEMPVC, config)
 
         except AssertionError as e: logger.warning(e)
         except ExtensionException as e: pass
