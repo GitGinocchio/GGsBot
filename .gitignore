@@ -153,9 +153,8 @@ cython_debug/
 *.exe
 
 bin/
-config/
-data/
 .replit
 replit.nix
-config\config.jsonc
+config/config.jsonc
 .git-credentials
+data/

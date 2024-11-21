@@ -1,0 +1,69 @@
+{
+    "ExtensionException" : {
+        "Not Configured" : {
+            "title" : "Extension not Configured",
+            "description" : "It looks like this extension is not configured for this server",
+            "suggestions" : "If you have the correct permissions try configuring the extension and try again"
+        },
+        "Already Configured" : {
+            "title" :  "Extension Already Configured",
+            "description" : "It looks like this extension is already configured for this server",
+            "suggestions" : "Before you can configure the extension again you must delete the current configuration"
+        }
+    },
+
+    "SlashCommandException" : {
+        "Invalid Permissions" : {
+            "title" : "Invalid permissions",
+            "description" : "You do not have permission to use this command",
+            "suggestions" : "Make sure you have all the necessary roles and try again"
+        },
+        
+        "Invalid Channel" : {
+            "title" : "Invalid channel",
+            "description" : "This command can not be used in this channel",
+            "suggestions" : "Try using this command in its appropriate channel"
+        },
+
+        "Interaction Expired" : {
+            "title" : "Interaction expired",
+            "description" :  "This interaction has expired and is no longer valid.",
+            "suggestions" : "Try again one or two times"
+        }
+    },
+
+    "DatabaseException" : {
+        "default" : {
+            "title" : "Database Error",
+            "description" : "An unknown error has occurred.",
+            "suggestions" : ""
+        },
+
+        "RecordNotFoundError" : {
+            "title" : "Record not found",
+            "description" : "this record was not found in the database",
+            "suggestions" : ""
+        },
+
+        "DuplicateRecordError" : {
+            "title" : "Duplicate record error",
+            "description" : "this record seems to be already in the database",
+            "suggestions" : ""
+        }
+
+    },
+
+    "CloudFlareAIException" : {
+        "3030" : {
+            "title" : "NSFW Content detected",
+            "description" : "It looks like your message contains NSFW content and it is not allowed to create an image with this type of content",
+            "suggestions" : "If you think the message content is legitimate try changing some words in the prompt and sending the command again."
+        },
+
+        "default" : {
+            "title" : "CloudFlare AI Error",
+            "description" : "An unknown error has occurred.",
+            "suggestions" : "Try again later"
+        }
+    }
+}
