@@ -180,8 +180,9 @@ class StaffCommands(commands.Cog):
                         await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{self.bot.user.name}' <@{self.bot.user.id}>)")
                         config['inactive'].pop(stafferid)
                 
-                async with self.db:
-                    await self.db.editExtensionConfig(guild,Extensions.STAFF,config)
+            async with self.db:
+                await self.db.editAllExtensionConfig(Extensions.STAFF, configurations)
+
         except ExtensionException as e: pass
 
 def setup(bot : commands.Bot):

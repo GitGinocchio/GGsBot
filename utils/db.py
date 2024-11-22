@@ -9,6 +9,7 @@ import inspect
 import hashlib
 import json
 import time
+import uuid
 import os
 
 from nextcord import Guild
@@ -33,6 +34,7 @@ class Database:
         self._caller_line = None
         self._cache_ttl = cache_ttl
         self._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
+        self._lock = asyncio.Lock()
 
     def __new__(cls, db_path : str = './data/database.db', script_path : str = './config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600):
         """Initialize database one time"""
@@ -240,7 +242,7 @@ class Database:
 
         return json.loads(result[0])
 
-    async def getAllExtensionConfig(self, extension : Extensions | None = None) -> list[tuple[str, dict]]:
+    async def getAllExtensionConfig(self, extension : Extensions | None = None) -> list[tuple[int, dict]]:
         if extension is not None:
             query = """SELECT guild_id, config FROM extensions WHERE extension_id = ?"""
             params = (extension.value,)
@@ -266,6 +268,23 @@ class Database:
 
             cursor = await self.connection.execute(update_query, (updated_values, guild.id, extension.value))
             await cursor.close()
+            await self.connection.commit()
+        except Exception as e:
+            await self.connection.rollback()
+            raise e
+        
+    async def editAllExtensionConfig(self, extension: Extensions, updated_values: list[tuple[int, dict]]) -> None:
+        update_query = """
+        UPDATE extensions
+        SET config = ?
+        WHERE guild_id = ? AND extension_id = ?
+        """
+
+        try:
+            for guild_id, config in updated_values:
+                serialized_config = json.dumps(config)
+                await self.connection.execute(update_query, (serialized_config, guild_id, extension.value))
+
             await self.connection.commit()
         except Exception as e:
             await self.connection.rollback()

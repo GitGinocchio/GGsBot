@@ -38,14 +38,12 @@ class TemporaryChannels(commands.Cog):
             assert str(channel.id) not in config['listeners'], "Error: There is already a configuration with this generator channel!"
 
             config['listeners'][str(channel.id)] = {
-                'categoryID' : str(category.id),
+                'categoryID' : category.id,
                 'timeout' : timeout
             }
-
-            serialized = json.dumps(config)
             
             async with self.db:
-                await self.db.editExtensionConfig(interaction.guild,Extensions.TEMPVC,serialized)
+                await self.db.editExtensionConfig(interaction.guild,Extensions.TEMPVC,config)
 
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
@@ -65,17 +63,23 @@ class TemporaryChannels(commands.Cog):
             assert str(channel.id) in config['listeners'], "The inserted generator channel is not present in the configurations!"
 
             for channel_id, generator_id in config['channels'].copy().items():
-                if str(generator_id) != str(channel.id):
+                if generator_id != channel.id:
                     continue
+
+                try:
+                    await self.bot.get_channel(int(channel_id)).delete()
+                except nextcord.NotFound: pass
+                except nextcord.Forbidden as e: 
+                    logger.error(f'Bot has no permission to delete this channel')
+                except nextcord.HTTPException as e: 
+                    logger.error(f'An HTTPException with code {e.code} occurred: {e.status}')
                 
                 config['channels'].pop(str(channel_id))
 
             config['listeners'].pop(str(channel.id))
 
-            serialized = json.dumps(config)
-
             async with self.db:
-                await self.db.editExtensionConfig(interaction.guild, Extensions.TEMPVC, serialized)
+                await self.db.editExtensionConfig(interaction.guild, Extensions.TEMPVC, config)
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         except AssertionError as e:
@@ -94,22 +98,26 @@ class TemporaryChannels(commands.Cog):
             for channel_id in config['channels'].copy():
                 channel = self.bot.get_channel(int(channel_id))
 
+                if (len(channel.members) > 0) if channel else False:
+                    logger.debug(f'Temporary channel \"{channel.name}\"({channel.id}) in guild \"{channel.guild.name}\"({channel.guild.id}) not deleted, there is/are {len(channel.members)} user/s inside the channel')
+                    continue
+
                 if not channel:
-                    config['channels'].pop(channel_id)
-                elif len(channel.members) == 0:
+                    config['channels'].pop(str(channel_id))
+                elif channel and len(channel.members) == 0:
                     try:
                         await channel.delete(reason='GGsBot::TemporaryChannels')
-                    except nextcord.NotFound as e: pass
+                    except nextcord.NotFound as e:
+                        config['channels'].pop(str(channel_id))
+                    except nextcord.Forbidden as e:
+                        logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')
+                    else:
+                        config['channels'].pop(str(channel_id))
                     
-                    config['channels'].pop(channel_id)
                     logger.debug(f'Temporary channel \"{channel.name}\"({channel.id}) in guild \"{channel.guild.name}\"({channel.guild.id}) deleted')
-                else:
-                    logger.debug(f'Temporary channel \"{channel.name}\"({channel.id}) in guild \"{channel.guild.name}\"({channel.guild.id}) not deleted, there is/are {len(channel.members)} user/s inside the channel')
 
-            guild = self.bot.get_guild(int(guild_id))
-
-            async with self.db:
-                await self.db.editExtensionConfig(guild, Extensions.TEMPVC, config)
+        async with self.db:
+            await self.db.editAllExtensionConfig(Extensions.TEMPVC,configurations)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : nextcord.Member, before : nextcord.VoiceState, after : nextcord.VoiceState):
@@ -138,7 +146,7 @@ class TemporaryChannels(commands.Cog):
             if after.channel and str(after.channel.id) in config['listeners']:
                 vocal_channel : nextcord.VoiceChannel = await member.guild.create_voice_channel(
                     reason='GGsBot::TemporaryChannels',
-                    name=f'{str(member.display_name).capitalize()}\'s Vocal Channel',
+                    name=f'{member.display_name.capitalize()}\'s Vocal Channel',
                     category=self.bot.get_channel(int(config['listeners'][str(after.channel.id)]['categoryID']))
                 )
                 logger.debug(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
@@ -149,15 +157,18 @@ class TemporaryChannels(commands.Cog):
                 await vocal_channel.edit(overwrites=overwrites)
                 logger.debug(f'Successfully edited permission for member \'{member.name}\' with id: {member.id}')
 
-                config['channels'][str(vocal_channel.id)] = str(after.channel.id)
+                config['channels'][str(vocal_channel.id)] = after.channel.id
+
+                async with self.db:
+                    await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, config)
 
             if before.channel and str(before.channel.id) in config['channels'] and len(before.channel.members) == 0:
                 generatorid = config['channels'][str(before.channel.id)]
                 timeout = config['listeners'][str(generatorid)]['timeout']
                 _ = asyncio.create_task(self.delete_channel(before.channel,timeout))
 
-            async with self.db:
-                await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, config)
+                async with self.db:
+                    await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, config)
 
         except ExtensionException as e: pass
         except nextcord.errors.HTTPException as e:
@@ -173,6 +184,11 @@ class TemporaryChannels(commands.Cog):
             async with self.db:
                 config = await self.db.getExtensionConfig(channel.guild, Extensions.TEMPVC)
 
+                if str(channel.id) in config['channels']: 
+                    config['channels'].pop(str(channel.id))
+
+                await self.db.editExtensionConfig(channel.guild, Extensions.TEMPVC, config)
+
             try:
                 await channel.delete()
             except nextcord.NotFound: pass
@@ -180,12 +196,6 @@ class TemporaryChannels(commands.Cog):
                 logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')
             except nextcord.HTTPException as e: 
                 logger.error(f'An HTTPException with code {e.code} occurred: {e.status}')
-            finally:
-                if str(channel.id) in config['channels']:
-                    config['channels'].pop(str(channel.id))
-
-            async with self.db:
-                await self.db.editExtensionConfig(channel.guild, Extensions.TEMPVC, config)
 
         except AssertionError as e: logger.warning(e)
         except ExtensionException as e: pass

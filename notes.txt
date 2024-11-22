@@ -17,5 +17,6 @@
 - [12:28:15] [Activity] [ERROR] : Cannot write to closing transport
 
 - Valorant Quiz - Togliere punti se la persona non risponde, aggiungere i punti in base a quanto la parola e' vicina alla risposta corretta
-- Extensions: creare un file e/o una classe in cui e' presente un StrEnum delle estensioni, che possono essere utilizzati in tutti gli altri file
+✔ Extensions: creare un file e/o una classe in cui e' presente un StrEnum delle estensioni, che possono essere utilizzati in tutti gli altri file
 - Aggiungere una cache di tipo TTL al database
+- Far si che il database crei una singola connessione, poi durante l'esecuzione per ogni async with statement viene creato un cursore
