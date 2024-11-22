@@ -6,3 +6,4 @@ class Extensions(StrEnum):
     VALQUIZ = 'valquiz'
     STAFF = 'staff'
     TEMPVC = 'tempvc'
+    VERIFY = 'verify'
