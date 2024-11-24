@@ -151,7 +151,7 @@ class TemporaryChannels(commands.Cog):
                 )
                 logger.debug(f'Successfully created temporary vocal channel \'{vocal_channel.name}\' with id: {vocal_channel.id}.')
 
-                await member.move_to(vocal_channel)
+                await member.move_to(vocal_channel,reason='GGsBot::TemporaryChannels')
                 logger.debug(f'Successfully moved member \'{member.name}\' with id: {member.id}.')
                 
                 await vocal_channel.edit(overwrites=overwrites)
@@ -165,10 +165,7 @@ class TemporaryChannels(commands.Cog):
             if before.channel and str(before.channel.id) in config['channels'] and len(before.channel.members) == 0:
                 generatorid = config['channels'][str(before.channel.id)]
                 timeout = config['listeners'][str(generatorid)]['timeout']
-                _ = asyncio.create_task(self.delete_channel(before.channel,timeout))
-
-                async with self.db:
-                    await self.db.editExtensionConfig(member.guild, Extensions.TEMPVC, config)
+                asyncio.create_task(self.delete_channel(before.channel,timeout))
 
         except ExtensionException as e: pass
         except nextcord.errors.HTTPException as e:
@@ -184,13 +181,14 @@ class TemporaryChannels(commands.Cog):
             async with self.db:
                 config = await self.db.getExtensionConfig(channel.guild, Extensions.TEMPVC)
 
-                if str(channel.id) in config['channels']: 
-                    config['channels'].pop(str(channel.id))
+            if str(channel.id) in config['channels']: 
+                config['channels'].pop(str(channel.id))
 
+            async with self.db:
                 await self.db.editExtensionConfig(channel.guild, Extensions.TEMPVC, config)
 
             try:
-                await channel.delete()
+                await channel.delete(reason='GGsBot::TemporaryChannels')
             except nextcord.NotFound: pass
             except nextcord.Forbidden as e: 
                 logger.error(f'Bot has no permission to delete \"{channel.name}\" with id: {channel.id}')

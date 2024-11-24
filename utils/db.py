@@ -64,44 +64,41 @@ class Database:
         return self._cursor
 
     async def execute(self, query: str, params: tuple = ()):
-        async with self._lock:
-            logger.debug(f'executing query: {query.replace(' ', '')} with params: {params}')
-            return await self.cursor.execute(query, params)
+        logger.debug(f'executing query: {query} with params: {params}')
+        cursor = await self.cursor.execute(query, params)
+        return cursor
 
     async def __aenter__(self):
-        async with self._lock:
-            frame = inspect.currentframe().f_back
-            info = inspect.getframeinfo(frame)
-            self._caller = os.path.basename(info.filename)
-            self._caller_line = info.lineno
+        await self._lock.acquire()
 
-            self._start_time = time.perf_counter()
-            logger.debug(f"entering context ({self._caller}:{self._caller_line})")
-            await self.connect()
+        frame = inspect.currentframe().f_back
+        info = inspect.getframeinfo(frame)
+        self._caller = os.path.basename(info.filename)
+        self._caller_line = info.lineno
 
-            return self
+        self._start_time = time.perf_counter()
+        logger.debug(f"entering context ({self._caller}:{self._caller_line})")
+        
+        await self.connect()
+    
+        self._cursor = await self.connection.cursor()
+
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        async with self._lock:
-            elapsed_time = time.perf_counter() - self._start_time
-            logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
-            await self.cursor.close()
+        elapsed_time = time.perf_counter() - self._start_time
+        logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
+        await self.cursor.close()
+
+        self._lock.release()
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
             self._connection = await aiosqlite.connect(self.db_path)
 
-        self._cursor = await self.connection.cursor()
-
     async def close(self):
-        if self._connection and self._connection.is_alive():
-            await self._connection.close()
-        
         await self._cursor.close()
-    
-    async def disconnect(self):
-        await self.cursor.close()
-    
+
         if self._connection and self._connection.is_alive():
             await self._connection.close()
 
@@ -143,6 +140,7 @@ class Database:
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
+            logger.error(e)
             raise DatabaseException("DuplicateRecordError")
 
     async def delGuild(self, guild : Guild) -> None:
@@ -156,6 +154,7 @@ class Database:
 
             await self.connection.commit()
         except Exception as e:
+            logger.error(e)
             await self.connection.rollback()
             raise e
 
@@ -175,6 +174,7 @@ class Database:
 
             await self.connection.commit()
         except Exception as e:
+            logger.error(e)
             await self.connection.rollback()
             raise e
 
@@ -190,6 +190,7 @@ class Database:
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
+            logger.error(e)
             raise ExtensionException("Already Configured")
         
     async def teardownExtension(self, guild : Guild, extension : Extensions) -> None:
@@ -240,10 +241,11 @@ class Database:
             if isinstance(updated_values, dict):
                 updated_values = json.dumps(updated_values)
 
-            cursor = await self.execute(update_query, (updated_values, guild.id, extension.value))
+            await self.execute(update_query, (updated_values, guild.id, extension.value))
 
             await self.connection.commit()
         except Exception as e:
+            logger.error(e)
             await self.connection.rollback()
             raise e
         
@@ -261,5 +263,6 @@ class Database:
 
             await self.connection.commit()
         except Exception as e:
+            logger.error(e)
             await self.connection.rollback()
             raise e
