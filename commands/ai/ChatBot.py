@@ -127,9 +127,9 @@ class ChatBot(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         try:
-            await self.db.connect()
 
-            config = await self.db.getExtensionConfig(interaction.guild, Extensions.AICHATBOT)
+            async with self.db:
+                config = await self.db.getExtensionConfig(interaction.guild, Extensions.AICHATBOT)
 
             if not interaction.channel.id == int(config['text-channel']): raise SlashCommandException("Invalid Channel")
 
@@ -149,37 +149,34 @@ class ChatBot(commands.Cog):
                 'tags' : tags
             }
 
-            await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
         except (ExtensionException, SlashCommandException) as e:
             await interaction.followup.send(embed=e.asEmbed())
         except DatabaseException as e:
             logger.error(str(e))
         else:
             await interaction.followup.send("Chat created successfully")
-        finally:
-            await self.db.close()
 
     @chat.subcommand('del',"Delete a chat with GG'sBot Ai")
     async def delchat(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
 
-            await self.db.connect()
-
-            config = await self.db.getExtensionConfig(interaction.guild,Extensions.AICHATBOT)
+            async with self.db:
+                config = await self.db.getExtensionConfig(interaction.guild,Extensions.AICHATBOT)
 
             if not str(interaction.channel.id) in config['threads']: raise SlashCommandException("Invalid Channel")
 
             await interaction.channel.delete()
             config['threads'].pop(str(interaction.channel.id))
 
-            await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.AICHATBOT, config)
 
         except (SlashCommandException, ExtensionException) as e:
             await interaction.followup.send(embed=e.asEmbed())
             logger.log(e)
-        finally:
-            await self.db.close()
 
     @commands.Cog.listener()
     async def on_message(self, message : Message):

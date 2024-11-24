@@ -78,8 +78,6 @@ class Database:
             self._start_time = time.perf_counter()
             logger.debug(f"entering context ({self._caller}:{self._caller_line})")
             await self.connect()
-            
-            self._cursor = await self.connection.cursor()
 
             return self
 
@@ -93,7 +91,17 @@ class Database:
         if self._connection is None or not self._connection.is_alive():
             self._connection = await aiosqlite.connect(self.db_path)
 
+        self._cursor = await self.connection.cursor()
+
     async def close(self):
+        if self._connection and self._connection.is_alive():
+            await self._connection.close()
+        
+        await self._cursor.close()
+    
+    async def disconnect(self):
+        await self.cursor.close()
+    
         if self._connection and self._connection.is_alive():
             await self._connection.close()
 
