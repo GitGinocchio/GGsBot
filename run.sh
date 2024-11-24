@@ -102,7 +102,7 @@ run_main_script() {
 main() {
     echo "Starting setup..."
     clone_or_update_repo
-    install_requirements
+    #install_requirements
     run_main_script
     echo "Setup completed successfully"
 }
