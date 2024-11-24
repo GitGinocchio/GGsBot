@@ -28,7 +28,8 @@ class Database:
     def __init__(self, db_path = './data/database.db', script_path = './config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600):
         self.db_path = db_path
         self.script_path = script_path
-        self._connection = None
+        self._connection : aiosqlite.Connection = None
+        self._cursor : aiosqlite.Cursor = None
         self._start_time = 0
         self._caller = None
         self._caller_line = None
@@ -57,63 +58,36 @@ class Database:
         assert self._connection and self._connection.is_alive(), "Connection not initialized"
         return self._connection
     
-    """
-    @classmethod
-    def _ttl_cache(cls):
-        def decorator(func: Callable):
-            @wraps(func)
-            async def wrapper(self, *args, **kwargs):
-                # Crea una chiave univoca per i parametri passati alla funzione
-                cache_key = hashlib.md5(f"{args}{kwargs}".encode()).hexdigest()
+    @property
+    def cursor(self) -> aiosqlite.Cursor:
+        assert self._cursor, "Cursor not initialized"
+        return self._cursor
 
-                # Verifica se la chiave esiste nella cache e se è valida (TTL non scaduto)
-                if cache_key in cls._cache:
-                    cached_value, timestamp = cls._cache[cache_key]
-                    if time.time() - timestamp < cls._cache_ttl:
-                        return cached_value  # Restituisci il valore dalla cache se è ancora valido
-
-                # Se il valore non è in cache o il TTL è scaduto, esegui la funzione
-                result = await func(self, *args, **kwargs)
-
-                # Memorizza il risultato nella cache con il timestamp
-                cls._cache[cache_key] = (result, time.time())
-                return result
-            return wrapper
-        return decorator
-
-    @classmethod
-    def _remove_from_ttl_cache(cls):
-        def decorator(func: Callable):
-            @wraps(func)
-            async def wrapper(self, *args, **kwargs):
-                # Crea una chiave univoca per i parametri passati alla funzione
-                cache_key = hashlib.md5(f"{args}{kwargs}".encode()).hexdigest()
-
-                cls._cache.pop(cache_key)
-
-                result = await func(self, *args, **kwargs)
-
-                return result
-            return wrapper
-        return decorator
-    """
+    async def execute(self, query: str, params: tuple = ()):
+        async with self._lock:
+            logger.debug(f'executing query: {query.replace(' ', '')} with params: {params}')
+            return await self.cursor.execute(query, params)
 
     async def __aenter__(self):
-        frame = inspect.currentframe().f_back
-        info = inspect.getframeinfo(frame)
-        self._caller = os.path.basename(info.filename)
-        self._caller_line = info.lineno
+        async with self._lock:
+            frame = inspect.currentframe().f_back
+            info = inspect.getframeinfo(frame)
+            self._caller = os.path.basename(info.filename)
+            self._caller_line = info.lineno
 
-        self._start_time = time.perf_counter()
-        logger.debug(f"entering context ({self._caller}:{self._caller_line})")
-        await self.connect()
+            self._start_time = time.perf_counter()
+            logger.debug(f"entering context ({self._caller}:{self._caller_line})")
+            await self.connect()
+            
+            self._cursor = await self.connection.cursor()
 
-        return self
+            return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        elapsed_time = time.perf_counter() - self._start_time
-        logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
-        #await self.close()
+        async with self._lock:
+            elapsed_time = time.perf_counter() - self._start_time
+            logger.debug(f"leaving context ({self._caller}:{self._caller_line} in {elapsed_time:.4f} seconds)")
+            await self.cursor.close()
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
@@ -124,21 +98,14 @@ class Database:
             await self._connection.close()
 
     async def getAllGuildIds(self) -> list[int]:
-        cursor = await self.connection.execute("SELECT guild_id FROM guilds")
+        cursor = await self.execute("SELECT guild_id FROM guilds")
         rows = await cursor.fetchall()
-
-        await cursor.close()
-
-        self._cache['']
 
         return [row[0] for row in rows]
  
     async def hasGuild(self, guild : Guild) -> bool:
-        cursor = await self.connection.execute("SELECT 1 FROM guilds WHERE guild_id = ?", (guild.id,))
+        cursor = await self.execute("SELECT 1 FROM guilds WHERE guild_id = ?", (guild.id,))
         result = await cursor.fetchone()
-        
-        await cursor.close()
-
         return result is not None
     
     async def newGuild(self, guild : Guild) -> None:
@@ -151,7 +118,7 @@ class Database:
         try:
 
             dt_format = "%d/%m/%Y, %H:%M:%S"
-            cursor = await self.connection.execute(query, (
+            cursor = await self.execute(query, (
                 guild.id,
                 guild.me.joined_at.strftime(dt_format) if guild.me.joined_at else None,
                 datetime.now(timezone.utc).strftime(dt_format),
@@ -164,7 +131,7 @@ class Database:
                 guild.premium_tier,
                 guild.premium_subscription_count
             ))
-            await cursor.close()
+
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
@@ -174,11 +141,11 @@ class Database:
         query = """DELETE FROM guilds WHERE guild_id = ?"""
 
         try:
-            cursor = await self.connection.execute(query, (guild.id,))
+            cursor = await self.execute(query, (guild.id,))
 
             if cursor.rowcount == 0: raise DatabaseException("RecordNotFoundError")
 
-            await cursor.close()
+
             await self.connection.commit()
         except Exception as e:
             await self.connection.rollback()
@@ -193,11 +160,11 @@ class Database:
         """
         
         try:
-            cursor = await self.connection.execute(query, (delta, str(datetime.now(timezone.utc)), guild.id))
+            cursor = await self.execute(query, (delta, str(datetime.now(timezone.utc)), guild.id))
 
             if cursor.rowcount == 0: raise DatabaseException("RecordNotFoundError")
         
-            await cursor.close()
+
             await self.connection.commit()
         except Exception as e:
             await self.connection.rollback()
@@ -210,8 +177,8 @@ class Database:
         """
 
         try:
-            cursor = await self.connection.execute(query, (guild.id, extension.value, json.dumps(config)))
-            await cursor.close()
+            await self.execute(query, (guild.id, extension.value, json.dumps(config)))
+
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
@@ -221,11 +188,11 @@ class Database:
         query = """DELETE FROM extensions WHERE guild_id = ? AND extension_id = ?"""
 
         try:
-            cursor = await self.connection.execute(query, (guild.id, extension.value))
+            cursor = await self.execute(query, (guild.id, extension.value))
 
             if cursor.rowcount == 0: raise ExtensionException("Not Configured")
         
-            await cursor.close()
+
             await self.connection.commit()
         except Exception as e:
             await self.connection.rollback()
@@ -233,10 +200,9 @@ class Database:
 
     async def getExtensionConfig(self, guild : Guild, extension : Extensions) -> dict:
         query = """SELECT config FROM extensions WHERE guild_id = ? AND extension_id = ?"""
-        cursor = await self.connection.execute(query, (guild.id, extension.value))
+        cursor = await self.execute(query, (guild.id, extension.value))
         result = await cursor.fetchone()
 
-        await cursor.close()
 
         if result is None: raise ExtensionException("Not Configured")
 
@@ -250,8 +216,8 @@ class Database:
             query = """SELECT guild_id, config FROM extensions"""
             params = ()
 
-        async with self.connection.execute(query, params) as cursor:
-            rows = await cursor.fetchall()
+        cursor = await self.execute(query, params)
+        rows = await cursor.fetchall()
 
         return [(row[0], json.loads(row[1])) for row in rows]
 
@@ -266,8 +232,8 @@ class Database:
             if isinstance(updated_values, dict):
                 updated_values = json.dumps(updated_values)
 
-            cursor = await self.connection.execute(update_query, (updated_values, guild.id, extension.value))
-            await cursor.close()
+            cursor = await self.execute(update_query, (updated_values, guild.id, extension.value))
+
             await self.connection.commit()
         except Exception as e:
             await self.connection.rollback()
@@ -283,7 +249,7 @@ class Database:
         try:
             for guild_id, config in updated_values:
                 serialized_config = json.dumps(config)
-                await self.connection.execute(update_query, (serialized_config, guild_id, extension.value))
+                await self.execute(update_query, (serialized_config, guild_id, extension.value))
 
             await self.connection.commit()
         except Exception as e:
