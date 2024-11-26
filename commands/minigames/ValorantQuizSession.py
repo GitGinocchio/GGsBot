@@ -194,23 +194,22 @@ class MapQuizSession(QuizSession):
             else:
                 await self.interaction.edit_original_message(embed=self.quizEmbed, view=self.quizView, attachments=[])
 
-            if self.time_left_task: self.time_left_task.cancel()
+            #if self.time_left_task: self.time_left_task.cancel()
 
             self.time_left_task = asyncio.create_task(self._update_time_left_task())
         except Exception as e:
             print('\n'.join(traceback.format_exception(e)))
 
     async def _end_quiz(self):
-        self.time_left_task.cancel()
+        #if self.time_left_task and not self.time_left_task.done():
+            #self.time_left_task.cancel()
 
-        print(self.results)
-        print(self.players)
-        
         await self.interaction.edit_original_message(
             embed=LeaderBoardEmbed(self.level,self.mode,self.num_rounds, self.players, self.results), 
             view=self.leaderboardView, 
             attachments=[]
         )
+
 
     async def _update_time_left_task(self):
         minutes, seconds = self.quizEmbed.update_time_left()
@@ -280,16 +279,9 @@ class MapQuizSession(QuizSession):
 
     async def on_view_answers(self, interaction : Interaction):
         embed = AllAnswersEmbed(1, self.players, self.results)
-
-        message = await interaction.response.send_message(embed=embed, ephemeral=True)
-
         view = AllAnswersView(self.num_rounds, self.on_next_round, self.on_prev_round)
-        view.message = message
 
-        await message.edit(view=view)
-
-        #view.message = await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
+        view.message = await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     async def on_next_round(self, interaction : Interaction, page : int, message : WebhookMessage):
         await message.edit(embed=AllAnswersEmbed(page, self.players, self.results))

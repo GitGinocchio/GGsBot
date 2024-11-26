@@ -5,6 +5,7 @@ from nextcord import \
     Embed,           \
     Member,          \
     WebhookMessage,  \
+    PartialInteractionMessage, \
     File,            \
     Colour
 
@@ -112,10 +113,10 @@ class LeaderBoardView(View):
 
 class AllAnswersView(View):
     def __init__(self, 
-                 num_pages : int,
-                 on_next_round_callback  : Callable[[Interaction, int, WebhookMessage],None],
-                 on_prev_round_callback   : Callable[[Interaction, int, WebhookMessage],None]
-        ) -> None:
+                num_pages : int, 
+                on_next_round_callback : Callable[[Interaction, int, WebhookMessage],None], 
+                on_prev_round_callback : Callable[[Interaction, int, WebhookMessage],None]
+            ) -> None:
         View.__init__(self, timeout=0)
         self.on_next_round_callback = on_next_round_callback
         self.on_prev_round_callback = on_prev_round_callback
@@ -252,13 +253,13 @@ class AllAnswersEmbed(Embed):
         self.timestamp = datetime.now(timezone.utc)
         self.colour = Colour.green()
 
-        #self.add_field(name="Round", value=f'{page:03}/{len(results):03}', inline=True)
+        self.add_field(name="Round", value=f'{page:03}/{len(results):03}', inline=True)
 
-        #value = results.get(page,{}).get('correct','**Not generated**')
+        value = results.get(page,{}).get('correct','**Not generated**')
 
-        #self.add_field(name=f"Correct Answer", value=value, inline=True)
+        self.add_field(name=f"Correct Answer", value=value, inline=True)
 
-        #answers = '\n'.join(f'{n+1}. {player.mention} - {results.get(page,{}).get(player,"**No answer**")}' for n, player in enumerate(players))
+        answers = '\n'.join(f'{n+1}. {player.mention} - {results.get(page,{}).get(player,"**No answer**")}' for n, player in enumerate(players))
 
-        #self.add_field(name=f"Players", value=answers,inline=False)
+        self.add_field(name=f"Players", value=answers,inline=False)
 
