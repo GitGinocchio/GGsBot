@@ -25,8 +25,10 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS extensions (
     guild_id INTEGER,
-    extension_id TEXT,
     config JSON,
+    extension_id TEXT,
+    enabled BOOLEAN,
+
     PRIMARY KEY (guild_id, extension_id),                           -- Garantiamo che ci sia una sola combinazione di guild_id + extension_id
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)             -- Garantiamo che stiamo inserendo una estensione per una guild esistente
 );

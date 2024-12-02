@@ -48,7 +48,9 @@ class Activity(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_ready(self): self.update_activity.start()
+    async def on_ready(self): 
+        if not self.update_activity.is_running():
+            self.update_activity.start()
 
     @tasks.loop(seconds=30)
     async def update_activity(self):
