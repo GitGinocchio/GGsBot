@@ -1,15 +1,11 @@
 from cachetools import TTLCache
 #from redis import Redis            # Piu' avanti potro' usare un client Redis per ora una semplice cache in memoria
-from typing import Callable
-from functools import wraps
 import aiosqlite
 import sqlite3
 import asyncio
 import inspect
-import hashlib
 import json
 import time
-import uuid
 import os
 
 from nextcord import Guild
@@ -23,26 +19,26 @@ logger = getlogger("Database")
 
 class Database:
     _instance = None
-    _cache = None
 
-    def __init__(self, db_path = './data/database.db', script_path = './config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600):
-        self.db_path = db_path
-        self.script_path = script_path
-        self._connection : aiosqlite.Connection = None
-        self._cursor : aiosqlite.Cursor = None
-        self._start_time = 0
-        self._caller = None
+    def __init__(self, db_path : str = './data/database.db', script_path : str = './config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
+        self._connection : aiosqlite.Connection
+        self._cursor : aiosqlite.Cursor
         self._caller_line = None
-        self._cache_ttl = cache_ttl
-        self._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
-        self._lock = asyncio.Lock()
+        self._caller = None
 
-    def __new__(cls, db_path : str = './data/database.db', script_path : str = './config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600):
+    def __new__(cls, db_path = './data/database.db', script_path = './config/database.sql', cache_size = 1000, cache_ttl = 3600, loop = None):
         """Initialize database one time"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.db_path = db_path
             cls._instance.script_path = script_path
+            cls._instance._connection = None
+            cls._instance._cursor = None
+            cls._instance._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
+            cls._cache_ttl = cache_ttl
+            cls._instance._start_time = 0
+            cls._instance._lock = asyncio.Lock()
+            cls._instance._loop = loop
             cls._instance._initialize_db()
             logger.info("Database initialized")
         return cls._instance
@@ -71,10 +67,14 @@ class Database:
     async def __aenter__(self):
         await self._lock.acquire()
 
-        frame = inspect.currentframe().f_back
-        info = inspect.getframeinfo(frame)
-        self._caller = os.path.basename(info.filename)
-        self._caller_line = info.lineno
+        frame = inspect.currentframe()
+        if frame and frame.f_back:
+            info = inspect.getframeinfo(frame.f_back)
+            self._caller = os.path.basename(info.filename)
+            self._caller_line = info.lineno
+        else:
+            self._caller = "Undefined"
+            self._caller_line = "Undefined"
 
         self._start_time = time.perf_counter()
         logger.debug(f"entering context ({self._caller}:{self._caller_line})")
@@ -94,14 +94,16 @@ class Database:
 
     async def connect(self):
         if self._connection is None or not self._connection.is_alive():
-            self._connection = await aiosqlite.connect(self.db_path)
+            self._connection = await aiosqlite.connect(self.db_path, loop=self._loop)
 
     async def close(self):
-        await self._cursor.close()
+        if self._cursor:
+            await self._cursor.close()
 
         if self._connection and self._connection.is_alive():
             await self._connection.close()
 
+    # Guilds
     async def getAllGuildIds(self) -> list[int]:
         cursor = await self.execute("SELECT guild_id FROM guilds")
         rows = await cursor.fetchall()
@@ -112,9 +114,8 @@ class Database:
         cursor = await self.execute("SELECT 1 FROM guilds WHERE guild_id = ?", (guild.id,))
         result = await cursor.fetchone()
         return result is not None
-    
+
     async def newGuild(self, guild : Guild) -> None:
-        """Aggiungi una guild nel database (assumendo che guild_data contenga tutti i campi necessari)."""
         query = """
         INSERT INTO guilds (guild_id, guild_join_date, guild_last_update, guild_name, guild_owner, guild_member_count, guild_bots_count, guild_roles_count, guild_description, guild_premium_tier, guild_premium_subscription_count)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -140,8 +141,11 @@ class Database:
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
-            logger.error(e)
             raise DatabaseException("DuplicateRecordError")
+        except Exception as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
 
     async def delGuild(self, guild : Guild) -> None:
         query = """DELETE FROM guilds WHERE guild_id = ?"""
@@ -153,45 +157,55 @@ class Database:
 
 
             await self.connection.commit()
+        except DatabaseException as e:
+            await self.connection.rollback()
+            raise e
         except Exception as e:
             logger.error(e)
             await self.connection.rollback()
             raise e
 
-    async def adjustGuildMemberCount(self, guild: Guild, delta: int) -> None:
-        query = """
+    async def adjustGuildMemberCount(self, guild: Guild, delta: int, override : bool = False) -> None:
+        query = f"""
         UPDATE guilds
-        SET guild_member_count = guild_member_count + ?
-        SET guild_last_update = ?
+        SET guild_member_count = {'guild_member_count + ?' if not override else '?'}, 
+            guild_last_update = ?
         WHERE guild_id = ?
         """
         
         try:
-            cursor = await self.execute(query, (delta, str(datetime.now(timezone.utc)), guild.id))
+            dt_format = "%d/%m/%Y, %H:%M:%S"
+            cursor = await self.execute(query, (delta, datetime.now(timezone.utc).strftime(dt_format), guild.id))
 
             if cursor.rowcount == 0: raise DatabaseException("RecordNotFoundError")
         
-
             await self.connection.commit()
-        except Exception as e:
-            logger.error(e)
+        except DatabaseException as e:
             await self.connection.rollback()
             raise e
+        except Exception as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
 
+    # Extensions
     async def setupExtension(self, guild : Guild, extension : Extensions, config : dict) -> None:
         query = """
-        INSERT INTO extensions (guild_id, extension_id, config)
-        VALUES (?, ?, ?)
+        INSERT INTO extensions (guild_id, extension_id, enabled, config)
+        VALUES (?, ?, ?, ?)
         """
 
         try:
-            await self.execute(query, (guild.id, extension.value, json.dumps(config)))
+            await self.execute(query, (guild.id, extension.value, True, json.dumps(config)))
 
             await self.connection.commit()
         except sqlite3.IntegrityError as e:
             await self.connection.rollback()
-            logger.error(e)
             raise ExtensionException("Already Configured")
+        except Exception as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
         
     async def teardownExtension(self, guild : Guild, extension : Extensions) -> None:
         query = """DELETE FROM extensions WHERE guild_id = ? AND extension_id = ?"""
@@ -203,32 +217,79 @@ class Database:
         
 
             await self.connection.commit()
+        except ExtensionException as e:
+            await self.connection.rollback()
+            raise e
         except Exception as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
+
+    async def setExtension(self, guild : Guild, extension : Extensions, enabled : bool) -> None:
+        update_query = """
+        UPDATE extensions
+        SET enabled = ?
+        WHERE guild_id = ? AND extension_id = ?
+        """
+
+        try:
+            await self.execute(update_query, (enabled, guild.id, extension.value))
+
+            await self.connection.commit()
+        except sqlite3.IntegrityError as e:
+            await self.connection.rollback()
+            raise e
+        except Exception as e:
+            logger.error(e)
             await self.connection.rollback()
             raise e
 
-    async def getExtensionConfig(self, guild : Guild, extension : Extensions) -> dict:
-        query = """SELECT config FROM extensions WHERE guild_id = ? AND extension_id = ?"""
+    async def hasExtension(self, guild : Guild, extension : Extensions) -> bool:
+        cursor = await self.execute("SELECT 1 FROM extensions WHERE guild_id = ? AND extension_id = ?", (guild.id,extension.value))
+        result = await cursor.fetchone()
+        return result is not None
+
+    async def getExtensionConfig(self, guild : Guild, extension : Extensions) -> tuple[dict, bool]:
+        query = """SELECT config, enabled FROM extensions WHERE guild_id = ? AND extension_id = ?"""
         cursor = await self.execute(query, (guild.id, extension.value))
         result = await cursor.fetchone()
 
+        try:
+            if result is None: raise ExtensionException("Not Configured")
 
-        if result is None: raise ExtensionException("Not Configured")
+        except ExtensionException as e:
+            await self.connection.rollback()
+            raise e
+        except Exception as e:
+            logger.error(e)
+            await self.connection.rollback()
+            raise e
+        else:
+            return json.loads(result[0]), result[1]
 
-        return json.loads(result[0])
-
-    async def getAllExtensionConfig(self, extension : Extensions | None = None) -> list[tuple[int, dict]]:
-        if extension is not None:
-            query = """SELECT guild_id, config FROM extensions WHERE extension_id = ?"""
+    async def getAllExtensionConfig(self, extension : Extensions | None = None, guild : Guild | None = None) -> list[tuple[int, str, bool, dict]]:
+        if guild and extension:
+            query = """SELECT guild_id, extension_id, enabled, config FROM extensions WHERE extension_id = ? AND guild_id = ?"""
+            params = (extension.value,guild.id)
+        if guild:
+            query = """SELECT guild_id, extension_id, enabled, config FROM extensions WHERE guild_id = ?"""
+            params = (guild.id,)
+        if extension:
+            query = """SELECT guild_id, extension_id, enabled, config FROM extensions WHERE extension_id = ?"""
             params = (extension.value,)
         else:
-            query = """SELECT guild_id, config FROM extensions"""
+            query = """SELECT guild_id, extension_id, enabled, config FROM extensions"""
             params = ()
-
-        cursor = await self.execute(query, params)
-        rows = await cursor.fetchall()
-
-        return [(row[0], json.loads(row[1])) for row in rows]
+        
+        try:
+            cursor = await self.execute(query, params)
+            rows = await cursor.fetchall()
+        except Exception as e:
+            logger.error(e)
+            await self.connection.rollback()
+            raise e
+        else:
+            return [(row[0],row[1], row[2], json.loads(row[3])) for row in rows]
 
     async def editExtensionConfig(self, guild : Guild, extension : Extensions, updated_values : str | dict) -> None:
         update_query = """
@@ -241,15 +302,20 @@ class Database:
             if isinstance(updated_values, dict):
                 updated_values = json.dumps(updated_values)
 
-            await self.execute(update_query, (updated_values, guild.id, extension.value))
+            cursor = await self.execute(update_query, (updated_values, guild.id, extension.value))
+
+            if cursor.rowcount == 0: raise ExtensionException("Not Configured")
 
             await self.connection.commit()
+        except ExtensionException as e:
+            await self.connection.rollback()
+            raise e
         except Exception as e:
             logger.error(e)
             await self.connection.rollback()
             raise e
         
-    async def editAllExtensionConfig(self, extension: Extensions, updated_values: list[tuple[int, dict]]) -> None:
+    async def editAllExtensionConfig(self, updated_values: list[tuple[int, str, bool, dict]]) -> None:
         update_query = """
         UPDATE extensions
         SET config = ?
@@ -257,9 +323,9 @@ class Database:
         """
 
         try:
-            for guild_id, config in updated_values:
+            for guild_id, extension_id, enabled, config in updated_values:
                 serialized_config = json.dumps(config)
-                await self.execute(update_query, (serialized_config, guild_id, extension.value))
+                await self.execute(update_query, (serialized_config, guild_id, extension_id))
 
             await self.connection.commit()
         except Exception as e:

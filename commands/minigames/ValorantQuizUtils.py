@@ -21,16 +21,6 @@ class MapModes(StrEnum):
     FRAGMENTS = 'Fragments'
     NORMAL = 'Normal'
 
-async def asyncget(url : str, mimetype = 'application/json') -> dict | bytes:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            assert response.status == 200, f"Error while fetching {url}: {response.reason}"
-
-            if mimetype == 'application/json':
-                return await response.json()
-            else:
-                return await response.read()
-
 def transform_coordinates(x_game, y_game, x_multiplier, y_multiplier, x_scalar, y_scalar):
     """Funzione per trasformare le coordinate di gioco in coordinate dell'immagine"""
     x_img = (x_game * x_multiplier) + x_scalar

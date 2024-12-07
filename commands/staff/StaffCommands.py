@@ -37,9 +37,11 @@ class StaffCommands(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(interaction.guild,Extensions.STAFF)
+                config, enabled = await self.db.getExtensionConfig(interaction.guild,Extensions.STAFF)
 
-            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['active_role'])
+            # Aggiungere comportamento della estensione quando disabilitata
+
+            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['staff_role'])
             inactive_role = nextcord.utils.get(interaction.guild.roles, id=config['inactive_role'])
 
             inactive_staffers = [(inactive,config['inactive'][staffer]['reason'],config['inactive'][staffer]['timestamp']) for staffer in config['inactive'].keys() if (inactive:=interaction.guild.get_member(int(staffer))) is not None]
@@ -75,9 +77,6 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="",value="")
             developer = await self.bot.fetch_user(int(os.environ['DEVELOPER_ID']))
             embed.set_footer(text=f'Developed by {developer.display_name}',icon_url=developer.display_avatar.url)
-
-            async with self.db:
-                await self.db.editExtensionConfig(interaction.guild, Extensions.STAFF,config)
         except AssertionError as e:
             await interaction.followup.send(e)
         except ExtensionException as e:
@@ -97,9 +96,11 @@ class StaffCommands(commands.Cog):
 
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(interaction.guild, Extensions.STAFF)
+                config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.STAFF)
+
+            # Aggiungere comportamento della estensione quando disabilitata
             
-            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['active_role'])
+            staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['staff_role'])
             inactive_role = nextcord.utils.get(interaction.guild.roles, id=config['inactive_role'])
 
             assert staffer_role in interaction.user.roles, "You do not have the necessary permissions to use this command"

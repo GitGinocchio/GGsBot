@@ -25,7 +25,7 @@ Bot = commands.Bot(intents=intents,
                    owner_id=os.environ['DEVELOPER_ID']
                    )
 
-db = Database()
+db = Database(loop=Bot.loop)
 
 def load_commands():
     categories = [c for c in os.listdir('./commands') if c not in config['ignore_categories']]

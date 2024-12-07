@@ -1,16 +1,27 @@
 from nextcord.ext import commands
 from nextcord import \
-    Permissions, \
-    Interaction, \
-    SlashOption, \
-    TextChannel, \
-    Role, \
+    WebhookMessage,  \
+    Permissions,     \
+    Interaction,     \
+    SlashOption,     \
+    TextChannel,     \
+    Embed,           \
+    Colour,          \
+    Role,            \
     slash_command
+from nextcord.ui import \
+    Modal,              \
+    View
+
+from datetime import datetime, timezone
+import asyncio
 
 from utils.db import Database
 from utils.exceptions import ExtensionException
 from utils.commons import Extensions
 from utils.terminal import getlogger
+
+from .ExtensionsUi import *
 
 logger = getlogger()
 
@@ -23,118 +34,152 @@ class CommandsManager(commands.Cog):
         commands.Cog.__init__(self)
         self.db = Database()
         self.bot = bot
-    
-    @slash_command(name='setup', description='Setup a bot extension',default_member_permissions=permissions,dm_permission=False)
-    async def setup(self, interaction : Interaction): pass
+        self.setup_dict : dict[Extensions, ExtensionUi] = {
+            Extensions.AICHATBOT : AiChatBotUi,
+            Extensions.GREETINGS : GreetingsUi,
+            Extensions.VERIFY : VerifyUi,
+            Extensions.STAFF : StaffUi,
+            Extensions.TEMPVC : TempVCUi
+        }
 
-    @setup.subcommand(name=Extensions.TEMPVC.value, description='Initialize TempVC extension on this server')
-    async def setup_tempvc(self, interaction : Interaction):
-        try:
-            await interaction.response.defer(ephemeral=True)
+    @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,dm_permission=False)
+    async def extensions(self, interacton : Interaction): pass
 
-            async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.TEMPVC,{
-                    'listeners'  : {},
-                    'channels' : {}
-                })
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        else:
-            await interaction.followup.send(f'{Extensions.TEMPVC.value.capitalize()} extension installed successfully')
-
-    @setup.subcommand(name=Extensions.AICHATBOT.value, description='Initialize AiChatBot extension on this server')
-    async def setup_aichatbot(self, 
-                    interaction : Interaction,
-                    textchannel : TextChannel = SlashOption("textchannel","The text channel where the bot can be used and all public or private chats will be created",required=True),
-                    delay : int = SlashOption("delay","The number of seconds a user must wait before sending another prompt",required=True,default=5)
-                ):
-        try:
-            await interaction.response.defer(ephemeral=True)
-
-            async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.AICHATBOT,{
-                    'text-channel' : textchannel.id,
-                    'chat-delay' : delay,
-                    'threads' : {}
-                })
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        else:
-            await interaction.followup.send(f'{Extensions.AICHATBOT.value.capitalize()} extension installed successfully')
-
-    @setup.subcommand(name=Extensions.GREETINGS.value,description='Initialize Greetings extension on this server')
-    async def setup_greetings(self, 
-                interaction : Interaction, 
-                welcome_channel : TextChannel = SlashOption("welcome-channel","The channel where the welcome messages will be sent",required=False,default=None),
-                goodbye_channel : TextChannel = SlashOption("goodbye-channel","The channel where the goodbye messages will be sent",required=False,default=None),
-            ):
-        try:
-            await interaction.response.defer(ephemeral=True)
-
-            async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.GREETINGS,{
-                    'welcome_channel_id' : (welcome_channel.id if welcome_channel else None),
-                    'goodbye_channel_id' : (goodbye_channel.id if goodbye_channel else None)
-                })
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        else:
-            await interaction.followup.send(f'{Extensions.GREETINGS.value.capitalize()} extension installed successfully')
-
-    @setup.subcommand(name=Extensions.STAFF.value, description='Initialize Staff extension on this server')
-    async def setup_staff(self,
-                interaction : Interaction,
-                staffer_role : Role = SlashOption(description="The role assigned to each staffer",required=True,autocomplete=True),
-                inactive_role : Role = SlashOption(description="The role assigned to each staffer who is inactive",required=True,autocomplete=True)
-                #staffer_commands_accessible_by : list[nextcord.Role] = nextcord.SlashOption(description="...",required=True,autocomplete=True)
-            ):
-        try:
-            await interaction.response.defer(ephemeral=True)
-
-            async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.STAFF,{
-                    'active_role' : staffer_role.id,
-                    'inactive_role' : inactive_role.id,
-                    'inactive' : {}
-                })
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        else:
-            await interaction.followup.send(f'{Extensions.STAFF.value.capitalize()} extension installed successfully')
-
-    @setup.subcommand(name=Extensions.VALQUIZ.value, description='Initialize ValorantQuiz extension on this server')
-    async def setup_valquiz(self,
-                            interaction : Interaction,
-                ):
-        try:
-            await interaction.response.defer(ephemeral=True)
-
-            async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.VALQUIZ,{
-                    # Riempire con delle impostazioni...
-                })
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        else:
-            await interaction.followup.send(f'{Extensions.VALQUIZ.value.capitalize()} extension installed successfully')
-
-    @setup.subcommand(name=Extensions.VERIFY.value, description="Initialize Verify extension on this server")
-    async def setup_verify(self,
+    # Show
+    @extensions.subcommand(name='show', description='Show all the available and enabled extensions')
+    async def show(self, 
             interaction : Interaction
         ):
         try:
             await interaction.response.defer(ephemeral=True)
 
             async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions.VERIFY,{})
+                configurations = await self.db.getAllExtensionConfig(guild=interaction.guild)
+
+            embed = Embed(
+                title='GGsBot Extensions', 
+                description='List of all the available extensions and their status',
+                colour=Colour.green(),
+                timestamp=datetime.now(timezone.utc)
+            )
+
+            installed = []
+            installed_str = ''
+            for _, extension_id, enabled, _ in configurations:
+                installed_str += f'**{extension_id.capitalize()}**: {'Enabled' if enabled else 'Disabled'}\n'
+                installed.append(extension_id)
+
+            available_str = ''
+            for extension in Extensions:
+                if extension not in installed:
+                    available_str += f'**{extension.value.capitalize()}**\n'
+
+            embed.add_field(name="Available Extensions:", value=available_str, inline=True)
+
+            embed.add_field(name='Installed Extensions:', value=installed_str, inline=True)
+
+            embed.set_author(name=self.bot.user.name,icon_url=self.bot.user.avatar.url)
+
+        except AssertionError as e:
+            await interaction.followup.send(e)
+        except ExtensionException as e:
+            await interaction.followup.send(embed=e.asEmbed())
+        else: 
+            await interaction.followup.send(embed=embed)
+
+    # Setup
+    @extensions.subcommand(description='Setup a bot extension')
+    async def setup(self, 
+            interaction : Interaction,
+            extension : str = SlashOption(description="The extension you want to setup", choices=Extensions, required=True)
+        ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+            message : WebhookMessage = None
+
+            async with self.db:
+                assert not await self.db.hasExtension(interaction.guild, Extensions(extension)), f'Extension {extension} already configured for this server'
+
+            ui_type = self.setup_dict.get(Extensions(extension), None)
+
+            #1. Inviare una modal o view specifica per quel comando
+            #2. Ogni modal o view deve avere un pulsante submit e un pulsante cancel (che chiude la modal o view) e altri campi facoltativi per la configurazione
+
+            config = {}
+            if ui_type is not None:
+                ui = ui_type(self.bot, interaction.guild, extension)
+            else:
+                ui = ExtensionUi(self.bot, interaction.guild, extension, lambda _:None)
+
+            print('pre-interaction')
+            message = await interaction.followup.send(embed=ui,view=ui, wait=True)
+
+            assert not await ui.wait(), f'The configuration process has expired'
+            print('post-interaction')
+            config = dict(ui.config)
+            
+            async with self.db:
+                await self.db.setupExtension(interaction.guild,Extensions(extension),config)
+
+        except AssertionError as e:
+            if message: 
+                await message.edit(e, view=None, embed=None)
+            else:
+                await interaction.followup.send(e)
+        except ExtensionException as e:
+            await message.edit(embed=e.asEmbed(), view=None)
+        else:
+            await message.edit(f'{extension.capitalize()} extension configured successfully', view=None, embed=None)
+
+    # Enable
+    @extensions.subcommand(description='Enable a bot extension')
+    async def enable(self,
+            interaction : Interaction,
+            extension : str = SlashOption(description="The extension you want to enable", choices=Extensions, required=True)
+        ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+            async with self.db:
+                _, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions(extension))
+
+                if enabled: raise AssertionError(f'{extension.capitalize()} extension already enabled')
+
+                await self.db.setExtension(interaction.guild, Extensions(extension), True)
+
         except AssertionError as e:
             await interaction.followup.send(e)
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:
-            await interaction.followup.send(f'{Extensions.VERIFY.value.capitalize()} extension installed successfully')
+            await interaction.followup.send(f'{extension.capitalize()} extension enabled successfully')
 
-    @slash_command(name='teardown', description='Teardown a bot extension',default_member_permissions=permissions,dm_permission=False)
+    # Disable
+    @extensions.subcommand(description='Disable a bot extension')
+    async def disable(self,
+            interaction : Interaction,
+            extension : str = SlashOption(description="The extension you want to enable", choices=Extensions, required=True)
+        ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+            async with self.db:
+                _, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions(extension))
+
+                if not enabled: raise AssertionError(f'{extension.capitalize()} extension already disabled')
+                
+                await self.db.setExtension(interaction.guild, Extensions(extension), False)
+
+        except AssertionError as e:
+            await interaction.followup.send(e)
+        except ExtensionException as e:
+            await interaction.followup.send(embed=e.asEmbed())
+        else:
+            await interaction.followup.send(f'{extension.capitalize()} extension disabled successfully')
+
+    # Teardown
+    @extensions.subcommand(description='Teardown a previously configured bot extension')
     async def teardown(self, 
             interaction : Interaction,
             extension : str = SlashOption(description="The extension you want to remove", choices=Extensions, required=True)
@@ -144,6 +189,7 @@ class CommandsManager(commands.Cog):
 
             async with self.db:
                 await self.db.teardownExtension(interaction.guild,Extensions(extension))
+        
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:

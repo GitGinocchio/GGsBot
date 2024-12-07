@@ -7,7 +7,8 @@ from cachetools import LRUCache
 from datetime import datetime
 from uuid import UUID
 
-from .ValorantQuizUtils import Levels, MapModes, asyncget
+from utils.commons import asyncget
+from .ValorantQuizUtils import Levels, MapModes
 from .ValorantQuizSession import MapQuizSession, QuizSession
 
 class ValorantQuiz(commands.Cog):

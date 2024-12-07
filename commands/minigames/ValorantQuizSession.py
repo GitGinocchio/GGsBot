@@ -22,11 +22,11 @@ import traceback
 import asyncio
 import random
 
+from utils.commons import asyncget
 from .ValorantQuizUtils import \
     Levels,                    \
     MapModes,                  \
     ImageTypes,                \
-    asyncget,                  \
     transform_coordinates
 from .ValorantQuizUi import \
     AllAnswersEmbed,        \
