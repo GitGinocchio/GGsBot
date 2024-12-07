@@ -14,7 +14,6 @@ import random
 from utils.db import Database
 from utils.commons import Extensions
 from utils.exceptions import ExtensionException
-from .VerificationUtils import VerificationTypes
 from .VerificationUis import *
 
 permissions = Permissions(

@@ -30,6 +30,10 @@ from utils.commons import asyncget
 
 logger = getlogger()
 
+class VerificationTypes(StrEnum):
+    BUTTON = "button"
+    QUESTION = "question"
+
 class VerificationStatus(StrEnum):
     ALREADY_VERIFIED = "ALREADY_VERIFIED"
     NOT_VERIFIED = "NOT_VERIFIED"

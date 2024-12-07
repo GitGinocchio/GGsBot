@@ -6,8 +6,5 @@ install-binaries:
 clearpycache:
 	python .Makefile/clearpycache.py
 
-clearguildsdata:
-	python .Makefile/clearguildsdata.py
-
 run:
 	python main.py

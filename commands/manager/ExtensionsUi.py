@@ -25,7 +25,7 @@ from nextcord.ext import commands
 
 from typing import Callable
 
-from ..verify.VerificationUtils import VerificationTypes
+from ..verify.VerificationUis import VerificationTypes
 
 class ExtensionUi(Embed, View):
     def __init__(self, bot : commands.Bot, guild : Guild, extension : str, submit_callback : Callable[[Interaction], None], timeout : int = 120):
