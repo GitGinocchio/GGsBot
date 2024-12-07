@@ -19,4 +19,36 @@
 - Valorant Quiz - Togliere punti se la persona non risponde, aggiungere i punti in base a quanto la parola e' vicina alla risposta corretta
 ✔ Extensions: creare un file e/o una classe in cui e' presente un StrEnum delle estensioni, che possono essere utilizzati in tutti gli altri file
 - Aggiungere una cache di tipo TTL al database
-- Far si che il database crei una singola connessione, poi durante l'esecuzione per ogni async with statement viene creato un cursore
+✔ Far si che il database crei una singola connessione, poi durante l'esecuzione per ogni async with statement viene creato un cursore
+
+- Aggiungere un backup del database
+
+https://lyrist.vercel.app/api/BRANO/ARTISTA
+
+https://music.xianqiao.wang/neteaseapiv2/lyric?id=2005468260
+
+https://music.xianqiao.wang/neteaseapiv2/search?limit=1&type=1&keywords=IMPORTANTE%20Marracash
+
+https://www.reddit.com/r/memes/new.json?sort=hot
+
+https://api.textcaptcha.com/myemail@example.com.json
+
+https://apidocs.cheapshark.com/
+https://www.freetogame.com/api-doc
+https://www.gamerpower.com/api-read
+
+✔ Creare un comando per visualizzare le estensioni installate, attive e disattivate
+
+- Spiegare il perche' bisogna fare la verifica con il bot...
+- Mostrare piu' dettagli relativi alle estensioni, per esempio quando sono state configurate e da chi...
+- ! E' inutile limitare manualmente dove il comando puo' essere usato o da chi..., e' una cosa che esiste gia' all'interno di discord (non in tutti i casi)
+
+
+- !!! Per il setup delle estensioni utilizzare il comando univoco ma per ogni estensione ritornare all'utente una view o una modal diversa in base al comando triggerato...
+- !! Forse sarebbe meglio togliere ephemeral nelle view e negli embed dei setup 
+     e fare un bottone "abort" solo che devo utilizzare view.interaction_check 
+     per controllare chi sta interagendo
+- ! Rendere il datetime format univoco per tutte le voci del database e modificabile tramite config.json
+- !! Aggiungere un timeout alla generazione dei canali per evitare spam di canali vocali temporanei
+- Risolvere l'errore che da il database se non e' presente una colonna che dovrebbe essere creata
+- !!! Directory refactoring

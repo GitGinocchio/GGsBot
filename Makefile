@@ -7,4 +7,4 @@ clearpycache:
 	python .Makefile/clearpycache.py
 
 run:
-	python main.py
+	python ./src/main.py
