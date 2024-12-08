@@ -37,6 +37,24 @@ https://apidocs.cheapshark.com/
 https://www.freetogame.com/api-doc
 https://www.gamerpower.com/api-read
 
+Ignoring exception in command <nextcord.application_command.MessageApplicationCommand object at 0x7c71c08f3cb0>:
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/application_command.py", line 918, in invoke_callback_with_hooks
+    await self(interaction, *args, **kwargs)
+  File "/home/container/src/commands/ai/Summarizer.py", line 73, in summarize_message
+    await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/interactions.py", line 896, in send_message
+    await adapter.create_interaction_response(
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 197, in request
+    raise HTTPException(response, data)
+nextcord.errors.HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
+In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5, 6, 7, 8).
+
+The above exception was the direct cause of the following exception:
+
+nextcord.errors.ApplicationInvokeError: Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
+In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5, 6, 7, 8).
+
 ✔ Creare un comando per visualizzare le estensioni installate, attive e disattivate
 
 - Spiegare il perche' bisogna fare la verifica con il bot...
@@ -44,11 +62,8 @@ https://www.gamerpower.com/api-read
 - ! E' inutile limitare manualmente dove il comando puo' essere usato o da chi..., e' una cosa che esiste gia' all'interno di discord (non in tutti i casi)
 
 
-- !!! Per il setup delle estensioni utilizzare il comando univoco ma per ogni estensione ritornare all'utente una view o una modal diversa in base al comando triggerato...
-- !! Forse sarebbe meglio togliere ephemeral nelle view e negli embed dei setup 
-     e fare un bottone "abort" solo che devo utilizzare view.interaction_check 
-     per controllare chi sta interagendo
+✔ !!! Per il setup delle estensioni utilizzare il comando univoco ma per ogni estensione ritornare all'utente una view o una modal diversa in base al comando triggerato...
 - ! Rendere il datetime format univoco per tutte le voci del database e modificabile tramite config.json
 - !! Aggiungere un timeout alla generazione dei canali per evitare spam di canali vocali temporanei
 - Risolvere l'errore che da il database se non e' presente una colonna che dovrebbe essere creata
-- !!! Directory refactoring
+✔ !!! Directory refactoring

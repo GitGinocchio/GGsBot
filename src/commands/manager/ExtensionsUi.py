@@ -13,19 +13,28 @@ from nextcord.ui import \
     button              \
 
 from nextcord import \
+    Forbidden,       \
+    HTTPException,   \
+    TextChannel,     \
+    PermissionOverwrite, \
+    Permissions,     \
     ChannelType,     \
     SelectOption,    \
     ButtonStyle,     \
     Interaction,     \
     Embed,           \
     Guild,           \
+    Role,            \
     Colour             
+from nextcord.abc import GuildChannel
 
 from nextcord.ext import commands
 
 from typing import Callable
 
-from ..verify.VerificationUis import VerificationTypes
+from ..verify.VerificationUis import \
+    VerificationTypes,               \
+    StartVerificationUI
 
 class ExtensionUi(Embed, View):
     def __init__(self, bot : commands.Bot, guild : Guild, extension : str, submit_callback : Callable[[Interaction], None], timeout : int = 120):
@@ -138,36 +147,103 @@ class VerifyUi(ExtensionUi):
     def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
         ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f'{super().description}, this extension allows you to add a verification level of the account of users who enter within this server'
-        self.config = { "modes" : [], 'verified_role' : None}
+        self.config = { "modes" : [], 'verify_channel' : None, 'verify_message' : None, 'verified_role' : None}
 
         self.add_field(
-            name="1. Verified Role", 
-            value="Choose the role that users who have verified their accounts will receive.",
+            name="1. Verification Channel", 
+            value="Choose the text channel where verification messages will be sent\n(no choice=create one)",
             inline=False
         )
 
         self.add_field(
-            name="2. Allowed verification modes", 
-            value="Select which verification modes you want to make enabled.\n(Each person can choose from one of these modes)",
+            name="2. Verified Role", 
+            value="Choose the role that will be given to users who verify\n(no choice=create one)",
             inline=False
         )
 
-    @role_select(placeholder="1. Verified Role", min_values=1, row=1)
+        self.add_field(
+            name="3. Allowed verification modes", 
+            value="Select which verification modes you want to enable.\n(Each member can choose from one of these modes to verify)",
+            inline=False
+        )
+
+    @channel_select(placeholder="1. Verification Channel",channel_types=[ChannelType.text], min_values=0, row=1)
+    async def verify_channel(self, select: ChannelSelect, interaction : Interaction):
+        self.config['verify_channel'] = (select.values[0].id if len(select.values) > 0 else None)
+    
+    @role_select(placeholder="2. Verified Role", min_values=0, row=2)
     async def verified_role(self, select: RoleSelect, interaction : Interaction):
         self.config['verified_role'] = (select.values[0].id if len(select.values) > 0 else None)
 
-    @string_select(placeholder="2. Allowed verification modes",min_values=1, max_values=len(modes), options=modes, row=3)
+    @string_select(placeholder="3. Allowed verification modes",min_values=1, max_values=len(modes), options=modes, row=3)
     async def verification_modes(self, select: StringSelect, interaction : Interaction):
         self.config['modes'] = select.values
 
+    async def setup_verified_role(self, role : Role | None = None):
+        if role == None:
+            role = await self.guild.create_role(
+                name=f"Verified by {self.bot.user.name}",
+                colour=Colour.green(),
+                permissions=Permissions(view_channel=True),
+                reason="GGsBot:Verify"
+            )
+        else:
+            role = await role.edit(permissions=Permissions(view_channel=True), reason="GGsBot:Verify")
+        return role
+
+    async def setup_verify_channel(self, verified_role : Role, verify_channel : TextChannel | None = None):
+        overwrites = {
+            self.guild.default_role: PermissionOverwrite(view_channel=True,read_message_history=True),
+            verified_role: PermissionOverwrite(view_channel=False)
+        }
+        
+        if verify_channel == None:
+            channel = await self.guild.create_text_channel(
+                name=f"verify",
+                reason="GGsBot:Verify",
+                position=0,
+                overwrites=overwrites
+            )
+        else:
+            channel = await verify_channel.edit(overwrites=overwrites, reason="GGsBot:Verify")
+        return channel
+
+    async def ensure_everyone_permissions(self):
+        await self.guild.default_role.edit(
+            reason="GGsBot:Verify",
+            permissions=Permissions.none()
+        )
+
+    async def send_verification_message(self, channel : TextChannel):
+        ui = StartVerificationUI(self.bot)
+        message = await channel.send(embed=ui, view=ui)
+        self.config['verify_message'] = message.id
+
     async def on_submit(self, interaction : Interaction):
         try:
-            assert self.config.get('verified_role') is not None, "You must choose one verified role!"
             assert len(self.config.get('modes')), "You must choose at least one verification mode!"
+
+            await self.ensure_everyone_permissions()
+
+            verified_role = (self.guild.get_role(verified_role_id) if (verified_role_id:=self.config.get('verified_role')) else None)
+            verify_channel = (self.guild.get_channel(verify_channel_id) if (verify_channel_id:=self.config.get('verify_channel')) else None)
+
+            verified_role = await self.setup_verified_role(verified_role)
+            verify_channel = await self.setup_verify_channel(verified_role, verify_channel)
+
+            self.config['verify_channel'] = verify_channel.id
+            self.config['verified_role'] = verified_role.id
+
+            await self.send_verification_message(verify_channel)
         except AssertionError as e:
             await interaction.response.send_message(e, ephemeral=True, delete_after=5)
+        except Forbidden as e:
+            await interaction.response.send_message(e, ephemeral=True, delete_after=5)
+        except Exception as e:
+            print(e)
         else:
             self.stop()
+            await interaction.response.send_message(f"Verification channel {verify_channel.jump_url} and the role {verified_role.mention} created successfully!", ephemeral=True)
 
 class StaffUi(ExtensionUi):
     def __init__(self, bot : commands.Bot, guild : Guild, extension : str):

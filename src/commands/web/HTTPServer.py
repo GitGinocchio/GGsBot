@@ -21,6 +21,11 @@ class HTTPServer(Cog):
 
         self.app.router.add_get('/', self.index)
 
+    async def index(self, request : Request):
+        return Response(text="Hello World!", content_type="text/plain")
+
+
+
     @Cog.listener()
     async def on_ready(self):
         runner = AppRunner(self.app)
@@ -28,10 +33,6 @@ class HTTPServer(Cog):
         site = TCPSite(runner, self.address, self.port)
         await site.start()
         logger.info(f"HTTP Server started on {self.protocol}://{self.address}:{self.port}")
-
-
-    async def index(self, request : Request):
-        return Response(text="Hello World!", content_type="text/plain")
 
 
 
