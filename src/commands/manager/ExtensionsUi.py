@@ -243,7 +243,6 @@ class VerifyUi(ExtensionUi):
             print(e)
         else:
             self.stop()
-            await interaction.response.send_message(f"Verification channel {verify_channel.jump_url} and the role {verified_role.mention} created successfully!", ephemeral=True)
 
 class StaffUi(ExtensionUi):
     def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
