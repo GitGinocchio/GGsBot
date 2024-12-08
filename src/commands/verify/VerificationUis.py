@@ -51,7 +51,7 @@ class StartVerificationUI(Embed, View):
     def __init__(self, bot : commands.Bot):
         View.__init__(self, timeout=None)
         Embed.__init__(self)
-        self.description = "Select the verification mode you want to use to verify yourself (optional) and then click **Start Verification** to begin."
+        self.description = "Select the verification mode you want to use to verify yourself (optional)\nClick **Start Verification** to begin."
         self.uis : dict[VerificationTypes, VerificationUI] = {
             VerificationTypes.BUTTON : ButtonVerificationUi,
             VerificationTypes.QUESTION : QuestionVerificationUi
