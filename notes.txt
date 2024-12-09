@@ -31,6 +31,8 @@ https://music.xianqiao.wang/neteaseapiv2/search?limit=1&type=1&keywords=IMPORTAN
 
 https://www.reddit.com/r/memes/new.json?sort=hot
 
+https://0x0.st/
+
 https://api.textcaptcha.com/myemail@example.com.json
 
 https://apidocs.cheapshark.com/
@@ -67,3 +69,11 @@ In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5
 - !! Aggiungere un timeout alla generazione dei canali per evitare spam di canali vocali temporanei
 - Risolvere l'errore che da il database se non e' presente una colonna che dovrebbe essere creata
 ✔ !!! Directory refactoring
+
+
+colori del bot:
+#46dd9c
+#120804
+#3cb6b2
+#02e6fd
+#41c9a9
