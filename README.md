@@ -22,6 +22,10 @@
     -->
 </p>
 
+>[!WARNING]
+> GGsBot is still in its early stages, and there are some features that have not been implemented yet. If you find any issues or need further assistance, feel free to contact me or join the Discord server.
+
+
 ## Index
 - [Index](#index)
 - [Nextcord Wrapper Library](#nextcord-wrapper-library)
@@ -98,7 +102,18 @@ GGsBot's SQLite Database is designed to be robust, scalable, and easy to use, al
 <p align="right"><a href="#index" >Back to Index</a></p>
 
 ## HTTP Web Server
-*`work in progress...`*
+The HTTP Web Server is currently in its initial state, but has great potential to become a powerful tool for hosting documentation, displaying status updates, and providing APIs. 
+As it stands, this feature allows users to access information about the bot, including its status, configuration, and usage statistics.
+
+> [!NOTE]
+> The HTTP Web Server is still in development and it has only the basic structure
+
+In the future, this feature could be used to
+- **Host documentation** for the bot's commands, features, and APIs
+- Display **real-time status updates** for the bot, including server uptime and performance metrics
+- **Provide a RESTful API** for developers to access and manipulate data related to the bot
+
+While the HTTP Web Server is still in its early stages, it has the potential to become a valuable resource for users and developers alike. As it continues to evolve, you can expect to see more features and improvements added to make it an essential part of the GGsBot ecosystem.
 
 <p align="right"><a href="#index" >Back to Index</a></p>
 
