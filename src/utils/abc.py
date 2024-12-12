@@ -49,7 +49,7 @@ class SetupUI(Embed, View):
     async def on_timeout(self):
         print('timedout-interaction')
 
-    async def __setup(self, button: Button, interaction : Interaction):
+    async def __setup(self, interaction : Interaction):
         try:
             await self._submit_callback(interaction)
         except Exception as e:
