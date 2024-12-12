@@ -22,6 +22,7 @@
     -->
 </p>
 
+
 >[!WARNING]
 > GGsBot is still in its early stages, and there are some features that have not been implemented yet. If you find any issues or need further assistance, feel free to contact me or join the Discord server.
 
