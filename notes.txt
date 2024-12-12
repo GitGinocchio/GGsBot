@@ -70,6 +70,7 @@ In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5
 - Risolvere l'errore che da il database se non e' presente una colonna che dovrebbe essere creata
 ✔ !!! Directory refactoring
 
+- Creare un meccanismo che permetta di modificare un sondaggio gia' inviato in un canale (possibilmente utilizzando i sondaggi di discord)
 
 colori del bot:
 #46dd9c

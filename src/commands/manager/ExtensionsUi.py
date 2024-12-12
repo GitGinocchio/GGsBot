@@ -28,7 +28,7 @@ from nextcord import \
     Colour             
 from nextcord.abc import GuildChannel
 
-from nextcord.ext import commands
+from nextcord.ext.commands import Bot
 
 from typing import Callable
 
@@ -36,53 +36,18 @@ from ..verify.VerificationUis import \
     VerificationTypes,               \
     StartVerificationUI
 
-class ExtensionUi(Embed, View):
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str, submit_callback : Callable[[Interaction], None], timeout : int = 120):
-        Embed.__init__(self, title=f'{extension.capitalize()} extension setup')
-        View.__init__(self, timeout=timeout)
-        self._bot = bot
-        self._guild = guild
-        self._submit_callback = submit_callback
-        self._config = {}
+from utils.abc import SetupUI
 
+class ExtensionUI(SetupUI):
+    def __init__(self, bot : Bot, guild : Guild, extension : str, submit_callback : Callable[[Interaction], None], timeout : int = 120):
+        SetupUI.__init__(self, bot, guild, f'{extension.capitalize()} extension setup', submit_callback, timeout, "Setup")
         self.description = f"Setup process for {extension.capitalize()} extension"
         self.colour = Colour.green()
-    
-    @property
-    def bot(self): return self._bot
 
-    @property
-    def guild(self): return self._guild
-
-    @property
-    def config(self): return self._config
-
-    @config.setter
-    def config(self, config : dict): self._config = config
-
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        print('interaction')
-        return await super().interaction_check(interaction)
-
-    async def on_error(self, item : Item, interaction : Interaction):
-        await interaction.followup.delete_message(interaction.message.id)
-        self.stop()
-
-    async def on_timeout(self):
-        print('timedout-interaction')
-
-    @button(label="setup", style=ButtonStyle.primary, row=4)
-    async def setup(self, button: Button, interaction : Interaction):
-        try:
-            await self._submit_callback(interaction)
-        except Exception as e:
-            raise e
-
-
-class AiChatBotUi(ExtensionUi):
+class AiChatBotUi(ExtensionUI):
     delays = [SelectOption(label=f'{n} Seconds', value=str(n), default=(True if n == 5 else False)) for n in range(1, 26,1)]
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
-        ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f"{super().description}, this extension allows you to have a chatbot Ai within your discord server"
         self.config = { 'chat-delay' : 0, 'threads' : {} }
 
@@ -98,9 +63,9 @@ class AiChatBotUi(ExtensionUi):
     async def on_submit(self, interaction : Interaction):
         self.stop()
 
-class GreetingsUi(ExtensionUi):
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
-        ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
+class GreetingsUi(ExtensionUI):
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f"{super().description}, This extension allows you to generate messages whenever a user joins the server"
         self.config = {'welcome_channel':None,'goodbye_channel':None}
 
@@ -133,19 +98,19 @@ class GreetingsUi(ExtensionUi):
         else:
             self.stop()
 
-class TempVCUi(ExtensionUi):
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
-        ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
+class TempVCUi(ExtensionUI):
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f"{super().description}, This extension allows you to transform voice channels into \"generators\" of temporary voice channels"
         self.config = {'listeners' : {}, 'channels' : {}}
 
     def on_submit(self, interaction : Interaction):
         self.stop()
 
-class VerifyUi(ExtensionUi):
+class VerifyUi(ExtensionUI):
     modes = [SelectOption(label=type.value.capitalize(), value=type.value) for type in VerificationTypes]
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
-        ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f'{super().description}, this extension allows you to add a verification level of the account of users who enter within this server'
         self.config = { "modes" : [], 'verify_channel' : None, 'verify_message' : None, 'verified_role' : None}
 
@@ -244,9 +209,9 @@ class VerifyUi(ExtensionUi):
         else:
             self.stop()
 
-class StaffUi(ExtensionUi):
-    def __init__(self, bot : commands.Bot, guild : Guild, extension : str):
-        ExtensionUi.__init__(self, bot, guild, extension, self.on_submit)
+class StaffUi(ExtensionUI):
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
         self.description = f"{super().description}, This extension allows you to assign staff members a role when they are inactive and why"
         self.config = { 'staff_role': None, 'inactive_role': None, 'inactive': {}}
 

@@ -34,7 +34,7 @@ class CommandsManager(commands.Cog):
         commands.Cog.__init__(self)
         self.db = Database()
         self.bot = bot
-        self.setup_dict : dict[Extensions, ExtensionUi] = {
+        self.setup_dict : dict[Extensions, ExtensionUI] = {
             Extensions.AICHATBOT : AiChatBotUi,
             Extensions.GREETINGS : GreetingsUi,
             Extensions.VERIFY : VerifyUi,
@@ -110,7 +110,7 @@ class CommandsManager(commands.Cog):
             if ui_type is not None:
                 ui = ui_type(self.bot, interaction.guild, extension)
             else:
-                ui = ExtensionUi(self.bot, interaction.guild, extension, lambda _:None)
+                ui = ExtensionUI(self.bot, interaction.guild, extension, lambda _:None)
 
             print('pre-interaction')
             message = await interaction.followup.send(embed=ui,view=ui, wait=True)

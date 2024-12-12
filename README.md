@@ -1,5 +1,5 @@
 <p align="center">
-    <img height="180px" width="320px" src="./docs/media/banner.png" align="center" />
+    <img height="200px" src="./docs/media/circular_icon.png" align="center" />
     <h2 align="center">GGsBot</h2>
     <p align="center">GGsBot is a <strong>multi-purpose</strong>, <strong>highly customizable</strong> discord bot powered by artificial intelligence</p>
     <p align="center">
@@ -24,7 +24,6 @@
 
 >[!WARNING]
 > GGsBot is still in its early stages, and there are some features that have not been implemented yet. If you find any issues or need further assistance, feel free to contact me or join the Discord server.
-
 
 ## Index
 - [Index](#index)
@@ -148,7 +147,10 @@ Some of the key extensions in GGsBot include:
 <p align="right"><a href="#index" >Back to Index</a></p>
 
 ### Commands Manager
-*`work in progress...`*
+The Commands Manager is a basic extension of GGsBot that provides a comprehensive set of commands for managing extensions
+
+
+
 <p align="right"><a href="#index" >Back to Index</a></p>
 
 ### Automatic Greetings Messages

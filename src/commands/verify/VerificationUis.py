@@ -38,7 +38,6 @@ from utils.db import Database
 logger = getlogger()
 
 class VerificationTypes(StrEnum):
-    BUTTON = "button"
     QUESTION = "question"
 
 class VerificationStatus(StrEnum):
@@ -53,7 +52,6 @@ class StartVerificationUI(Embed, View):
         Embed.__init__(self)
         self.description = "Select the verification mode you want to use to verify yourself (optional)\nClick **Start Verification** to begin."
         self.uis : dict[VerificationTypes, VerificationUI] = {
-            VerificationTypes.BUTTON : ButtonVerificationUi,
             VerificationTypes.QUESTION : QuestionVerificationUi
         }
         self.colour = Colour.green()
@@ -132,26 +130,6 @@ class VerificationUI(Embed, View):
     def status(self, value : VerificationStatus): self._status = value
 
     async def async_init(self): pass
-
-class ButtonVerificationUi(VerificationUI):
-    def __init__(self,
-            bot : commands.Bot,
-            verified : Role | None = None
-        ):
-        VerificationUI.__init__(self, bot, verified)
-        self.title = "Button Verification"
-        self.description = "Click the button below to verify your account"
-
-    @button(label="Verify",style=ButtonStyle.primary)
-    async def verify(self, button: Button, interaction : Interaction):
-        try:
-            await interaction.user.add_roles(self.verified, reason="GGsBot::ButtonVerification")
-        except Forbidden as e:
-            logger.error(e)
-        else:
-            self.status = VerificationStatus.VERIFIED
-        
-        self.stop()
 
 class QuestionVerificationUi(VerificationUI):
     def __init__(self,
