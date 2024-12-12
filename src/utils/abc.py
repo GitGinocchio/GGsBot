@@ -25,6 +25,7 @@ class SetupUI(Embed, View):
 
         self.button = Button(label=submit_title, style=ButtonStyle.primary, row=4)
         self.button.callback = self.__setup
+        self.add_item(self.button)
     
     @property
     def bot(self): return self._bot
