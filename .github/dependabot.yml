@@ -9,3 +9,4 @@ updates:
     directory: "/dependabot-manifest" # Location of package manifests
     schedule:
       interval: "weekly"
+
