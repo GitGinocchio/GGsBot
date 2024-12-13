@@ -4,6 +4,7 @@ from utils.system import OS, ARCH
 from utils.config import config
 from utils.terminal import getlogger
 from dataclasses import dataclass, field, fields
+from urllib.parse import urlparse
 from collections import deque
 from enum import Enum
 import nextcord
@@ -26,26 +27,29 @@ class UrlType(Enum):
 
 def urltype(url : str) -> UrlType:
     """From a given url return the corresponding UrlType"""
-    if "https://www.youtube/watch" in url and '&v=' in url:
-        return UrlType.YoutubeSong
+    parsed = urlparse(url)
+
+    if parsed.netloc == 'www.youtube.com' and parsed.path == 'watch':
+        if 'list=' in parsed.params:
+            return UrlType.YoutubePlaylist
+        elif 'v=' in parsed.params:
+            return UrlType.YoutubeSong
+        else:
+            return UrlType.Unknown
+    elif parsed.netloc == 'open.spotify.com':
+        if 'track' in parsed.path:
+            return UrlType.SpotifySong
+        elif 'playlist' in parsed.path:
+            return UrlType.SpotifyPlaylist
+        elif 'album' in parsed.path:
+            return UrlType.SpotifyAlbum
+        else:
+            return UrlType.Unknown
     
-    elif "https://www.youtube" in url and "&list=" in url:
-        return UrlType.YoutubePlaylist
-    
-    elif "https://open.spotify.com/track" in url:
-        return UrlType.SpotifySong
-    
-    elif "https://open.spotify.com/playlist" in url:
-        return UrlType.SpotifyPlaylist
-    
-    elif "https://open.spotify.com/album" in url:
-        return UrlType.SpotifyAlbum
-    
-    elif "https://" in url or "http://" in url:
+    elif 'https' in parsed.scheme or 'http' in parsed.scheme:
         return UrlType.Unknown
 
-    else:
-        return UrlType.Query
+    return UrlType.Query
 
 def fromseconds(s : float):
     """convert from a given time in seconds to an hours, minutes, seconds and milliseconds format"""
