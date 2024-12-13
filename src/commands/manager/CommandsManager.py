@@ -106,7 +106,6 @@ class CommandsManager(commands.Cog):
             #1. Inviare una modal o view specifica per quel comando
             #2. Ogni modal o view deve avere un pulsante submit e un pulsante cancel (che chiude la modal o view) e altri campi facoltativi per la configurazione
 
-            config = {}
             if ui_type is not None:
                 ui = ui_type(self.bot, interaction.guild, extension)
             else:
@@ -126,7 +125,7 @@ class CommandsManager(commands.Cog):
             if message: 
                 await message.edit(e, view=None, embed=None)
             else:
-                await interaction.followup.send(e)
+                await interaction.followup.send(e, ephemeral=True)
         except ExtensionException as e:
             await message.edit(embed=e.asEmbed(), view=None)
         else:

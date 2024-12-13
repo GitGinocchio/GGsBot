@@ -11,8 +11,8 @@ class SetupUI(Embed, View):
             guild : Guild, 
             title : str, 
             submit_callback : Callable[[Interaction], None], 
-            timeout : int = 120,
-            submit_title : str = "Submit"
+            submit_title : str = "Submit",
+            timeout : int = 120
         ):
         Embed.__init__(self, title=title)
         View.__init__(self, timeout=timeout)

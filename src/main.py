@@ -31,18 +31,19 @@ def load_commands():
     categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
     logger.info('Loading commands...')
     for category in categories:
-        logger.info(f'Looking in commands.{category}...')
+        #logger.info(f'Looking in commands.{category}...')
         for filename in os.listdir(f'./src/commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
                     Bot.load_extension(f'commands.{category}.{filename[:-3]}')
-                except (commands.ExtensionFailed,
-                        commands.ExtensionAlreadyLoaded,
+                except (commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
                     logger.critical(f'Loading command error: Cog {e.name} message: \n{traceback.format_exc()}')
                 except commands.NoEntryPointError as e:
                     continue  # if no entry point found maybe is a file used by the main command file.
+                except commands.ExtensionFailed as e:
+                    logger.warning(e)
                 else:
                     logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
 
