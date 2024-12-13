@@ -133,6 +133,9 @@ In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5
 
 - Creare un meccanismo che permetta di modificare un sondaggio gia' inviato in un canale (possibilmente utilizzando i sondaggi di discord)
 
+- Il comando che crea i messaggi di benvenuto e di uscita dal server deve modificare i permessi dei canali (che devono venire creati in caso non esistano)
+  per far si che gli utenti non possano scrivere in quei canali
+
 colori del bot:
 #46dd9c
 #120804
