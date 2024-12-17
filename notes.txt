@@ -39,6 +39,19 @@ https://apidocs.cheapshark.com/
 https://www.freetogame.com/api-doc
 https://www.gamerpower.com/api-read
 
+Ignoring exception in command <nextcord.application_command.SlashApplicationSubcommand object at 0x7f4e663187a0>:
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/application_command.py", line 918, in invoke_callback_with_hooks
+    await self(interaction, *args, **kwargs)
+  File "/home/container/src/commands/ai/ChatBot.py", line 134, in newchat
+    if not interaction.channel.id == int(config['text-channel']): raise SlashCommandException("Invalid Channel")
+                                         ~~~~~~^^^^^^^^^^^^^^^^
+TypeError: tuple indices must be integers or slices, not str
+
+The above exception was the direct cause of the following exception:
+
+nextcord.errors.ApplicationInvokeError: Command raised an exception: TypeError: tuple indices must be integers or slices, not str
+
 Ignoring exception in command <nextcord.application_command.SlashApplicationSubcommand object at 0x000001C5384B05F0>:
 Traceback (most recent call last):
   File "B:\Desktop\Coding\Python\GGsBot\.venv\Lib\site-packages\aiohttp\connector.py", line 1317, in _create_direct_connection
