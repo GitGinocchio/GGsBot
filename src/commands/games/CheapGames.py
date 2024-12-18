@@ -234,7 +234,6 @@ class CheapGames(Cog):
     @Cog.listener()
     async def on_ready(self):
         if not self.update_giveaways_and_deals.is_running():
-            print("started")
             self.update_giveaways_and_deals.start()
 
     @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free")
