@@ -61,6 +61,9 @@ updates : {
 from nextcord.ext.commands import Bot, Cog
 from nextcord.ext import tasks
 from nextcord import \
+    HTTPException,   \
+    Forbidden,       \
+    ButtonStyle,     \
     SelectOption,    \
     ChannelType,     \
     SlashOption,     \
@@ -74,6 +77,7 @@ from nextcord.ui import \
     Item,               \
     View,               \
     button,             \
+    Button,             \
     string_select,      \
     channel_select,     \
     role_select
@@ -184,6 +188,43 @@ class DealsUI(SetupUI):
     async def on_submit(self, interaction : Interaction):
         pass
 
+class GiveawayGame(Embed, View):
+    def __init__(self, game_data : dict):
+        View.__init__(self)
+        Embed.__init__(self, 
+            title=game_data['title'], 
+            timestamp=datetime.datetime.now(datetime.UTC),
+            description=game_data['description'],
+            url=game_data['gamerpower_url']
+        )
+        self.set_image(url=game_data['image'])
+        self.add_field(name="Platform(s)", value=game_data['platforms'], inline=True)
+        self.add_field(name="Type", value=game_data['type'], inline=True)
+        self.add_field(name="Users", value=game_data["users"], inline=True)
+
+        self.add_field(name="Price", value=f'~~{game_data['worth']}~~  :free:', inline=False)
+
+        start_dt = datetime.datetime.strptime(game_data["published_date"], "%Y-%m-%d %H:%M:%S")
+        self.add_field(name="Published", value=f"<t:{int(start_dt.timestamp())}>", inline=True)
+
+        if (end_date_str:=game_data["end_date"]) != "N/A":
+            end_dt = datetime.datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
+            self.add_field(name="Expires", value=f"<t:{int(end_dt.timestamp())}:R>", inline=True)
+        else:
+            self.add_field(name="Expires", value=end_date_str, inline=True)
+
+        self.add_field(name="Instructions", value=game_data['instructions'], inline=False)
+        self.link =  Button(
+            label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Early Access", 
+            style=ButtonStyle.link,
+            url=game_data["open_giveaway"]
+        )
+        self.add_item(self.link)
+
+class CheapGame(Embed, View):
+    def __init__(self, game_data : dict):
+        pass
+
 class CheapGames(Cog):
     def __init__(self, bot: Bot):
         Cog.__init__(self)
@@ -192,8 +233,9 @@ class CheapGames(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        if not self.update_deals.is_running():
-            self.update_deals.start()
+        if not self.update_giveaways_and_deals.is_running():
+            print("started")
+            self.update_giveaways_and_deals.start()
 
     @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free")
     async def cheapgames(self, interaction : Interaction): pass
@@ -238,31 +280,27 @@ class CheapGames(Cog):
     @cheapgames.subcommand(name="del-update", description="Command that allows the removal of an automatic update")
     async def del_update(self, interaction : Interaction):
         pass
-
-    @tasks.loop(time=[datetime.time(hour=h, minute=0, second=0, tzinfo=datetime.timezone.utc) for h in range(0, 24)])
-    async def update_deals(self):
+                                                           
+    @tasks.loop(time=[datetime.time(hour=h, minute=m, second=0) for h in range(0, 24) for m in range(0, 60)])
+    async def update_giveaways_and_deals(self):
         try:
             async with self.db:
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
 
             tasks : list[asyncio.Task] = []
-            for guild_id, extension_id, enabled, config in configurations:
-                config : dict[str, dict[str, dict]]
+            for configuration in configurations:
+                if not configuration[2]: continue
 
-                if not enabled: continue
+                coro = self.handle_server_updates(configuration)
 
-                for update_name, update_config in config['updates'].items():
-                    if time.localtime().tm_hour != int(update_config["on"]):
-                        continue
+                task = asyncio.create_task(coro)
+                tasks.append(task)
 
-                    if Api(update_config["api"]) == Api.GIVEAWAYS:
-                        coro = self.send_giveaway_update(update_name, update_config)
-                    else:
-                        coro = self.send_deal_update(update_name, update_config)
+            completed = await asyncio.gather(*tasks)
 
-                    task = asyncio.create_task(coro)
-                    tasks.append(task)
-                
+            async with self.db:
+                await self.db.editAllExtensionConfig(completed)
+
             # TODO: 
             # 1. Creare tante task quanti sono i server (o gli updates) e devono inviare gli embed dei giochi gratuiti ecc.
             # 2. modificare la configurazioni se bisogna
@@ -270,15 +308,33 @@ class CheapGames(Cog):
 
         except AssertionError as e:
             pass
+        except Exception as e:
+            print(e)
+            raise e
 
-    async def send_giveaway_update(self, update_name : str, update_config : dict):
+    async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
+        guild_id, _, _, config = configuration
+
+        for update_name, update_config in config['updates'].items():
+            if time.localtime().tm_hour != int(update_config["on"]):        # IMPORTANT: I need to check if localtime is in UTC.
+                continue
+
+            if Api(update_config["api"]) == Api.GIVEAWAYS:
+                await self.send_giveaway_update(update_config)
+            else:
+                await self.send_deal_update(update_config)
+
+        return configuration
+
+    async def send_giveaway_update(self, update_config : dict):
         baseurl = "https://gamerpower.com/api"
         endpoint = "/giveaways"
         params = []
 
-        giveaway_types : list = update_config.get("types", [])
-        giveaway_stores : list = update_config.get("stores", [])
-
+        giveaway_types : list = update_config["types"]
+        giveaway_stores : list = update_config["stores"]
+        giveaway_channels : list = update_config["channels"]
+        saved_giveaways : dict = update_config["saved"]
 
         if (len_types:=len(giveaway_types)) > 0:
             params.append(f"type={".".join(giveaway_types)}")
@@ -294,16 +350,28 @@ class CheapGames(Cog):
         games : list[dict] = await asyncget(url)
 
         for game in games:
-            if game["id"] in update_config['saved']:
-                pass
-            #saved[game.get('id', None)] = game.get("published_date", None)
+            if (game_id:=str(game["id"])) in saved_giveaways and game["published_date"] == saved_giveaways[game_id]:
+                # Here we are checking if this giveaway is already registered
+                continue
 
+            saved_giveaways[game_id] = game["published_date"]
 
-        return update_name, update_config
+            for channel in giveaway_channels:
+                if (channel:=self.bot.get_channel(channel)) is None:
+                    continue
 
-    async def send_deal_update(self, update_name : str, update_config : dict):
+                ui = GiveawayGame(game)
+
+                message = await channel.send(embed=ui, view=ui)
+                
+                try:
+                    await message.publish()
+                except Exception as e:
+                    print(e)
+            break       # Send only one game at a time
+
+    async def send_deal_update(self, update_config : dict):
         return ""
-
 
 def setup(bot : Bot):
     bot.add_cog(CheapGames(bot))
