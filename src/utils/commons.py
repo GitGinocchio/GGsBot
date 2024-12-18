@@ -4,6 +4,7 @@ import aiohttp
 class Extensions(StrEnum):
     AICHATBOT = 'aichatbot'
     GREETINGS = 'greetings'
+    CHEAPGAMES = 'cheapgames'
     VALQUIZ = 'valquiz'
     STAFF = 'staff'
     TEMPVC = 'tempvc'

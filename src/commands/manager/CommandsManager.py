@@ -37,6 +37,7 @@ class CommandsManager(commands.Cog):
         self.setup_dict : dict[Extensions, ExtensionUI] = {
             Extensions.AICHATBOT : AiChatBotUi,
             Extensions.GREETINGS : GreetingsUi,
+            Extensions.CHEAPGAMES : CheapGamesUi,
             Extensions.VERIFY : VerifyUi,
             Extensions.STAFF : StaffUi,
             Extensions.TEMPVC : TempVCUi

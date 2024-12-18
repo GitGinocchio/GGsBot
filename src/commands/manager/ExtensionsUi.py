@@ -40,7 +40,7 @@ from utils.abc import SetupUI
 
 class ExtensionUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str, submit_callback : Callable[[Interaction], None], timeout : int = 120):
-        SetupUI.__init__(self, bot, guild, f'{extension.capitalize()} extension setup', submit_callback, timeout, "Setup")
+        SetupUI.__init__(self, bot, guild, f'{extension.capitalize()} extension setup', submit_callback, "Setup", timeout)
         self.description = f"Setup process for {extension.capitalize()} extension"
         self.colour = Colour.green()
 
@@ -153,7 +153,8 @@ class VerifyUi(ExtensionUI):
                 reason="GGsBot:Verify"
             )
         else:
-            role = await role.edit(permissions=Permissions(view_channel=True), reason="GGsBot:Verify")
+            role.permissions.update(view_channel=True)
+            role = await role.edit(permissions=role.permissions, reason="GGsBot:Verify")
         return role
 
     async def setup_verify_channel(self, verified_role : Role, verify_channel : TextChannel | None = None):
@@ -245,3 +246,29 @@ class StaffUi(ExtensionUI):
         else:
             self.stop()
 
+class CheapGamesUi(ExtensionUI):
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        ExtensionUI.__init__(self, bot, guild, extension, self.on_submit)
+        self.description = f'{super().description}, This extension allows you to add commands and updates for free or discounted games for different types and platforms'
+        self.config = { 'updates' : {} }
+
+        self.add_field(
+            name="Updates",
+            value="This extension allows you to create more game updates (also by channel) based on different conditions and types such as deals and giveaways",
+            inline=False
+        )
+
+        self.add_field(
+            name="Conditions",
+            value="You can define conditions such as price range, platform (such as Steam or Epic Games), and other criteria to determine which updates are considered valid for an extension to be used by different users",
+            inline=False
+        )
+
+        self.add_field(
+            name="Update interval",
+            value="The update interval is every 24h starting from a time chosen by you",
+            inline=False
+        )
+
+    async def on_submit(self, interaction : Interaction):
+        self.stop()
