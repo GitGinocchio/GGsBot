@@ -281,7 +281,7 @@ class CheapGames(Cog):
     async def del_update(self, interaction : Interaction):
         pass
                                                            
-    @tasks.loop(time=[datetime.time(hour=h, minute=m, second=0) for h in range(0, 24) for m in range(0, 60)])
+    @tasks.loop(time=[datetime.time(hour=h, minute=0, second=0) for h in range(0, 24)])
     async def update_giveaways_and_deals(self):
         try:
             async with self.db:
