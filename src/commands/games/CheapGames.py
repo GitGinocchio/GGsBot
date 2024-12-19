@@ -68,6 +68,7 @@ from nextcord import \
     ChannelType,     \
     SlashOption,     \
     Interaction,     \
+    Colour,          \
     Guild,           \
     Embed,           \
     slash_command
@@ -195,7 +196,8 @@ class GiveawayGame(Embed, View):
             title=game_data['title'], 
             timestamp=datetime.datetime.now(datetime.UTC),
             description=game_data['description'],
-            url=game_data['gamerpower_url']
+            url=game_data['gamerpower_url'],
+            colour=Colour.green()
         )
         self.set_image(url=game_data['image'])
         self.add_field(name="Platform(s)", value=game_data['platforms'], inline=True)
@@ -214,7 +216,7 @@ class GiveawayGame(Embed, View):
             self.add_field(name="Expires", value=end_date_str, inline=True)
 
         self.add_field(name="Instructions", value=game_data['instructions'], inline=False)
-        self.link =  Button(
+        self.open_giveaway = Button(
             label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Early Access", 
             style=ButtonStyle.link,
             url=game_data["open_giveaway"]

@@ -38,6 +38,7 @@ https://api.textcaptcha.com/myemail@example.com.json
 https://apidocs.cheapshark.com/
 https://www.freetogame.com/api-doc
 https://www.gamerpower.com/api-read
+https://cataas.com/
 
 Ignoring exception in command <nextcord.application_command.SlashApplicationSubcommand object at 0x7f4e663187a0>:
 Traceback (most recent call last):
