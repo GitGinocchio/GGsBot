@@ -237,6 +237,10 @@ class CheapGame(Embed, View):
     def __init__(self, game_data : dict):
         pass
 
+permissions = Permissions(
+    administrator=True
+)
+
 class CheapGames(Cog):
     def __init__(self, bot: Bot):
         Cog.__init__(self)
@@ -248,7 +252,7 @@ class CheapGames(Cog):
         if not self.update_giveaways_and_deals.is_running():
             self.update_giveaways_and_deals.start()
 
-    @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free")
+    @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free", default_member_permissions=permissions, dm_permission=False)
     async def cheapgames(self, interaction : Interaction): pass
 
     @cheapgames.subcommand(name="add-update", description="Command that allows the addition of an automatic update when a game is on discount or becomes free")
@@ -292,6 +296,25 @@ class CheapGames(Cog):
     async def del_update(self, interaction : Interaction):
         pass
                                                            
+    @cheapgames.subcommand(name="trigger-update", description="Command that triggers an update manually")
+    async def trigger_update(self, interaction : Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+            async with self.db:
+                config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
+            assert enabled, f'The extension is not enabled'
+
+            configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
+
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, configuration[3])
+            
+        except AssertionError as e:
+            await interaction.followup.send(e, ephemeral=True)
+        else:
+            await interaction.followup.send("Update triggered successfully", ephemeral=True)
+
     @tasks.loop(time=[datetime.time(hour=h, minute=0, second=0) for h in range(0, 24)])
     async def update_giveaways_and_deals(self):
         try:
@@ -299,10 +322,10 @@ class CheapGames(Cog):
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
 
             tasks : list[asyncio.Task] = []
-            for configuration in configurations:
-                if not configuration[2]: continue
+            for guild_id, ext_id, enabled, config in configurations:
+                if not enabled: continue
 
-                coro = self.handle_server_updates(configuration)
+                coro = self.handle_server_updates((guild_id, ext_id, enabled, config))
 
                 task = asyncio.create_task(coro)
                 tasks.append(task)
@@ -324,8 +347,7 @@ class CheapGames(Cog):
             raise e
 
     async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
-        guild_id, _, _, config = configuration
-
+        _, _, _, config = configuration
         for update_name, update_config in config['updates'].items():
             if time.localtime().tm_hour != int(update_config["on"]):        # IMPORTANT: I need to check if localtime is in UTC.
                 continue
