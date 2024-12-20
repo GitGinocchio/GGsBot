@@ -221,7 +221,17 @@ class GiveawayGame(Embed, View):
             style=ButtonStyle.link,
             url=game_data["open_giveaway"]
         )
-        self.add_item(self.link)
+        self.add_item(self.open_giveaway)
+
+        self.view_giveaway = Button(
+            label="View Giveaway", 
+            style=ButtonStyle.link,
+            url=game_data["gamerpower_url"]
+        )
+        self.add_item(self.view_giveaway)
+
+        self.set_author(name="GamerPower", icon_url="https://www.gamerpower.com/assets/images/logo.png")
+        self.set_footer(text=f"Powered by GamerPower", icon_url="https://www.gamerpower.com/assets/images/logo.png")
 
 class CheapGame(Embed, View):
     def __init__(self, game_data : dict):
