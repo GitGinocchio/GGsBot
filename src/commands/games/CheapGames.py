@@ -305,7 +305,7 @@ class CheapGames(Cog):
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
 
-            configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
+            configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config), True)
 
             async with self.db:
                 await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, configuration[3])
@@ -346,10 +346,10 @@ class CheapGames(Cog):
             print(e)
             raise e
 
-    async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
+    async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]], skip_time_check : bool = False) -> dict:
         _, _, _, config = configuration
         for update_name, update_config in config['updates'].items():
-            if time.localtime().tm_hour != int(update_config["on"]):        # IMPORTANT: I need to check if localtime is in UTC.
+            if time.localtime().tm_hour != int(update_config["on"]) and not skip_time_check:        # IMPORTANT: I need to check if localtime is in UTC.
                 continue
 
             if Api(update_config["api"]) == Api.GIVEAWAYS:
