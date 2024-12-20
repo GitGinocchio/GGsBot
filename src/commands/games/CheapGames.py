@@ -61,6 +61,7 @@ updates : {
 from nextcord.ext.commands import Bot, Cog
 from nextcord.ext import tasks
 from nextcord import \
+    Permissions,     \
     HTTPException,   \
     Forbidden,       \
     ButtonStyle,     \
