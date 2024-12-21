@@ -29,7 +29,7 @@ db = Database(loop=Bot.loop)
 
 def load_commands():
     categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
-    logger.info('Loading commands...')
+    logger.info('Loading extensions...')
     for category in categories:
         #logger.info(f'Looking in commands.{category}...')
         for filename in os.listdir(f'./src/commands/{category}'):
@@ -45,7 +45,7 @@ def load_commands():
                 except commands.ExtensionFailed as e:
                     logger.warning(e)
                 else:
-                    logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
+                    logger.info(f'Imported extension {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
 
             elif filename in config['ignore_files']:
                 continue

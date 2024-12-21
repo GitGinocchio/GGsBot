@@ -5,34 +5,6 @@
 # allora non e' necessario inviare il messaggio
 
 """
-updated : [
-    {
-        "name" : "",
-        "channels" : [],
-        "api" : "DEALS"
-        "stores" : "Steam" | etc.
-        "lowerPrice" : 0 | None        # ritorna tutti i deal con prezzo superiore a lowerPrice
-        "upperPrice" : 0 | None        # ritorna tutti i deal con prezzo inferiore ad upperPrice
-        "steamAppID" : 0 | None        # guarda per determinati giochi di steam in base al loro ID
-        "saved" : {
-            gameID : publish_time
-        },
-        "on" : "hour"
-    },
-    {
-        "name" : "",
-        "channels" : [],
-        "api" : "GIVEAWAYS"
-        "type" : "game" | "loot" | "beta" | "all"
-        "stores" : "Steam" | etc.
-        "saved" : {
-            gameID : publish_time
-        },
-        "on" : "hour"
-    },
-
-]
-
 updates : {
     name : {
         "channels" : [],
@@ -350,7 +322,7 @@ class CheapGames(Cog):
     async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]], skip_time_check : bool = False) -> dict:
         _, _, _, config = configuration
         for update_name, update_config in config['updates'].items():
-            if time.localtime().tm_hour != int(update_config["on"]) and not skip_time_check:        # IMPORTANT: I need to check if localtime is in UTC.
+            if datetime.datetime.now(datetime.UTC).hour != int(update_config["on"]) and not skip_time_check:
                 continue
 
             if Api(update_config["api"]) == Api.GIVEAWAYS:
@@ -384,11 +356,11 @@ class CheapGames(Cog):
         games : list[dict] = await asyncget(url)
 
         for game in games:
-            if (game_id:=str(game["id"])) in saved_giveaways and game["published_date"] == saved_giveaways[game_id]:
+            if str(game["id"]) in saved_giveaways and game["published_date"] == saved_giveaways[str(game["id"])]:
                 # Here we are checking if this giveaway is already registered
                 continue
 
-            saved_giveaways[game_id] = game["published_date"]
+            saved_giveaways[str(game["id"])] = game["published_date"]
 
             for channel in giveaway_channels:
                 if (channel:=self.bot.get_channel(channel)) is None:

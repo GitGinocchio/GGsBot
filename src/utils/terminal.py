@@ -1,6 +1,7 @@
 from utils.config import config
 from colorama import Fore as F
 from datetime import datetime
+import subprocess
 import inspect
 import logging
 import sys
@@ -9,11 +10,10 @@ import re
 
 def clear():
     """call the command for clearing the terminal depending on your system"""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
 
 def erase():
     """Erase last terminal line (this should work on all systems)"""
-    print('')
     sys.stdout.write('\033[F')
     sys.stdout.write('\033[K')
 
@@ -28,7 +28,7 @@ levels = {
 
 class CustomColorsFormatter(logging.Formatter):
     def format(self, record : logging.LogRecord):
-        color = levels.get(record.levelname, F.WHITE)
+        color = levels.get(record.levelname, (logging.INFO, F.WHITE))
         record.name = f"{F.LIGHTMAGENTA_EX}[{record.name}]{F.RESET}"
         record.msg = f": {color[1]}{record.msg}{F.RESET}"
         record.levelname = f"{color[1]}[{record.levelname}]{F.RESET}"
@@ -53,7 +53,12 @@ level = levels.get(config["logger"]["level"], logging.INFO)
 
 def getlogger(name : str = None) -> logging.Logger:
     if name is None:
-        name = re.match(r".*[\\/](.+?)(\.[^.]*$|$)", inspect.stack()[1].filename).group(1)
+        match = re.match(r".*[\\/](.+?)(\.[^.]*$|$)", inspect.stack()[1].filename)
+
+        if match:
+            name = match.group(1)
+        else:
+            name = "unknown"
 
     logger = logging.getLogger(name)
 

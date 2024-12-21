@@ -1,9 +1,8 @@
 from nextcord.ext import commands, tasks
-from nextcord import \
-    Status, \
-    ActivityType
 import nextcord
 import random
+import time
+import os
 
 from utils.terminal import getlogger
 
@@ -57,8 +56,22 @@ class Activity(commands.Cog):
         try:
             activity = nextcord.Activity(
                 type=ActivityType.playing,
+                type=nextcord.ActivityType.playing,
                 name=(name:=random.choice([n for n in self.commands if n != self.command] if self.command else self.commands)),
-                state=self.names[name]
+                state=self.names[name],
+                details="testing",
+                url="https://github.com/GitGinocchio/GGsBot",
+                assets={ 
+                    "large_image": "https://github.com/GitGinocchio/GGsBot/blob/main/docs/media/banner.png?raw=true", 
+                    "large_text": "GGsBot", 
+                    "small_image": "https://github.com/GitGinocchio/GGsBot/blob/main/docs/media/circular_icon.png?raw=true", 
+                    "small_text": "GGsBot" 
+                },
+                buttons=[
+                    { "label" : "GitHub Repository", "url" : "https://github.com/GitGinocchio/GGsBot" },
+                    { "label" : "Developer", "url" : "https://github.com/GitGinocchio" }
+                ],
+                timestamps = { "start": int(time.time())}
             )
 
             self.command = name
@@ -66,7 +79,7 @@ class Activity(commands.Cog):
             #logger.info(f"Changing bot activity to: {name}")
             await self.bot.change_presence(activity=activity)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
 
 def setup(bot: commands.Bot) -> None:
