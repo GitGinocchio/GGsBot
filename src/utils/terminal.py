@@ -10,7 +10,7 @@ import re
 
 def clear():
     """call the command for clearing the terminal depending on your system"""
-    subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
+    subprocess.run("cls" if os.name == "nt" else "clear")
 
 def erase():
     """Erase last terminal line (this should work on all systems)"""
