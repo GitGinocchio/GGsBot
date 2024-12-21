@@ -19,3 +19,8 @@ async def asyncget(url : str, mimetype = 'application/json') -> dict | bytes:
                 return await response.json()
             else:
                 return await response.read()
+
+async def safe_asyncget(url : str) -> tuple[str, bytes, int, str | None]:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return response.content_type, await response.content.read(), response.status, response.reason
