@@ -33,7 +33,7 @@ activity = nextcord.Activity(
 
 class Activity(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.names = {
+        self.states = {
             '/help' : "Use /help  to see all available commands.",
             '/ask' : "Use /ask to ask a question and get an answer from GGsBot AI.",
             '/chat' : "Use /chat to chat with GGsBot AI.",
@@ -42,7 +42,7 @@ class Activity(commands.Cog):
             '/translate' : "Use /translate to translate a text from one language to another.",
             '/summarize' : "Use /summarize to summarize a text with GGsBot AI."
         }
-        self.commands = list(self.names.keys())
+        self.commands = list(self.states.keys())
         self.command : str = None
         self.bot = bot
 
@@ -55,23 +55,9 @@ class Activity(commands.Cog):
     async def update_activity(self):
         try:
             activity = nextcord.Activity(
-                type=ActivityType.playing,
                 type=nextcord.ActivityType.playing,
                 name=(name:=random.choice([n for n in self.commands if n != self.command] if self.command else self.commands)),
-                state=self.names[name],
-                details="testing",
-                url="https://github.com/GitGinocchio/GGsBot",
-                assets={ 
-                    "large_image": "https://github.com/GitGinocchio/GGsBot/blob/main/docs/media/banner.png?raw=true", 
-                    "large_text": "GGsBot", 
-                    "small_image": "https://github.com/GitGinocchio/GGsBot/blob/main/docs/media/circular_icon.png?raw=true", 
-                    "small_text": "GGsBot" 
-                },
-                buttons=[
-                    { "label" : "GitHub Repository", "url" : "https://github.com/GitGinocchio/GGsBot" },
-                    { "label" : "Developer", "url" : "https://github.com/GitGinocchio" }
-                ],
-                timestamps = { "start": int(time.time())}
+                state=self.states[name]
             )
 
             self.command = name
