@@ -134,9 +134,10 @@ class RandomCats(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
 
-            tags_pattern = r"^\S+(?:,\S+)*$" # comma separated list of strings regex
-            assert re.match(tags_pattern, tags), "Tags must be a comma separated list of strings"
-            for tag in tags.split(','): assert tag in self.tags, f"Tag \'{tag}\' is not an available tag"
+            if tags != "":
+                tags_pattern = r"^[_,\w]+(?:,[_,\w]+)*$" # comma separated list of strings regex
+                assert re.match(tags_pattern, tags) if tags else True, "Tags must be a comma separated list of strings"
+                for tag in tags.split(','): assert tag in self.tags, f"Tag \'{tag}\' is not an available tag"
 
             params = [
                 f'font={font}',
