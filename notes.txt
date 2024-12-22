@@ -39,6 +39,7 @@ https://apidocs.cheapshark.com/
 https://www.freetogame.com/api-doc
 https://www.gamerpower.com/api-read
 https://cataas.com/
+https://random-word-api.herokuapp.com/word?lang=it&number=2&length=5
 
 Ignoring exception in command <nextcord.application_command.SlashApplicationSubcommand object at 0x7f4e663187a0>:
 Traceback (most recent call last):

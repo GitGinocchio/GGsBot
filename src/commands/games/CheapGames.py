@@ -353,12 +353,16 @@ class CheapGames(Cog):
 
         url = f'{baseurl}{endpoint}{'?' if len(params) > 0 else ''}{'&'.join(params)}'
 
+        logger.info(f"Fetching games at: {url}")
+
         games : list[dict] = await asyncget(url)
 
+        n_send : int = 0  # Number of games to send
         for game in games:
             if str(game["id"]) in saved_giveaways and game["published_date"] == saved_giveaways[str(game["id"])]:
                 # Here we are checking if this giveaway is already registered
                 continue
+            n_send += 1
 
             saved_giveaways[str(game["id"])] = game["published_date"]
 
@@ -369,12 +373,17 @@ class CheapGames(Cog):
                 ui = GiveawayGame(game)
 
                 message = await channel.send(embed=ui, view=ui)
-                
-                try:
-                    await message.publish()
-                except Exception as e:
-                    print(e)
-            break       # Send only one game at a time
+
+                if message.channel.is_news():
+                    try:
+                        await message.publish()
+                    except Exception as e:
+                        logger.exception(e)
+
+            if n_send >= 10: # Send only 10 games at a tine
+                break
+            
+            #break       # Send only one game at a time
 
     async def send_deal_update(self, update_config : dict):
         return ""
