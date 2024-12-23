@@ -369,7 +369,6 @@ class CheapGames(Cog):
 
             saved_giveaways[str(game["id"])] = game["published_date"]
 
-            messages = []
             for channel in giveaway_channels:
                 if (channel:=self.bot.get_channel(channel)) is None:
                     continue
@@ -379,15 +378,11 @@ class CheapGames(Cog):
                 message = await channel.send(embed=ui, view=ui)
 
                 if message.channel.is_news():
-                    messages.append(message)
-            
-            for message in messages:
-                try:
-                    pass
-                    #await message.publish()
-                except Exception as e:
-                    logger.exception(e)
-                    print(e)
+                    try:
+                        await message.publish()
+                    except Exception as e:
+                        logger.exception(e)
+                        print(e)
 
             if n_send >= 10: # Send only 10 games at a tine
                 break
