@@ -1,32 +1,22 @@
 from nextcord.ui import \
-    Modal,              \
-    View,               \
-    TextInput,          \
-    Button,             \
-    Item,               \
     RoleSelect,         \
     StringSelect,       \
     ChannelSelect,      \
     channel_select,     \
     string_select,      \
-    role_select,        \
-    button              \
+    role_select         \
 
 from nextcord import \
     Forbidden,       \
-    HTTPException,   \
     TextChannel,     \
     PermissionOverwrite, \
     Permissions,     \
     ChannelType,     \
     SelectOption,    \
-    ButtonStyle,     \
     Interaction,     \
-    Embed,           \
     Guild,           \
     Role,            \
     Colour             
-from nextcord.abc import GuildChannel
 
 from nextcord.ext.commands import Bot
 
@@ -266,7 +256,7 @@ class CheapGamesUi(ExtensionUI):
 
         self.add_field(
             name="Update interval",
-            value="The update interval is every 24h starting from a time chosen by you",
+            value="Updates will be sent every hour",
             inline=False
         )
 

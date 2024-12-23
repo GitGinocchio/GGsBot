@@ -61,6 +61,7 @@ import datetime
 import asyncio
 import time
 
+from utils.exceptions import ExtensionException
 from utils.commons import Extensions, asyncget
 from utils.terminal import getlogger
 from utils.db import Database
@@ -104,7 +105,7 @@ class GiveawaysUI(SetupUI):
     store_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayStore]
     def __init__(self, bot : Bot, guild : Guild):
         SetupUI.__init__(self, bot, guild, "Add Giveaway Update", self.on_submit,"Setup")
-        self.config = {'channels' : [], 'types' : [], 'stores' : [], 'api' : Api.GIVEAWAYS.value, 'on' : None, 'saved' : {}}
+        self.config = {'channels' : [], 'types' : [], 'stores' : [], 'role' : None, 'api' : Api.GIVEAWAYS.value, 'on' : None, 'saved' : {}}
         self.description = "This command allows you to add an update whenever games for different platforms become free"
 
         self.add_field(
@@ -122,10 +123,11 @@ class GiveawaysUI(SetupUI):
             value="Select the game store you would like to giveaways from.\n(no choice=all shops)",
             inline=False 
         )
+        
         self.add_field(
-            name="4. Update hour",
-            value="Specify the hour (UTC) of day you would like to update giveaways at.",
-            inline=False 
+            name="4. Update Role",
+            value="Select the role that will receive notifications after an update",
+            inline=False
         )
 
     @channel_select(placeholder="1. Select the channels where giveaways will be posted.",max_values=3, channel_types=[ChannelType.text, ChannelType.news])
@@ -140,9 +142,9 @@ class GiveawaysUI(SetupUI):
     async def giveaway_store(self, select: StringSelect, interaction : Interaction):
         self.config['stores'] = select.values
 
-    @string_select(placeholder="4. Select the hour (UTC) of the day you would like to receive giveaways.",options=hours_select)
-    async def giveaway_hour(self, select: StringSelect, interaction : Interaction):
-        self.config['on'] = int(select.values[0]) if len(select.values) > 0 else None
+    @role_select(placeholder="4. Select the role that will receive notifications after an update", min_values=0, max_values=1)
+    async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
+        self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
     async def on_submit(self, interaction : Interaction):
         try:
@@ -278,11 +280,12 @@ class CheapGames(Cog):
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
 
-            configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config), True)
+            configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
 
             async with self.db:
                 await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, configuration[3])
-            
+        except ExtensionException as e:
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         except AssertionError as e:
             await interaction.followup.send(e, ephemeral=True)
         else:
@@ -319,12 +322,9 @@ class CheapGames(Cog):
             print(e)
             raise e
 
-    async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]], skip_time_check : bool = False) -> dict:
+    async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
         _, _, _, config = configuration
         for update_name, update_config in config['updates'].items():
-            if datetime.datetime.now(datetime.UTC).hour != int(update_config["on"]) and not skip_time_check:
-                continue
-
             if Api(update_config["api"]) == Api.GIVEAWAYS:
                 await self.send_giveaway_update(update_config)
             else:
@@ -386,6 +386,9 @@ class CheapGames(Cog):
             #break       # Send only one game at a time
 
     async def send_deal_update(self, update_config : dict):
+        baseurl = ""
+
+
         return ""
 
 def setup(bot : Bot):
