@@ -354,8 +354,6 @@ class CheapGames(Cog):
         if guild: role = guild.get_role(giveaway_role_id)
         else: role = None
 
-        print(role)
-
         n_send : int = 0  # Number of games to send
         for game in self.giveaways:
             if len(giveaway_stores) > 0 and not any(store in str(game["platforms"]).lower().split(", ") for store in giveaway_stores): 
