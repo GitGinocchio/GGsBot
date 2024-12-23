@@ -44,8 +44,10 @@ from nextcord import \
     Colour,          \
     Guild,           \
     Embed,           \
+    Role,            \
     slash_command
 from nextcord.ui import \
+    RoleSelect,         \
     ChannelSelect,      \
     StringSelect,       \
     Item,               \
@@ -75,28 +77,28 @@ class Api(StrEnum):
 
 class GiveawayType(StrEnum):
     GAME =                  "game"
-    LOOT =                  "loot"
-    BETA =                  "beta"
+    LOOT =                  "dlc"
+    BETA =                  "early access"
 
 class GiveawayStore(StrEnum):
     PC =                    "pc"
     STEAM =                 "steam"
-    EPIC =                  "epic-games-store"
+    EPIC =                  "epic games store"
     UBISOFT =               "ubisoft"
     GOG =                   "gog"
-    ITCHIO =                "itchio"
-    PS4 =                   "ps4"
-    PS5 =                   "ps5"
-    XBOX_ONE =              "xbox-one"
-    XBOX_SERIES_XS =        "xbox-series-xs"
-    SWITCH =                "switch"
+    ITCHIO =                "itch.io"
+    PS4 =                   "playstation 4"
+    PS5 =                   "playstation 5"
+    XBOX_ONE =              "xbox one"
+    XBOX_SERIES_XS =        "xbox series x|s"
+    SWITCH =                "nintendo switch"
     ANDROID =               "android"
     IOS =                   "ios"
     VR =                    "vr"
     BATTLENET =             "battlenet"
     ORIGIN =                "origin"
     DRM_FREE =              "drm-free"
-    XBOX_360 =              "xbox-360"
+    XBOX_360 =              "xbox 360"
 
 hours_select = [SelectOption(label=f'{h:02}:00 ({h if h == 12 else int(h % 12):02}:00 {"PM" if h > 11 else "AM"}) (UTC)', value=h) for h in range(0, 25)]
 
@@ -105,7 +107,7 @@ class GiveawaysUI(SetupUI):
     store_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayStore]
     def __init__(self, bot : Bot, guild : Guild):
         SetupUI.__init__(self, bot, guild, "Add Giveaway Update", self.on_submit,"Setup")
-        self.config = {'channels' : [], 'types' : [], 'stores' : [], 'role' : None, 'api' : Api.GIVEAWAYS.value, 'on' : None, 'saved' : {}}
+        self.config = {'channels' : [], 'types' : [], 'stores' : [], 'role' : None, 'api' : Api.GIVEAWAYS.value, 'saved' : {}}
         self.description = "This command allows you to add an update whenever games for different platforms become free"
 
         self.add_field(
@@ -149,7 +151,6 @@ class GiveawaysUI(SetupUI):
     async def on_submit(self, interaction : Interaction):
         try:
             assert len(self.config.get('channels',[])) > 0, f'You must set at least one channel for the giveaway.'
-            assert self.config.get('on', None) is not None, f'You must set the hour you would like to receive giveaways.'
         except AssertionError as e:
             await interaction.response.send_message(e, ephemeral=True, delete_after=5)
         except Exception as e:
@@ -165,12 +166,12 @@ class DealsUI(SetupUI):
         pass
 
 class GiveawayGame(Embed, View):
-    def __init__(self, game_data : dict):
+    def __init__(self, game_data : dict, role : Role | None = None):
         View.__init__(self)
         Embed.__init__(self, 
             title=game_data['title'], 
             timestamp=datetime.datetime.now(datetime.UTC),
-            description=game_data['description'],
+            description=f"{role.mention+" " if role else ""}{game_data['description']}",
             url=game_data['gamerpower_url'],
             colour=Colour.green()
         )
@@ -220,6 +221,8 @@ class CheapGames(Cog):
     def __init__(self, bot: Bot):
         Cog.__init__(self)
         self.db = Database()
+        self.giveaways : list[dict] = []
+        self.deals : list[dict] = []
         self.bot = bot
 
     @Cog.listener()
@@ -270,7 +273,11 @@ class CheapGames(Cog):
     @cheapgames.subcommand(name="del-update", description="Command that allows the removal of an automatic update")
     async def del_update(self, interaction : Interaction):
         pass
-                                                           
+
+    @cheapgames.subcommand(name="list-updates", description="Command that lists all the automatic updates")
+    async def list_updates(self, interaction : Interaction):
+        pass
+
     @cheapgames.subcommand(name="trigger-update", description="Command that triggers an update manually")
     async def trigger_update(self, interaction : Interaction):
         try:
@@ -279,6 +286,8 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
+
+            self.giveaways = await asyncget("https://gamerpower.com/api/giveaways")
 
             configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
 
@@ -297,6 +306,8 @@ class CheapGames(Cog):
             async with self.db:
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
 
+            self.giveaways = await asyncget("https://gamerpower.com/api/giveaways")
+            
             tasks : list[asyncio.Task] = []
             for guild_id, ext_id, enabled, config in configurations:
                 if not enabled: continue
@@ -323,42 +334,34 @@ class CheapGames(Cog):
             raise e
 
     async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
-        _, _, _, config = configuration
+        guild_id, _, _, config = configuration
         for update_name, update_config in config['updates'].items():
             if Api(update_config["api"]) == Api.GIVEAWAYS:
-                await self.send_giveaway_update(update_config)
+                await self.send_giveaway_update(guild_id, update_config)
             else:
-                await self.send_deal_update(update_config)
+                await self.send_deal_update(guild_id,update_config)
 
         return configuration
 
-    async def send_giveaway_update(self, update_config : dict):
-        baseurl = "https://gamerpower.com/api"
-        endpoint = "/giveaways"
-        params = []
-
+    async def send_giveaway_update(self, guild_id : int, update_config : dict):
         giveaway_types : list = update_config["types"]
         giveaway_stores : list = update_config["stores"]
         giveaway_channels : list = update_config["channels"]
+        giveaway_role_id : int = update_config["role"]
         saved_giveaways : dict = update_config["saved"]
 
-        if (len_types:=len(giveaway_types)) > 0:
-            params.append(f"type={".".join(giveaway_types)}")
+        guild = self.bot.get_guild(guild_id)
+        if guild: role = guild.get_role(giveaway_role_id)
+        else: role = None
 
-        if (len_stores:=len(giveaway_stores)) > 0:
-            params.append(f"platform={".".join(giveaway_stores)}")
-
-        if len_stores > 1 or len_types > 1:
-            endpoint = "/filter"
-
-        url = f'{baseurl}{endpoint}{'?' if len(params) > 0 else ''}{'&'.join(params)}'
-
-        logger.info(f"Fetching games at: {url}")
-
-        games : list[dict] = await asyncget(url)
+        print(role)
 
         n_send : int = 0  # Number of games to send
-        for game in games:
+        for game in self.giveaways:
+            if len(giveaway_stores) > 0 and not any(store in str(game["platforms"]).lower().split(", ") for store in giveaway_stores): 
+                continue
+            if len(giveaway_types) > 0 and not str(game["type"]).lower() in giveaway_types:
+                continue
             if str(game["id"]) in saved_giveaways and game["published_date"] == saved_giveaways[str(game["id"])]:
                 # Here we are checking if this giveaway is already registered
                 continue
@@ -366,26 +369,30 @@ class CheapGames(Cog):
 
             saved_giveaways[str(game["id"])] = game["published_date"]
 
+            messages = []
             for channel in giveaway_channels:
                 if (channel:=self.bot.get_channel(channel)) is None:
                     continue
 
-                ui = GiveawayGame(game)
+                ui = GiveawayGame(game, role)
 
                 message = await channel.send(embed=ui, view=ui)
 
                 if message.channel.is_news():
-                    try:
-                        await message.publish()
-                    except Exception as e:
-                        logger.exception(e)
+                    messages.append(message)
+            
+            for message in messages:
+                try:
+                    pass
+                    #await message.publish()
+                except Exception as e:
+                    logger.exception(e)
+                    print(e)
 
             if n_send >= 10: # Send only 10 games at a tine
                 break
-            
-            #break       # Send only one game at a time
 
-    async def send_deal_update(self, update_config : dict):
+    async def send_deal_update(self, guild_id : int, update_config : dict):
         baseurl = ""
 
 
