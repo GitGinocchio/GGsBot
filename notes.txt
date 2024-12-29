@@ -40,7 +40,7 @@ https://www.freetogame.com/api-doc
 https://www.gamerpower.com/api-read
 https://cataas.com/
 https://random-word-api.herokuapp.com/word?lang=it&number=2&length=5
-
+-----------------------------------------------------------------------------------------
 Ignoring exception in command <nextcord.application_command.SlashApplicationSubcommand object at 0x7f4e663187a0>:
 Traceback (most recent call last):
   File "/home/container/.local/lib/python3.12/site-packages/nextcord/application_command.py", line 918, in invoke_callback_with_hooks
@@ -114,7 +114,7 @@ aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host discor
 The above exception was the direct cause of the following exception:
 
 nextcord.errors.ApplicationInvokeError: Command raised an exception: ClientConnectorDNSError: Cannot connect to host discord.com:443 ssl:default [getaddrinfo failed]
-
+--------------------------------------------------------------------------
 Ignoring exception in command <nextcord.application_command.MessageApplicationCommand object at 0x7c71c08f3cb0>:
 Traceback (most recent call last):
   File "/home/container/.local/lib/python3.12/site-packages/nextcord/application_command.py", line 918, in invoke_callback_with_hooks
@@ -132,7 +132,64 @@ The above exception was the direct cause of the following exception:
 
 nextcord.errors.ApplicationInvokeError: Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
 In data.components.0.components.0: Value of field "type" must be one of (2, 3, 5, 6, 7, 8).
+---------------------------------------------------------------------------
+Ignoring exception in on_ready
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 1091, in _wrap_create_connection
+    sock = await aiohappyeyeballs.start_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 82, in start_connection
+    sock = await _connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohappyeyeballs/impl.py", line 174, in _connect_sock
+    await loop.sock_connect(sock, address)
+  File "/usr/local/lib/python3.12/asyncio/selector_events.py", line 651, in sock_connect
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
 
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/client.py", line 663, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 563, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 1032, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 1366, in _create_direct_connection
+    raise last_exc
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 1335, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/connector.py", line 1088, in _wrap_create_connection
+    async with ceil_timeout(
+               ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/client.py", line 497, in _run_event
+    await coro(*args, **kwargs)
+  File "/home/container/src/commands/general/RandomCats.py", line 80, in on_ready
+    self.tags : list = await asyncget(f'{self.baseurl}/api/tags')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/src/utils/commons.py", line 15, in asyncget
+    async with session.get(url) as response:
+               ^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/client.py", line 1359, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/aiohttp/client.py", line 667, in _request
+    raise ConnectionTimeoutError(
+aiohttp.client_exceptions.ConnectionTimeoutError: Connection timeout to host https://cataas.com/api/tags
+---------------------------------------------------------------------------
 ✔ Creare un comando per visualizzare le estensioni installate, attive e disattivate
 
 - Spiegare il perche' bisogna fare la verifica con il bot...

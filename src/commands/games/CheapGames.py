@@ -192,15 +192,16 @@ class GiveawayGame(Embed, View):
             self.add_field(name="Expires", value=end_date_str, inline=True)
 
         self.add_field(name="Instructions", value=game_data['instructions'], inline=False)
-        self.open_giveaway = Button(
-            label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Early Access", 
-            style=ButtonStyle.link,
-            url=game_data["open_giveaway"]
-        )
-        self.add_item(self.open_giveaway)
+        
+        #self.open_giveaway = Button(
+            #label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Beta", 
+            #style=ButtonStyle.link,
+            #url=game_data["open_giveaway"]
+        #)
+        #self.add_item(self.open_giveaway)
 
         self.view_giveaway = Button(
-            label="View Giveaway", 
+            label=("View Giveaway" if game_data['type'] == "Game" else "View Loot") if game_data['type'] != "Early Access" else "View Beta", 
             style=ButtonStyle.link,
             url=game_data["gamerpower_url"]
         )
