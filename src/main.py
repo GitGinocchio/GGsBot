@@ -43,7 +43,7 @@ def load_commands():
                 except commands.NoEntryPointError as e:
                     continue  # if no entry point found maybe is a file used by the main command file.
                 except commands.ExtensionFailed as e:
-                    logger.warning(e)
+                    logger.warning(f"Extension {e.name} failed to load: \n{traceback.format_exc()}")
                 else:
                     logger.info(f'Imported extension {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
 

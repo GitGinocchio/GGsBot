@@ -18,9 +18,13 @@ from nextcord import \
 from nextcord.ui import View, Button
 from enum import StrEnum
 from io import BytesIO
+import json
 import re
 
-from utils.commons import safe_asyncget, asyncget
+from utils.commons import asyncget
+from utils.terminal import getlogger
+
+logger = getlogger()
 
 class Font(StrEnum):
     AndaleMono = "Andale Mono"
@@ -77,7 +81,12 @@ class RandomCats(commands.Cog):
     @Cog.listener()
     async def on_ready(self):
         if not self.fetched_tags:
-            self.tags : list = await asyncget(f'{self.baseurl}/api/tags')
+            try:
+                content_type, content, code, reason = await asyncget(f'{self.baseurl}/api/tags')
+                assert content_type == 'application/json' and code == 200, f'Error while fetching tags (code: {code}): {reason}'
+                self.tags : list = json.loads(content)
+            except AssertionError as e:
+                logger.error(e)
 
     @slash_command(name="cats", description="Set of commands to get cat images")
     async def cats(self, interaction : Interaction): pass
@@ -105,7 +114,6 @@ class RandomCats(commands.Cog):
             await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @cats.subcommand(name="randomcat",description="Get a random cat image")
-    @commands.cooldown(1, 60, commands.BucketType.user)
     async def randomcat(self, 
         interaction : Interaction,
         tags : str = SlashOption(description="send a random image of a cat based on tags e.g. gif,cute", default="", required=False),
@@ -165,7 +173,7 @@ class RandomCats(commands.Cog):
 
             print(url)
 
-            content_type, content, status, reason = await safe_asyncget(url)
+            content_type, content, status, reason = await asyncget(url)
 
             assert status != 404, f"Cat not found with tags {tags} "
             assert status == 200 and content_type.startswith("image/"), f"An unexpected error occurred: {reason}"

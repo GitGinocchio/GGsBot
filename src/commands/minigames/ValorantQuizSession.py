@@ -21,6 +21,7 @@ from PIL import Image
 import traceback
 import asyncio
 import random
+import json
 
 from utils.commons import asyncget
 from .ValorantQuizUtils import \
@@ -150,8 +151,10 @@ class MapQuizSession(QuizSession):
             
             
             if key == ImageTypes.PRO and self.mode == MapModes.FRAGMENTS and callouts and img_url:
-                img_data = await asyncget(img_url, mimetype='image/png')
-                ImageBytesIO = BytesIO(img_data)
+                content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                assert content_type == 'image/png' and code == 200, f"Error while fetching next map image (code: {code}): {reason}"
+                
+                ImageBytesIO = BytesIO(content)
 
                 callout = random.choice(callouts)
                 xCallout = callout['location']['x']

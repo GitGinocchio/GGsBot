@@ -32,8 +32,6 @@ class GGsBotException(Exception):
 
         return embed
 
-        
-
 class CloudFlareAIException(GGsBotException):
     def __init__(self, code : int | str = None, *args) -> None:
         """Set of errors that are raised by the cloudflare AI."""
