@@ -28,6 +28,7 @@ from typing import Callable
 from enum import StrEnum
 import hashlib
 import random
+import json
 
 from utils.exceptions import ExtensionException
 from utils.commons import Extensions
@@ -177,12 +178,17 @@ class QuestionVerificationUi(VerificationUI):
         await interaction.response.send_modal(self.modal)
 
     async def async_init(self):
-        response = await asyncget("https://api.textcaptcha.com/ggsbot.json")
+        try:
+            content_type, content, code, reason = await asyncget("https://api.textcaptcha.com/ggsbot.json")
+            assert content_type == 'application/json' and code == 200, f"Error while fetching captcha data (code: {code}): {reason}"
+            response = json.loads(content)
 
-        self.question = response['q']
-        self.answers = response['a']
+            self.question = response['q']
+            self.answers = response['a']
 
-        self.set_field_at(0, name="Question", value=self.question)
+            self.set_field_at(0, name="Question", value=self.question)
+        except AssertionError as e:
+            logger.error(f"Error while fetching captcha data: {e}")
 
     async def on_answer(self, interaction : Interaction, answer : str):
         encoded_answer = hashlib.md5(answer.strip().lower().encode()).hexdigest()
