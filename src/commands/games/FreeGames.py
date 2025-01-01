@@ -14,8 +14,9 @@ from nextcord.ui import           \
     View,                         \
     button
 
-from enum import StrEnum
 from datetime import datetime, timezone
+from enum import StrEnum
+import json
 
 from utils.terminal import getlogger
 from utils.commons import asyncget
@@ -217,7 +218,9 @@ class FreeGamesView(View):
     @button(label="Info", style=ButtonStyle.primary)
     async def more_information(self, button: Button, interaction: Interaction):
         try:
-            info = await asyncget(f'https://www.freetogame.com/api/game?id={self.data[self.n]['id']}')
+            content_type, content, code, reason = await asyncget(f'https://www.freetogame.com/api/game?id={self.data[self.n]['id']}')
+            assert content_type == 'application/json' and code == 200, f"Error while fetching game info (code: {code}): {reason}"
+            info : dict = json.loads(content)
 
             view = GameInfoView(self, info)
             embed = GameInfoEmbed(info, view.images[view.image_num])
@@ -266,9 +269,9 @@ class FreeGames(Cog):
             if sort_by: params.append(f'sort_by={sort_by}')
 
             url = f'{self.baseurl}{endpoint}{'?' if len(params) > 0 else ''}{'&'.join(params)}'
-            print(url)
-            data = await asyncget(url)
-
+            content_type, content, code, reason = await asyncget(url)
+            assert content_type == 'application/json' and code == 200, f"Error while fetching games info (code: {code}): {reason}"
+            data : list = json.loads(content)
         except AssertionError as e:
             await interaction.followup.send(e)
         else:

@@ -61,7 +61,7 @@ from nextcord.ui import \
 from enum import StrEnum
 import datetime
 import asyncio
-import time
+import json
 
 from utils.exceptions import ExtensionException
 from utils.commons import Extensions, asyncget
@@ -288,7 +288,9 @@ class CheapGames(Cog):
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
 
-            self.giveaways = await asyncget("https://gamerpower.com/api/giveaways")
+            content_type, content, code, reason = await asyncget("https://gamerpower.com/api/giveaways")
+            assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
+            self.giveaways = json.loads(content)
 
             configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
 
@@ -307,7 +309,9 @@ class CheapGames(Cog):
             async with self.db:
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
 
-            self.giveaways = await asyncget("https://gamerpower.com/api/giveaways")
+            content_type, content, code, reason = await asyncget("https://gamerpower.com/api/giveaways")
+            assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
+            self.giveaways = json.loads(content)
             
             tasks : list[asyncio.Task] = []
             for guild_id, ext_id, enabled, config in configurations:

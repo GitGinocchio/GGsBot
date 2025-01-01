@@ -6,8 +6,13 @@ from nextcord import \
 from cachetools import LRUCache
 from datetime import datetime
 from uuid import UUID
+import json
 
 from utils.commons import asyncget
+from utils.terminal import getlogger
+
+logger = getlogger()
+
 from .ValorantQuizUtils import Levels, MapModes
 from .ValorantQuizSession import MapQuizSession, QuizSession
 
@@ -35,7 +40,9 @@ class ValorantQuiz(commands.Cog):
             await interaction.response.defer(ephemeral=False)
 
             if not 'maps' in self.cache:
-                self.cache['maps'] = (await asyncget(f'{self.baseurl}/maps'))['data']
+                content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                assert content_type == 'application/json' and code == 200, f"Error while fetching game info (code: {code}): {reason}"
+                self.cache['maps'] = json.loads(content)["data"]
 
             session = MapQuizSession(
                 level=Levels(level),
@@ -52,7 +59,7 @@ class ValorantQuiz(commands.Cog):
 
             await interaction.followup.send(embed=embed,view=view)
         except AssertionError as e:
-            print(e)
+            logger.error(e)
 
 def setup(bot : commands.Bot) -> None:
     bot.add_cog(ValorantQuiz(bot))

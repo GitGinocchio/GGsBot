@@ -2,7 +2,7 @@ from nextcord.ext.commands import Bot
 from nextcord import Embed, Interaction, Guild, Colour, ButtonStyle
 from nextcord.ui import View, Item, Button
 from typing import Callable
-
+import inspect
 
 
 class SetupUI(Embed, View):
@@ -54,3 +54,44 @@ class SetupUI(Embed, View):
             await self._submit_callback(interaction)
         except Exception as e:
             raise e
+        
+class GGsBotPage:#(Embed, View):
+    def __init__(self, ui : 'GGsBotUI'):
+        #Embed.__init__(self)
+        #View.__init__(self)
+        self.ui = ui
+
+
+
+class GGsBotUI:
+    def __init__(self):
+        self.pages = [cls(self) for _, cls in inspect.getmembers(MyUI, lambda x: inspect.isclass(x) and issubclass(x, GGsBotPage))]
+        print(self.pages)
+
+    @property
+    def bot(self): return self._bot
+
+    @property
+    def guild(self): return self._guild
+
+    @property
+    def config(self): return self._config
+
+    @config.setter
+    def config(self, config : dict): self._config = config
+
+
+
+class MyUI(GGsBotUI):
+    def __init__(self):
+        GGsBotUI.__init__(self)
+
+    class MyFirstPage(GGsBotPage):
+        def __init__(self, ui : GGsBotUI):
+            GGsBotPage.__init__(self, ui)
+
+    class MySecondPage(GGsBotPage):
+        def __init__(self, ui : GGsBotUI):
+            GGsBotPage.__init__(self, ui)
+
+MyUI()
