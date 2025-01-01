@@ -1,7 +1,7 @@
 setuptools
 python-dotenv
 aiosqlite
-nextcord==2.6.0
+nextcord==3.0.1
 pypresence
 colorama
 asyncio
