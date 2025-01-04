@@ -5,7 +5,7 @@ uninstall:
 	pip uninstall -y -r requirements.txt
 
 clearpycache:
-	python .Makefile/clearpycache.py
+	python ./src/.Makefile/clearpycache.py
 
 run:
 	python ./src/main.py
