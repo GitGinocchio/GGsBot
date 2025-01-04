@@ -6,6 +6,11 @@ import nextcord
 import requests
 import os
 
+from utils.commons import \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
+
 
 models = [
     '@cf/facebook/bart-large-cnn'
@@ -62,7 +67,7 @@ class Summarizer(commands.Cog):
         self.bot = bot
         self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
 
-    @nextcord.message_command(name='summarize')
+    @nextcord.message_command(name='summarize', integration_types=GLOBAL_INTEGRATION)
     async def summarize_message(self,
                     interaction : Interaction,
                     message  : nextcord.Message
@@ -74,7 +79,7 @@ class Summarizer(commands.Cog):
         except AssertionError as e:
             await interaction.response.send_message(e,ephemeral=True,delete_after=5)
 
-    @nextcord.slash_command(name='summarize',description="Summarize text using AI", dm_permission=True)
+    @nextcord.slash_command(name='summarize',description="Summarize text using AI", integration_types=GLOBAL_INTEGRATION)
     async def summarize_text(self, 
                     interaction : nextcord.Interaction,
                     text : str = SlashOption(description="The text that you want to summarize",required=True),

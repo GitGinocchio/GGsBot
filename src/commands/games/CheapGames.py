@@ -64,10 +64,15 @@ import asyncio
 import json
 
 from utils.exceptions import ExtensionException
-from utils.commons import Extensions, asyncget
 from utils.terminal import getlogger
 from utils.db import Database
 from utils.abc import SetupUI
+from utils.commons import \
+    Extensions,           \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION,     \
+    asyncget
 
 logger = getlogger()
 
@@ -231,7 +236,7 @@ class CheapGames(Cog):
         if not self.update_giveaways_and_deals.is_running():
             self.update_giveaways_and_deals.start()
 
-    @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free", default_member_permissions=permissions, dm_permission=False)
+    @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free", default_member_permissions=permissions, integration_types=GUILD_INTEGRATION)
     async def cheapgames(self, interaction : Interaction): pass
 
     @cheapgames.subcommand(name="add-update", description="Command that allows the addition of an automatic update when a game is on discount or becomes free")

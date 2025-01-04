@@ -18,8 +18,12 @@ import asyncio
 
 from utils.db import Database
 from utils.exceptions import ExtensionException
-from utils.commons import Extensions
 from utils.terminal import getlogger
+from utils.commons import \
+    Extensions,           \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
 
 from .ExtensionsUi import *
 
@@ -43,7 +47,7 @@ class CommandsManager(commands.Cog):
             Extensions.TEMPVC : TempVCUi
         }
 
-    @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,dm_permission=False)
+    @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
     async def extensions(self, interacton : Interaction): pass
 
     # Show

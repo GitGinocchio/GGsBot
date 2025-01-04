@@ -1,15 +1,22 @@
-from .MusicApi import MusicApi
-from .MusicUtilities import *
-from utils.terminal import getlogger
 from nextcord.ext import commands
 from nextcord import Permissions
-from utils.config import config
 from typing import Literal
 import nextcord
 import asyncio
 import stat
 import sys
 import os
+
+from utils.terminal import getlogger
+from utils.config import config
+from utils.commons import \
+    Extensions,           \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
+
+from .MusicApi import MusicApi
+from .MusicUtilities import *
 
 logger = getlogger()
 
@@ -26,7 +33,7 @@ class MusicCommands(commands.Cog):
         self.bot = bot
         #2147483648
 
-    @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8,dm_permission=False)
+    @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8, integration_types=GUILD_INTEGRATION)
     async def music(self, interaction : nextcord.Interaction): pass
 
     @music.subcommand("join","Bring the bot on your current voice channel")

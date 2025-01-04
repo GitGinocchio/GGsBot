@@ -1,3 +1,4 @@
+from nextcord import IntegrationType
 from enum import StrEnum
 import aiohttp
 
@@ -9,6 +10,19 @@ class Extensions(StrEnum):
     STAFF = 'staff'
     TEMPVC = 'tempvc'
     VERIFY = 'verify'
+
+GLOBAL_INTEGRATION = [
+    IntegrationType.guild_install,
+    IntegrationType.user_install
+]
+
+GUILD_INTEGRATION = [
+    IntegrationType.guild_install,
+]
+
+USER_INTEGRATION = [
+    IntegrationType.user_install
+]
 
 async def asyncget(url : str, timeout : int = 60, max_redirects : int = 5) -> tuple[str, bytes, int, str | None]:
     """

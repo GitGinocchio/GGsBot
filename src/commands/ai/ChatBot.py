@@ -8,10 +8,7 @@ from nextcord import \
         SlashOption, \
         slash_command, \
         ChannelType, \
-        Message, \
-        Attachment, \
-        AttachmentFlags, \
-        File
+        Message
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from nextcord.ext import commands
@@ -26,7 +23,11 @@ import os
 import io
 
 from utils.terminal import getlogger
-from utils.commons import Extensions
+from utils.commons import \
+    Extensions,           \
+    USER_INTEGRATION,     \
+    GUILD_INTEGRATION,    \
+    GLOBAL_INTEGRATION
 from utils.db import Database
 from utils.exceptions import *
 
@@ -53,10 +54,10 @@ class ChatBot(commands.Cog):
         self.db = Database()
         self.bot = bot
 
-    @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,dm_permission=False)
+    @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
     async def chat(self, interaction : Interaction): pass
 
-    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,dm_permission=True)
+    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,integration_types=GLOBAL_INTEGRATION)
     async def ask(self,
                   interaction : Interaction,
                   prompt : str = SlashOption("prompt","The question you want to ask",required=True),

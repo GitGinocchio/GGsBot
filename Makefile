@@ -1,7 +1,8 @@
-install-requirements:
+install:
 	pip install -r requirements.txt
 
-install-binaries:
+uninstall:
+	pip uninstall -y -r requirements.txt
 
 clearpycache:
 	python .Makefile/clearpycache.py
