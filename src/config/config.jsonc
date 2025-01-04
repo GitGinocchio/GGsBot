@@ -23,8 +23,9 @@
     "logger" : {
         "level" : "INFO",
         "dir" : "./logs",
-        "tofile" : false,
-        "datefmt" : "%H:%M:%S"
+        "tofile" : true,
+        "datefmt" : "%Y-%m-%d, %H:%M:%S",
+        "filename_datefmt" : "%Y-%m-%d"
     },
 
     // -- Commands Settings --
