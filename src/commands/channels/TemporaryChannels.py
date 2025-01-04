@@ -2,10 +2,14 @@ from nextcord.ext import commands
 import nextcord
 import asyncio
 
-from utils.commons import Extensions
 from utils.exceptions import ExtensionException
 from utils.db import Database
 from utils.terminal import getlogger
+from utils.commons import \
+    Extensions,           \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
 
 logger = getlogger()
 
@@ -18,7 +22,7 @@ class TemporaryChannels(commands.Cog):
         self.db = Database()
         self.bot = bot
 
-    @nextcord.slash_command("tempvc","Very useful set of commands for set and unset vocals channels generators",default_member_permissions=permissions,dm_permission=False)
+    @nextcord.slash_command("tempvc","Very useful set of commands for set and unset vocals channels generators",default_member_permissions=permissions, integration_types=GUILD_INTEGRATION)
     async def tempvc(self, interaction : nextcord.Interaction): pass
 
     @tempvc.subcommand("add","Set :channel: to generate channels in :category: and remove them after :timeout: of inactivity")

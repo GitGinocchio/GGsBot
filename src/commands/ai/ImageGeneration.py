@@ -27,6 +27,11 @@ import io
 
 from utils.terminal import getlogger
 from utils.jsonfile import JsonFile, _JsonDict
+from utils.commons import \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
+
 from utils.exceptions import *
 
 logger = getlogger()
@@ -57,7 +62,7 @@ class ImageGeneration(commands.Cog):
         self.dirfmt = './data/guilds/{guild_id}/commands.ai.ChatBot'
         self.bot = bot
 
-    @slash_command('image', "Set of commands to manage and create Ai generated images", dm_permission=True)
+    @slash_command('image', "Set of commands to manage and create Ai generated images", integration_types=GLOBAL_INTEGRATION)
     async def image(self, interaction : Interaction): pass
 
     @image.subcommand('fromtext', "Generate an image from a prompt")

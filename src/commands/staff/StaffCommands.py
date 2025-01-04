@@ -6,9 +6,13 @@ import asyncio
 import os
 
 from utils.db import Database, ExtensionException
-from utils.commons import Extensions
-from utils.jsonfile import JsonFile, _JsonDict
 from utils.terminal import getlogger
+from utils.commons import \
+    Extensions,           \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION,     \
+    GLOBAL_INTEGRATION
+
 
 logger = getlogger()
 
@@ -26,7 +30,7 @@ class StaffCommands(commands.Cog):
     async def on_ready(self):
         self.bot.loop.create_task(self.schedule_periodic_task())
 
-    @nextcord.slash_command('staff',"Set of useful commands to set or view the status of staffers",default_member_permissions=staff_permissions,dm_permission=False)
+    @nextcord.slash_command('staff',"Set of useful commands to set or view the status of staffers",default_member_permissions=staff_permissions,integration_types=GUILD_INTEGRATION)
     async def staff(self, interaction : nextcord.Interaction): pass
 
     @staff.subcommand('show',"Show a list of active and/or inactive staffers")

@@ -20,6 +20,10 @@ import requests
 import os
 
 from utils.terminal import getlogger
+from utils.commons import \
+    GLOBAL_INTEGRATION,   \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION
 
 logger = getlogger()
 
@@ -116,7 +120,7 @@ class Translator(commands.Cog):
         self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
         self.bot = bot
 
-    @message_command(name="translate",default_member_permissions=permissions, dm_permission=True)
+    @message_command(name="translate",default_member_permissions=permissions, integration_types=GLOBAL_INTEGRATION)
     async def translate_message(self,
                                 interaction : Interaction,
                                 message : Message
@@ -128,7 +132,7 @@ class Translator(commands.Cog):
         except AssertionError as e:
             await interaction.response.send_message(e,ephemeral=True,delete_after=5)
 
-    @slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions, dm_permission=True)
+    @slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions, integration_types=GLOBAL_INTEGRATION)
     async def translate_text(self, 
                 interaction : Interaction,
                 text : str = SlashOption(description="Text to translate",required=True),

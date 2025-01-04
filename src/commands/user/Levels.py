@@ -12,6 +12,11 @@ from nextcord import \
     SlashOption,     \
     Interaction,     \
     slash_command    \
+    
+from utils.commons import \
+    GUILD_INTEGRATION,    \
+    USER_INTEGRATION,     \
+    GLOBAL_INTEGRATION
 
 class Levels(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
@@ -47,8 +52,7 @@ class Levels(commands.Cog):
                     xp += self.xp_per_reaction_received
         return xp
 
-    @slash_command('level',description='Get user current level',dm_permission=False)
-    @cooldown(1,25.0)
+    @slash_command('level',description='Get user current level', integration_types=GUILD_INTEGRATION)
     async def level(self,
                 interaction : Interaction, 
                 user : Member = SlashOption('user','The user whose level you want to know, if not passed, returns your level',required=False,default=None)
