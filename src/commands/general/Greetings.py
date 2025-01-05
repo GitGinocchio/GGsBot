@@ -24,7 +24,9 @@ class Greetings(commands.Cog):
     async def on_member_join(self, member : nextcord.Member):
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+                config, enabled = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+
+            if not enabled: return
 
             if not (welcome_channel_id:=config.get('welcome_channel', None)): return
         
@@ -45,7 +47,9 @@ class Greetings(commands.Cog):
     async def on_member_remove(self, member : nextcord.Member):
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+                config, enabled = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+
+            if not enabled: return
 
             if not (goodbye_channel_id:=config.get('goodbye_channel', None)): return
 
