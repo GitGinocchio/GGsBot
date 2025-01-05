@@ -30,10 +30,11 @@ from utils.commons import \
     GLOBAL_INTEGRATION
 from utils.db import Database
 from utils.exceptions import *
+from utils.config import config
 
 logger = getlogger()
 
-templates = [template for template in os.listdir('./src/data/chatbot-templates')]
+templates = [template for template in os.listdir(config["paths"]["chatbot_templates"])]
 
 txt2txt_models = [
     '@cf/meta/llama-3-8b-instruct',

@@ -1,22 +1,22 @@
-from utils.terminal import clear, erase, getlogger,F
 from nextcord.ext import commands
-from utils.config import config
-from utils.intents import getintents
-from utils.system import getsysteminfo
 from dotenv import load_dotenv
 import traceback
 import nextcord
 import time
 import os
 
+load_dotenv('./config/.env', verbose=True)
+
 from utils.db import Database
+from utils.terminal import clear, erase, getlogger,F
+from utils.intents import getintents
+from utils.system import getsysteminfo
+from utils.config import config
 
 clear()
 getsysteminfo()
 logger = getlogger()
 intents = getintents()
-
-load_dotenv('./src/config/.env')
 
 Bot = commands.Bot(
     intents=intents,

@@ -204,9 +204,11 @@ class MusicCommands(commands.Cog):
             logger.fatal(e)
 
 def setup(bot : commands.Bot):
-    assert os.path.exists(ffmpeg_path:=f"{config['music']['ffmpeg_path'].format(os=OS,arch=ARCH)}{'.exe' if OS == 'Windows' else ''}"), f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' is missing"
-    assert os.path.isfile(ffmpeg_path), f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' must be an executable"
-    
+    if not os.path.exists(ffmpeg_path:=f"{config['music']['ffmpeg_path'].format(os=OS,arch=ARCH)}{'.exe' if OS == 'Windows' else ''}"):
+        raise FileNotFoundError(f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' is missing")
+    if not os.path.isfile(ffmpeg_path):
+        raise FileNotFoundError(f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' must be an executable")
+
     if not (permissions:=os.stat(ffmpeg_path).st_mode) & stat.S_IXUSR:
         os.chmod(ffmpeg_path, permissions | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
     

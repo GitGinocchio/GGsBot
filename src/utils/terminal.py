@@ -50,6 +50,7 @@ stream = logging.StreamHandler(sys.stdout)
 stream.setFormatter(stream_formatter)
 
 if config["logger"]["tofile"]:
+    os.makedirs(config["logger"]['dir'], exist_ok=True)
     logfile = logging.FileHandler(r"{}//{}.log".format(
         config["logger"]['dir'],
         datetime.now().strftime(config["logger"]["filename_datefmt"])),
