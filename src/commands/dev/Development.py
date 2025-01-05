@@ -1,6 +1,6 @@
 from nextcord.ext import commands
 from nextcord import Permissions
-from utils.config import config, reload
+from utils.config import config, reload_config_files
 from utils.terminal import getlogger, F
 import nextcord
 import os
@@ -65,7 +65,7 @@ class Development(commands.Cog):
             return
         
         try:
-            reload()
+            reload_config_files()
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
             await interaction.send(f'Unhandled Exception: {e}')

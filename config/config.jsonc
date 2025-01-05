@@ -8,8 +8,8 @@
 
     // Command settings
     "ignore_files" : ["__pycache__","placeholder.txt","AutoMod.py"],                         // Do not load the specified commands
-    "ignore_categories" : [],                                                   // Do not load the specified categories of commands
-    "max_guilds" : -1,                                                          // Maximum number of guilds
+    "ignore_categories" : [],                                                                // Do not load the specified categories of commands
+    "max_guilds" : -1,                                                                       // Maximum number of guilds
 
     // Proxies
     "proxies" : [
@@ -26,6 +26,19 @@
         "tofile" : true,
         "datefmt" : "%Y-%m-%d, %H:%M:%S",
         "filename_datefmt" : "%Y-%m-%d"
+    },
+
+    // Paths
+    "paths" : {
+        "bin" : "/bin/{os}/{arch}/",
+        
+        "db" : "./data/database.db",
+        "db_script" : "./config/database.sql",
+
+        "chatbot_templates" : "./data/chatbot-templates/",
+
+        "exceptions" : "./config/exceptions.json",
+        "logs" : "./logs/"
     },
 
     // -- Commands Settings --

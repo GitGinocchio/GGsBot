@@ -1,9 +1,11 @@
-from .jsonfile import JsonFile, cache
+import os
 
-config = JsonFile('./src/config/config.jsonc')
-exceptions = JsonFile('./src/config/exceptions.json')
+from .jsonfile import JsonFile
 
-def reload():
+config : dict = JsonFile(os.environ["CONFIG_PATH"], force_load=True)
+exceptions : dict = JsonFile(config["paths"]["exceptions"], force_load=True)
+
+def reload_config_files():
     global config, exceptions
-    config = JsonFile('./src/config/config.jsonc', force_load=True)
-    exceptions = JsonFile('./src/config/exceptions.json', force_load=True)
+    config = JsonFile(os.environ["CONFIG_PATH"], force_load=True)
+    exceptions = JsonFile(config["paths"]["exceptions"], force_load=True)

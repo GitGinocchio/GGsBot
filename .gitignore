@@ -151,8 +151,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.exe
-
-bin/
-data/
-config/config.jsonc
 .git-credentials
+
+data/database.db
+data/cookies/*
+
+/bin/**/ffmpeg
+/bin/**/ffmpeg.*
+
+!placeholder.txt

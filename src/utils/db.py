@@ -11,6 +11,7 @@ import os
 from nextcord import Guild
 from datetime import datetime, timezone
 
+from .config import config
 from .commons import Extensions
 from .terminal import getlogger
 from .exceptions import *
@@ -20,13 +21,13 @@ logger = getlogger("Database")
 class Database:
     _instance = None
 
-    def __init__(self, db_path : str = './src/data/database.db', script_path : str = './src/config/database.sql', cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
+    def __init__(self, db_path : str = config["paths"]["db"], script_path : str = config["paths"]["db_script"], cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
         self._connection : aiosqlite.Connection
         self._cursor : aiosqlite.Cursor
         self._caller_line = None
         self._caller = None
 
-    def __new__(cls, db_path = './src/data/database.db', script_path = './src/config/database.sql', cache_size = 1000, cache_ttl = 3600, loop = None):
+    def __new__(cls, db_path = config["paths"]["db"], script_path = config["paths"]["db_script"], cache_size = 1000, cache_ttl = 3600, loop = None):
         """Initialize database one time"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
