@@ -25,8 +25,10 @@ class Greetings(commands.Cog):
         try:
             async with self.db:
                 config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+
+            if not (welcome_channel_id:=config.get('welcome_channel', None)): return
         
-            channel = self.bot.get_channel(config['welcome_channel'])
+            channel = self.bot.get_channel(welcome_channel_id)
             embed = Embed(
                 title='Welcome!',
                 description=f'Welcome to {member.name}, {member.mention} Enjoy your stay and feel free to look around!',
@@ -44,8 +46,10 @@ class Greetings(commands.Cog):
         try:
             async with self.db:
                 config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
-        
-            channel = self.bot.get_channel(config['goodbye_channel'])
+
+            if not (goodbye_channel_id:=config.get('goodbye_channel', None)): return
+
+            channel = self.bot.get_channel(goodbye_channel_id)
             embed = Embed(
                 title='Goodbye!',
                 description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',
