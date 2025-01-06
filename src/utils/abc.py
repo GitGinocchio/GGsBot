@@ -79,8 +79,8 @@ class BasePage(Embed, View):
         logger.error(f"{self.ui} timed out")
 
 class Page(BasePage):
-    def __init__(self, ui : 'UI'):
-        BasePage.__init__(self, ui)
+    def __init__(self, ui : 'UI', timeout : int = 180):
+        BasePage.__init__(self, ui, timeout)
 
     @button(label="Next", style=ButtonStyle.primary, row=4)
     async def next_page(self, interaction: Interaction):
@@ -102,9 +102,10 @@ class SubmitPage(BasePage):
     def __init__(self, 
             ui : 'UI',
             submit_title : str = "Submit",
-            submit_callback : Callable[[Interaction], None] = None
+            submit_callback : Callable[[Interaction], None] = None,
+            timeout : int = 180
         ):
-        BasePage.__init__(self, ui)
+        BasePage.__init__(self, ui, timeout)
         self.submit_title = submit_title
         self._submit_callback = submit_callback
 
