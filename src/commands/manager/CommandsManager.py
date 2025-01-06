@@ -25,7 +25,9 @@ from utils.commons import \
     GUILD_INTEGRATION,    \
     USER_INTEGRATION
 
-from .ExtensionsUi import *
+from .ExtensionsUi import \
+    SetupUI,             \
+    AiChatBotSetupUI
 
 logger = getlogger()
 
@@ -38,13 +40,13 @@ class CommandsManager(commands.Cog):
         commands.Cog.__init__(self)
         self.db = Database()
         self.bot = bot
-        self.setup_dict : dict[Extensions, ExtensionUI] = {
-            Extensions.AICHATBOT : AiChatBotUi,
-            Extensions.GREETINGS : GreetingsUi,
-            Extensions.CHEAPGAMES : CheapGamesUi,
-            Extensions.VERIFY : VerifyUi,
-            Extensions.STAFF : StaffUi,
-            Extensions.TEMPVC : TempVCUi
+        self.setup_dict : dict[Extensions, SetupUI] = {
+            Extensions.AICHATBOT  : AiChatBotSetupUI,
+            Extensions.GREETINGS  : SetupUI,
+            Extensions.CHEAPGAMES : SetupUI,
+            Extensions.VERIFY     : SetupUI,
+            Extensions.STAFF      : SetupUI,
+            Extensions.TEMPVC     : SetupUI
         }
 
     @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
@@ -114,12 +116,15 @@ class CommandsManager(commands.Cog):
             if ui_type is not None:
                 ui = ui_type(self.bot, interaction.guild, extension)
             else:
-                ui = ExtensionUI(self.bot, interaction.guild, extension, lambda _:None)
+                ui = SetupUI(self.bot, interaction.guild, extension)
+
+            page = ui.get_current_page()
+            submit_page = ui.get_submit_page()
 
             print('pre-interaction')
-            message = await interaction.followup.send(embed=ui,view=ui, wait=True)
+            message = await interaction.followup.send(embed=page,view=page, wait=True)
 
-            assert not await ui.wait(), f'The configuration process has expired'
+            assert not await submit_page.wait(), f'The configuration process has expired'
             print('post-interaction')
             config = dict(ui.config)
             
