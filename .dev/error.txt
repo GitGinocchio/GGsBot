@@ -1,0 +1,102 @@
+Ignoring exception in view <QuestionVerificationUi timeout=120 children=1> for item <Button style=<ButtonStyle.primary: 1> url=None disabled=False label='Answer' emoji=None row=None>:
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/ui/view.py", line 386, in _scheduled_task
+    await item.callback(interaction)
+  File "/home/container/src/commands/verify/VerificationUis.py", line 178, in answer_button
+    await interaction.response.send_modal(self.modal)
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/interactions.py", line 1003, in send_modal
+    await adapter.create_interaction_response(
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 200, in request
+    raise HTTPException(response, data)
+nextcord.errors.HTTPException: 400 Bad Request (error code: 40060): Interaction has already been acknowledged.
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Ignoring exception in view <QuizView timeout=0 children=4> for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='Skip' emoji=None row=None>:
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/ui/view.py", line 386, in _scheduled_task
+    await item.callback(interaction)
+  File "/home/container/src/commands/minigames/ValorantQuizUi.py", line 99, in skip
+    await self.skip_callback(interaction)
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 249, in on_player_skip
+    await interaction.followup.send(embed=ErrorEmbed("You have already skipped this map or submitted an answer"), delete_after=5, ephemeral=True)
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 1568, in send
+    data = await adapter.execute_webhook(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 198, in request
+    raise NotFound(response, data)
+nextcord.errors.NotFound: 404 Not Found (error code: 10015): Unknown Webhook
+Ignoring exception in view <QuizView timeout=0 children=4> for item <Button style=<ButtonStyle.secondary: 2> url=None disabled=False label='Skip' emoji=None row=None>:
+Traceback (most recent call last):
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/ui/view.py", line 386, in _scheduled_task
+    await item.callback(interaction)
+  File "/home/container/src/commands/minigames/ValorantQuizUi.py", line 99, in skip
+    await self.skip_callback(interaction)
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 249, in on_player_skip
+    await interaction.followup.send(embed=ErrorEmbed("You have already skipped this map or submitted an answer"), delete_after=5, ephemeral=True)
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 1568, in send
+    data = await adapter.execute_webhook(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/container/.local/lib/python3.12/site-packages/nextcord/webhook/async_.py", line 198, in request
+    raise NotFound(response, data)
+nextcord.errors.NotFound: 404 Not Found (error code: 10015): Unknown Webhook
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+
+  File "/home/container/src/commands/minigames/ValorantQuizSession.py", line 154, in _next_round
+    content_type, content, code, reason = await asyncget(f'{self.baseurl}/maps')
+                                                            ^^^^^^^^^^^^
+
+AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
