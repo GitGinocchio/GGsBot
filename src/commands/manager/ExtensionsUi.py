@@ -28,6 +28,10 @@ from ..verify.VerificationUis import \
 
 from utils.abc import UI, Page, SubmitPage
 
+# NOTE: Sovrascrivere .on_submit non funziona...
+#       Bisogna creare una nuova classe e sovrascrivere il metodo .on_submit
+
+
 class SetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
         UI.__init__(self, bot, guild, extension)
@@ -233,8 +237,9 @@ class StaffSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
         SetupUI.__init__(self, bot, guild, extension)
         self.config = {'staff_role': None, 'inactive_role': None, 'inactive': {}}
-        self.DefaultSetupSubmitPage.on_submit = self.on_submit
+
         self.add_pages(self.StaffPage)
+        self.set_submit_page(self.StaffSubmitPage)
 
     class StaffPage(Page):
         def __init__(self, ui : UI, extension : str):
@@ -261,16 +266,20 @@ class StaffSetupUI(SetupUI):
         async def inactive_role(self, select: RoleSelect, interaction : Interaction):
             self.config['inactive_role'] = (select.values[0].id if len(select.values) > 0 else None)
 
-    async def on_submit(self, interaction : Interaction):
-        try:
-            assert self.config.get('staff_role') is not None and self.config.get('inactive_role') is not None, "You must choose at least one staff role and one inactive role!"
-            assert self.config.get('staff_role') != self.config.get('inactive_role'), "The staff role and inactive role cannot be the same!"
-        except AssertionError as e:
-            await interaction.response.send_message(e, ephemeral=True, delete_after=5)
-        except Exception as e:
-            raise e
-        else:
-            self.stop()
+    class StaffSubmitPage(SetupUI.DefaultSetupSubmitPage):
+        def __init__(self, ui : UI, extension : str):
+            SetupUI.DefaultSetupSubmitPage.__init__(self, ui, extension)
+
+        async def on_submit(self, interaction : Interaction):
+            try:
+                assert self.config.get('staff_role') is not None and self.config.get('inactive_role') is not None, "You must choose at least one staff role and one inactive role!"
+                assert self.config.get('staff_role') != self.config.get('inactive_role'), "The staff role and inactive role cannot be the same!"
+            except AssertionError as e:
+                await interaction.response.send_message(e, ephemeral=True, delete_after=5)
+            except Exception as e:
+                raise e
+            else:
+                self.stop()
     
 class CheapGamesSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):

@@ -373,6 +373,12 @@ class CheapGames(Cog):
             if str(game["id"]) in saved_giveaways and game["published_date"] == saved_giveaways[str(game["id"])]:
                 # Here we are checking if this giveaway is already registered
                 continue
+            dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S")
+
+            if dt < datetime.datetime.now(datetime.UTC):
+                # Here we are checking if the date of this giveaway is in the past
+                continue
+
             n_send += 1
 
             saved_giveaways[str(game["id"])] = game["published_date"]
