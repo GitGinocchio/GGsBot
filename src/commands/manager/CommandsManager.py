@@ -26,8 +26,14 @@ from utils.commons import \
     USER_INTEGRATION
 
 from .ExtensionsUi import \
-    SetupUI,             \
-    AiChatBotSetupUI
+    SetupUI,              \
+    AiChatBotSetupUI,     \
+    GreetingsSetupUI,     \
+    CheapGamesSetupUI,    \
+    VerifySetupUI,       \
+    StaffSetupUI,        \
+    TempVCSetupUI
+
 
 logger = getlogger()
 
@@ -42,11 +48,11 @@ class CommandsManager(commands.Cog):
         self.bot = bot
         self.setup_dict : dict[Extensions, SetupUI] = {
             Extensions.AICHATBOT  : AiChatBotSetupUI,
-            Extensions.GREETINGS  : SetupUI,
-            Extensions.CHEAPGAMES : SetupUI,
-            Extensions.VERIFY     : SetupUI,
-            Extensions.STAFF      : SetupUI,
-            Extensions.TEMPVC     : SetupUI
+            Extensions.GREETINGS  : GreetingsSetupUI,
+            Extensions.CHEAPGAMES : CheapGamesSetupUI,
+            Extensions.VERIFY     : VerifySetupUI,
+            Extensions.STAFF      : StaffSetupUI,
+            Extensions.TEMPVC     : TempVCSetupUI
         }
 
     @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
@@ -118,18 +124,19 @@ class CommandsManager(commands.Cog):
             else:
                 ui = SetupUI(self.bot, interaction.guild, extension)
 
-            page = ui.get_current_page()
-            submit_page = ui.get_submit_page()
+            ui.init()
 
-            print('pre-interaction')
+            page = ui.current_page
+            submit_page = ui.submit_page
+
+            logger.debug(f"Configuration process started for {extension} in guild {interaction.guild.id}")
             message = await interaction.followup.send(embed=page,view=page, wait=True)
 
             assert not await submit_page.wait(), f'The configuration process has expired'
-            print('post-interaction')
-            config = dict(ui.config)
+            logger.debug(f"Configuration process completed for {extension} in guild {interaction.guild.id}")
             
             async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions(extension),config)
+                await self.db.setupExtension(interaction.guild,Extensions(extension),ui.config)
 
         except AssertionError as e:
             if message: 
