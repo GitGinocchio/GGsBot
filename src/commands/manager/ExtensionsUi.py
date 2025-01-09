@@ -31,6 +31,8 @@ from utils.abc import UI, Page, SubmitPage
 # NOTE: Sovrascrivere .on_submit non funziona...
 #       Bisogna creare una nuova classe e sovrascrivere il metodo .on_submit
 
+# NOTE: Togliere da utils.abc.BasePage il parametro extension, che di base non deve essere passato
+#       E fare in modo che si possa passare alla pagina
 
 class SetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
