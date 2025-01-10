@@ -1,0 +1,11 @@
+https://lyrist.vercel.app/api/BRANO/ARTISTA
+https://music.xianqiao.wang/neteaseapiv2/lyric?id=2005468260
+https://music.xianqiao.wang/neteaseapiv2/search?limit=1&type=1&keywords=IMPORTANTE%20Marracash
+https://www.reddit.com/r/memes/new.json?sort=hot
+https://0x0.st/
+https://api.textcaptcha.com/myemail@example.com.json
+https://apidocs.cheapshark.com/
+https://www.freetogame.com/api-doc
+https://www.gamerpower.com/api-read
+https://cataas.com/
+https://random-word-api.herokuapp.com/word?lang=it&number=2&length=5
