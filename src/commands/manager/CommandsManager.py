@@ -124,12 +124,12 @@ class CommandsManager(commands.Cog):
             else:
                 ui = SetupUI(self.bot, interaction.guild, extension)
 
-            ui.init()
+            ui.init_pages(extension=extension)
 
             page = ui.current_page
             submit_page = ui.submit_page
 
-            logger.debug(f"Configuration process started for {extension} in guild {interaction.guild.id}")
+            logger.debug(f"Configuration process started for Extension {extension} in guild {interaction.guild}")
             message = await interaction.followup.send(embed=page,view=page, wait=True)
 
             assert not await submit_page.wait(), f'The configuration process has expired'

@@ -28,21 +28,21 @@ from ..verify.VerificationUis import \
 
 from utils.abc import UI, Page, SubmitPage
 
-# NOTE: Sovrascrivere .on_submit non funziona...
-#       Bisogna creare una nuova classe e sovrascrivere il metodo .on_submit
+# NOTE: il parametro extension viene passato automaticamente alle pagine e alle UI
 
-# NOTE: Togliere da utils.abc.BasePage il parametro extension, che di base non deve essere passato
-#       E fare in modo che si possa passare alla pagina
+# NOTE: Sostituire .on_submit con una sottoclasse di Button
 
 class SetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
-        UI.__init__(self, bot, guild, extension)
+        UI.__init__(self, bot, guild)
+        self.extension = extension
+
         self.set_submit_page(self.DefaultSetupSubmitPage)
 
     class DefaultSetupSubmitPage(SubmitPage):
         def __init__(self, ui : 'SetupUI', extension : str):
-            SubmitPage.__init__(self, ui, extension, submit_title="Setup")
-            self.description = f"Clicking Setup will confirm all saved settings so far and install the {self.extension.capitalize()} extension on the server, do you want to continue?"
+            SubmitPage.__init__(self, ui, submit_title="Setup")
+            self.description = f"Clicking Setup will confirm all saved settings so far and install the {extension.capitalize()} extension on the server, do you want to continue?"
             self.colour = Colour.green()
 
 class AiChatBotSetupUI(SetupUI):
@@ -54,7 +54,7 @@ class AiChatBotSetupUI(SetupUI):
     class AiChatBotPage(Page):
         delays = [SelectOption(label=f'{n} Seconds', value=str(n), default=(True if n == 5 else False)) for n in range(1, 26,1)]
         def __init__(self, ui : UI, extension : str):
-            Page.__init__(self, ui, extension)
+            Page.__init__(self, ui)
             self.description = f"This extension allows you to have a chatbot Ai within your discord server"
             self.colour = Colour.green()
 
@@ -65,7 +65,7 @@ class AiChatBotSetupUI(SetupUI):
 
         @string_select(placeholder="2. Chat Delay", options=delays, min_values=1,row=1)
         async def select_delay(self, select: StringSelect, interaction : Interaction):
-            self.ui.config['chat-delay'] = (select.values[0] if len(select.values) != 0 else None)
+            self.config['chat-delay'] = (select.values[0] if len(select.values) != 0 else None)
 
 class GreetingsSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
@@ -76,8 +76,8 @@ class GreetingsSetupUI(SetupUI):
 
     class GreetingsPage(Page):
         def __init__(self, ui : UI, extension : str):
-            Page.__init__(self, ui, extension)
-            self.description = self.description = f"This extension allows you to generate messages whenever a user joins the server"
+            Page.__init__(self, ui)
+            self.description = f"This extension allows you to generate messages whenever a user joins the server"
             
             self.add_field(
                 name="1. Welcome Channel",
@@ -109,27 +109,27 @@ class GreetingsSetupUI(SetupUI):
             self.stop()
 
 class TempVCSetupUI(SetupUI):
-    def __init__(self, ui : UI, extension : str):
-        SetupUI.__init__(self, ui, extension)
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        SetupUI.__init__(self, bot, guild, extension)
         self.config = { 'listeners' : {}, 'channels' : {} }
         self.add_pages(self.TempVCPage)
 
     class TempVCPage(SubmitPage):
         def __init__(self, ui : UI, extension : str):
-            SubmitPage.__init__(self, ui, extension)
+            SubmitPage.__init__(self, ui)
             self.description = "This extension allows you to transform voice channels into \"generators\" of temporary voice channels"
 
 class VerifySetupUI(SetupUI):
-    def __init__(self, ui : UI, extension : str):
-        SetupUI.__init__(self, ui, extension)
+    def __init__(self, bot : Bot, guild : Guild, extension : str):
+        SetupUI.__init__(self, bot, guild, extension)
         self.config = { "modes" : [], 'verify_channel' : None, 'verify_message' : None, 'verified_role' : None}
         self.set_submit_page(self.VerifySubmitPage)
         self.add_pages(self.VerifyPage)
 
     class VerifyPage(Page):
         modes = [SelectOption(label=type.value.capitalize(), value=type.value) for type in VerificationTypes]
-        def __init__(self, ui : UI, extension : str):
-            Page.__init__(self, ui, extension)
+        def __init__(self, ui : SetupUI, extension : str):
+            Page.__init__(self, ui)
             self.description = f'This extension allows you to add a verification level of the account of users who enter within this server'
             self.colour = Colour.green()
 
@@ -245,7 +245,7 @@ class StaffSetupUI(SetupUI):
 
     class StaffPage(Page):
         def __init__(self, ui : UI, extension : str):
-            Page.__init__(self, ui, extension)
+            Page.__init__(self, ui)
             self.description = f"This extension allows you to assign staff members a role when they are inactive and why"
             self.colour = Colour.green()
 
@@ -291,7 +291,7 @@ class CheapGamesSetupUI(SetupUI):
     
     class CheapGamesPage(Page):
         def __init__(self, ui : UI, extension : str):
-            Page.__init__(self, ui, extension)
+            Page.__init__(self, ui)
             self.colour = Colour.green()
             
             self.add_field(

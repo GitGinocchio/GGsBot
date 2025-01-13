@@ -1,74 +1,54 @@
 from nextcord.ext.commands import Bot
 from nextcord import Embed, Interaction, Guild, Colour, ButtonStyle
 from nextcord.ui import View, Item, Button, button
+from nextcord.types.embed import EmbedType
 from datetime import datetime, timezone
 from typing import Callable, Type
-import inspect
 
 from .terminal import getlogger
 
 logger = getlogger()
 
-"""
-class SetupUI(Embed, View):
-    def __init__(self, 
-            bot : Bot, 
-            guild : Guild, 
-            title : str, 
-            submit_callback : Callable[[Interaction], None],
-            submit_title : str = "Submit",
-            timeout : int = 120
-        ):
-        Embed.__init__(self, title=title)
-        View.__init__(self, timeout=timeout)
-        self._bot = bot
-        self._guild = guild
-        self._submit_callback = submit_callback
-        self._config = {}
-
-        self.colour = Colour.green()
-
-        self.button = Button(label=submit_title, style=ButtonStyle.primary, row=4)
-        self.button.callback = self.__setup
-        self.add_item(self.button)
-    
-    @property
-    def bot(self): return self._bot
-
-    @property
-    def guild(self): return self._guild
-
-    @property
-    def config(self): return self._config
-
-    @config.setter
-    def config(self, config : dict): self._config = config
+class BasePage(Embed, View):
+    def __init__(self, **kwargs):
+        Embed.__init__(self, 
+            colour=kwargs.get("colour", Colour.green()),
+            title=kwargs.get("title", None),
+            type=kwargs.get("type", "rich"),
+            url=kwargs.get("url", None),
+            description=kwargs.get("description", None),
+            timestamp=datetime.now(timezone.utc)
+        )
+        View.__init__(self, 
+            timeout=kwargs.get("timeout", 180), 
+            auto_defer=kwargs.get("auto_defer",True),
+            prevent_update=kwargs.get("prevent_update", True)
+        )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        logger.debug(f"Checking interaction for page {self}")
         return await super().interaction_check(interaction)
 
     async def on_error(self, item : Item, interaction : Interaction):
         await interaction.followup.delete_message(interaction.message.id)
+        logger.error(f"An error occurred in page: {self} in item {item} (type: {item.type})")
         self.stop()
 
     async def on_timeout(self):
-        print('timedout-interaction')
+        logger.error(f"Page: {self} timed out")
 
-    async def __setup(self, interaction : Interaction):
-        try:
-            await self._submit_callback(interaction)
-        except Exception as e:
-            raise e
-"""
+class Page(BasePage):
+    def __init__(self, colour : Colour = None, title : 'str' = None, type : EmbedType = 'rich', url : str = None, description : str = None, timestamp : datetime = None):
+        BasePage.__init__(self,colour=colour,title=title,type=type,url=url,description=description,timestamp=timestamp)
 
-class BasePage(Embed, View):
-    def __init__(self, ui : 'UI', extension : str, timeout : int = 180):
-        Embed.__init__(self, timestamp=datetime.now(timezone.utc))
-        View.__init__(self, timeout=timeout)
-        self.extension = extension
+
+
+class UiBasePage(BasePage):
+    def __init__(self, ui : 'UI', **kwargs):
+        BasePage.__init__(self, **kwargs)
         self.ui = ui
 
-        self.set_author(name=self.ui.bot.user.name, icon_url=self.ui.bot.user.avatar.url)
+        self.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
 
     @property
     def bot(self): return self.ui.bot
@@ -79,7 +59,7 @@ class BasePage(Embed, View):
     @config.setter
     def config(self, config : dict): self.ui.config = config
     @property
-    def pages(self) -> list['Page','SubmitPage']: return self.ui.pages
+    def pages(self) -> list['UiPage','UiSubmitPage']: return self.ui.pages
     @property
     def num_pages(self) -> int: return self.ui.num_pages
     @property
@@ -87,138 +67,135 @@ class BasePage(Embed, View):
     @num_page.setter
     def num_page(self, num_page : int): self.ui.num_page = num_page
     @property
-    def current_page(self) -> 'BasePage': return self.ui.current_page
+    def current_page(self) -> 'UiPage' | 'UiSubmitPage': return self.ui.current_page
     @property
-    def submit_page(self) -> 'SubmitPage': return self.ui.submit_page
+    def submit_page(self) -> 'UiSubmitPage': return self.ui.submit_page
 
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        logger.debug(f"Checking interaction for extension {self.extension} ({self.ui})")
-        return await super().interaction_check(interaction)
-
-    async def on_error(self, item : Item, interaction : Interaction):
-        await interaction.followup.delete_message(interaction.message.id)
-        logger.error(f"An error occurred in extension {self.extension} ({self.ui}) in item {item}")
-        self.stop()
-
-    async def on_timeout(self):
-        logger.error(f"Extension {self.extension} ({self.ui}) timed out")
-
-class Page(BasePage):
-    def __init__(self, ui : 'UI', extension : str, timeout : int = 180):
-        BasePage.__init__(self, ui, extension, timeout)
-
-        #self.prev_page = Button(label="Back", style=ButtonStyle.secondary, row=4, disabled=(True if self.num_page == 0 else False))
-        #self.prev_page.callback = self.on_prev_page
-        #self.add_item(self.prev_page)
-
-        #self.next_page = Button(label="Next", style=ButtonStyle.primary, row=4, disabled=(True if self.num_page == self.num_pages - 1 else False))
-        #self.next_page.callback = self.on_next_page
-        #self.add_item(self.next_page)
-
-    @button(label="Back", style=ButtonStyle.secondary, row=4)
-    async def on_prev_page(self, button: Button, interaction: Interaction):
-        if self.num_page <= 0: 
-            return
-        
-        self.num_page -= 1
-
-        back_page = self.current_page
-
-        await interaction.response.edit_message(embed=back_page, view=back_page)
-
-    @button(label="Next", style=ButtonStyle.primary, row=4)
-    async def on_next_page(self, button: Button, interaction: Interaction):
-        if self.num_page > self.num_pages: 
-            return
-
-        self.num_page += 1
-
-        next_page = self.current_page
-
-        await interaction.response.edit_message(embed=next_page, view=next_page)
-
-class SubmitPage(BasePage):
-    def __init__(self, 
-            ui : 'UI',
-            extension : str,
-            submit_title : str = "Submit",
-            submit_callback : Callable[[Interaction], None] = None,
-            timeout : int = 180
-        ):
-        BasePage.__init__(self, ui, extension, timeout)
-        self.submit_title = submit_title
-        self._submit_callback = submit_callback
-
-        self.back_button = Button(label="Back", style=ButtonStyle.secondary, row=4, disabled=(True if self.num_pages == 1 else False))
-        self.back_button.callback = self.on_back
+class UiPage(UiBasePage):
+    def __init__(self, ui : 'UI', **kwargs):
+        UiBasePage.__init__(self, ui, **kwargs)
+        self.back_button = self.BackButton(self)
+        self.next_button = self.NextButton(self)
         self.add_item(self.back_button)
+        self.add_item(self.next_button)
+    
+    class BackButton(Button):
+        def __init__(self, page : 'UiPage'):
+            Button.__init__(self, style=ButtonStyle.primary, label="Back", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
+            self.page = page
+        
+        async def callback(self, button: Button, interaction: Interaction):
+            if self.page.num_page <= 0: 
+                return
+        
+            self.page.num_page -= 1
 
-        self.cancel_button = Button(label="Cancel", style=ButtonStyle.danger, row=4)
-        self.cancel_button.callback = self.on_cancel
+            back_page = self.page.current_page
+
+            await interaction.response.edit_message(embed=back_page, view=back_page)
+
+    class NextButton(Button):
+        def __init__(self, page : 'UiPage'):
+            Button.__init__(self, style=ButtonStyle.secondary, label="Back", row=4, disabled=(True if page.num_page == 0 else False))
+            self.page = page
+        
+        async def callback(self, button: Button, interaction: Interaction):
+            if self.page.num_page > self.page.num_pages: 
+                return
+
+            self.page.num_page += 1
+
+            next_page = self.page.current_page
+
+            await interaction.response.edit_message(embed=next_page, view=next_page)
+
+class UiSubmitPage(UiBasePage):
+    def __init__(self, ui : 'UI', **kwargs):
+        UiBasePage.__init__(self, ui, **kwargs)
+        self.submit_title : str = kwargs.get('submit_title', "Submit")
+
+        self.back_button = self.BackButton(self)
+        self.cancel_button = self.CancelButton(self)
+        self.submit_button = self.SubmitButton(self)
+
+        self.add_item(self.back_button)
         self.add_item(self.cancel_button)
-
-        self.submit_button = Button(label=submit_title, style=ButtonStyle.success, row=4)
-        self.submit_button.callback = self.on_submit
         self.add_item(self.submit_button)
 
-    async def on_back(self, interaction : Interaction):
-        if self.num_page <= 0: return
-        
-        self.num_page -= 1
+    class BackButton(Button):
+        def __init__(self, page : 'UiSubmitPage'):
+            Button.__init__(self, style=ButtonStyle.primary, label="Back", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
+            self.page = page
 
-        back_page = self.current_page
+        async def callback(self, interaction : Interaction):
+            if self.page.num_page <= 0: return
+            
+            self.page.num_page -= 1
 
-        await interaction.response.edit_message(embed=back_page, view=back_page)
+            back_page = self.page.current_page
+
+            await interaction.response.edit_message(embed=back_page, view=back_page)
     
-    async def on_cancel(self, interaction : Interaction):
-        try:
-            await interaction.response.defer(ephemeral=True)
+    class CancelButton(Button):
+        def __init__(self, page : 'UiSubmitPage'):
+            Button.__init__(self, style=ButtonStyle.danger, label="Cancel", row=4)
+            self.page = page
 
-            await interaction.delete_original_message()
-        except Exception as e:
-            raise e
+        async def callback(self, interaction : Interaction):
+            try:
+                await interaction.response.defer(ephemeral=True)
 
-    async def on_submit(self, interaction : Interaction):
-        try:
-            if self._submit_callback:
-                await self._submit_callback(interaction)
-            else:
+                await interaction.delete_original_message()
+            except Exception as e:
+                raise e
+
+    class SubmitButton(Button):
+        def __init__(self, page : 'UiSubmitPage'):
+            Button.__init__(self, style=ButtonStyle.success, label=self.page.submit_title, row=4)
+            self.page = page
+
+        async def callback(self, interaction : Interaction):
+            try:
                 self.stop()
-        except Exception as e:
-            raise e
-
+            except Exception as e:
+                raise e
+            
 
 
 class UI(object):
     def __init__(self, 
             bot : Bot,
-            guild : Guild, 
-            extension : str,
+            guild : Guild
         ):
-        self.extension = extension
         self._guild = guild
         self._config = {}
         self._bot = bot
         self._npage = 0
         self._npages = 0
 
-        self._pages : list[Page] = []
-        self._submit_page : SubmitPage = None
+        self._pages : list[tuple[UiPage, dict]] = []
+        self._submit_page : tuple[UiSubmitPage, dict] = None
     
-    def init(self):
+    def init_pages(self, **params):
         if self.num_pages == 0: raise IndexError("No pages")
         for i in range(0,self._npages):
-            self._pages[i] = self._pages[i](self, self.extension)
+            page_params = params
+            page_params.update(self._pages[i][1])
+            self._pages[i] = self._pages[i][0](self, **page_params)
 
-        self._submit_page = self._submit_page(self, self.extension)
+        submit_page_params = params
+        submit_page_params.update(self._submit_page[1])
 
-    def add_pages(self, *pages : Page):
+        
+        self._submit_page = self._submit_page[0](self, **params)
+
+    def add_pages(self, *pages : UiPage, **params):
         for page in pages:
-            self._pages.append(page)
+            self._pages.append((page, params))
             self._npages+=1
 
-    def set_submit_page(self, submit_page : SubmitPage):
-        self._submit_page = submit_page
+    def set_submit_page(self, submit_page : UiSubmitPage, **params):
+        self._submit_page = (submit_page, params)
 
     @property
     def bot(self): return self._bot
@@ -233,7 +210,7 @@ class UI(object):
     def config(self, config : dict): self._config = config
 
     @property
-    def pages(self) -> list[Page | SubmitPage]: return self._pages + [self._submit_page]
+    def pages(self) -> list[UiPage | UiSubmitPage]: return self._pages + [self._submit_page]
 
     @property
     def num_pages(self) -> int: return self._npages + 1
@@ -245,11 +222,11 @@ class UI(object):
     def num_page(self, num_page : int): self._npage = num_page
 
     @property
-    def current_page(self) -> Page | SubmitPage:
+    def current_page(self) -> UiPage | UiSubmitPage:
         if self.num_page > self.num_pages: 
             raise IndexError(f"Page {self.num_page} does not exist")
         
         return self.pages[self.num_page]
 
     @property
-    def submit_page(self) -> SubmitPage: return self._submit_page
+    def submit_page(self) -> UiSubmitPage: return self._submit_page
