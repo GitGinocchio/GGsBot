@@ -66,7 +66,7 @@ import json
 from utils.exceptions import ExtensionException
 from utils.terminal import getlogger
 from utils.db import Database
-from utils.abc import SetupUI
+from utils.abc import UI, UiPage, UiSubmitPage, Page
 from utils.commons import \
     Extensions,           \
     GLOBAL_INTEGRATION,   \
@@ -107,76 +107,87 @@ class GiveawayStore(StrEnum):
 
 hours_select = [SelectOption(label=f'{h:02}:00 ({h if h == 12 else int(h % 12):02}:00 {"PM" if h > 11 else "AM"}) (UTC)', value=h) for h in range(0, 25)]
 
-class GiveawaysUI(SetupUI):
-    giveaway_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayType]
-    store_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayStore]
-    def __init__(self, bot : Bot, guild : Guild):
-        SetupUI.__init__(self, bot, guild, "Add Giveaway Update", self.on_submit,"Setup")
+class GiveawaysSetupUI(UI):
+    def __init__(self, bot :  Bot, guild : Guild):
+        UI.__init__(self, bot, guild)
         self.config = {'channels' : [], 'types' : [], 'stores' : [], 'role' : None, 'api' : Api.GIVEAWAYS.value, 'saved' : {}}
-        self.description = "This command allows you to add an update whenever games for different platforms become free"
+        self.add_pages(self.GiveawayPage)
+        self.set_submit_page(self.GiveawaySubmitPage)
 
-        self.add_field(
-            name="1. Giveaway Channel(s)",
-            value="Select the channel(s) where giveaways will be posted.",
-            inline=False
-        )
-        self.add_field(
-            name="2. Giveaway Type",
-            value="Select the type of giveaway.\n(no choice=all types)",
-            inline=False
-        )
-        self.add_field(
-            name="3. Store",
-            value="Select the game store you would like to giveaways from.\n(no choice=all shops)",
-            inline=False 
-        )
-        
-        self.add_field(
-            name="4. Update Role",
-            value="Select the role that will receive notifications after an update",
-            inline=False
-        )
+    class GiveawayPage(UiPage):
+        giveaway_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayType]
+        store_types = [SelectOption(label=type.value.capitalize(), value=type.value) for type in GiveawayStore]
+        def __init__(self, ui : UI):
+            UiPage.__init__(self, ui)
+            self.description = "This command allows you to add an update whenever games for different platforms become free"
 
-    @channel_select(placeholder="1. Select the channels where giveaways will be posted.",max_values=3, channel_types=[ChannelType.text, ChannelType.news])
-    async def giveaway_channel(self, select: ChannelSelect, interaction : Interaction):
-        self.config['channels'] = ([channel.id for channel in select.values.channels] if len(select.values.channels) > 0 else [])
+            self.add_field(
+                name="1. Giveaway Channel(s)",
+                value="Select the channel(s) where giveaways will be posted.",
+                inline=False
+            )
+            self.add_field(
+                name="2. Giveaway Type",
+                value="Select the type of giveaway.\n(no choice=all types)",
+                inline=False
+            )
+            self.add_field(
+                name="3. Store",
+                value="Select the game store you would like to giveaways from.\n(no choice=all shops)",
+                inline=False 
+            )
+            
+            self.add_field(
+                name="4. Update Role",
+                value="Select the role that will receive notifications after an update",
+                inline=False
+            )
 
-    @string_select(placeholder="2. Select the type of giveaway.", options=giveaway_types, min_values=0,max_values=len(giveaway_types))
-    async def giveaway_type(self, select: StringSelect, interaction : Interaction):
-        self.config['types'] = select.values
+        @channel_select(placeholder="1. Select the channels where giveaways will be posted.",max_values=3, channel_types=[ChannelType.text, ChannelType.news])
+        async def giveaway_channel(self, select: ChannelSelect, interaction : Interaction):
+            self.config['channels'] = ([channel.id for channel in select.values.channels] if len(select.values.channels) > 0 else [])
 
-    @string_select(placeholder="3. Select the game store you would like to giveaways from.", options=store_types, min_values=0,max_values=len(store_types))
-    async def giveaway_store(self, select: StringSelect, interaction : Interaction):
-        self.config['stores'] = select.values
+        @string_select(placeholder="2. Select the type of giveaway.", options=giveaway_types, min_values=0,max_values=len(giveaway_types))
+        async def giveaway_type(self, select: StringSelect, interaction : Interaction):
+            self.config['types'] = select.values
 
-    @role_select(placeholder="4. Select the role that will receive notifications after an update", min_values=0, max_values=1)
-    async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
-        self.config['role'] = select.values[0].id if len(select.values) > 0 else None
+        @string_select(placeholder="3. Select the game store you would like to giveaways from.", options=store_types, min_values=0,max_values=len(store_types))
+        async def giveaway_store(self, select: StringSelect, interaction : Interaction):
+            self.config['stores'] = select.values
 
-    async def on_submit(self, interaction : Interaction):
-        try:
-            assert len(self.config.get('channels',[])) > 0, f'You must set at least one channel for the giveaway.'
-        except AssertionError as e:
-            await interaction.response.send_message(e, ephemeral=True, delete_after=5)
-        except Exception as e:
-            print(e)
-        else:
-            self.stop()
+        @role_select(placeholder="4. Select the role that will receive notifications after an update", min_values=0, max_values=1)
+        async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
+            self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
-class DealsUI(SetupUI):
-    def __init__(self, bot : Bot, guild : Guild, name : str):
-        SetupUI.__init__(self, bot, guild, "Add Deals Update", self.on_submit, "Setup")
+    class GiveawaySubmitPage(UiSubmitPage):
+        def __init__(self, ui : UI):
+            UiSubmitPage.__init__(self, ui)
 
-    async def on_submit(self, interaction : Interaction):
-        pass
+        async def on_submit(self, interaction : Interaction):
+            try:
+                assert len(self.config.get('channels',[])) > 0, f'You must set at least one channel for the giveaway.'
+            except AssertionError as e:
+                await interaction.response.send_message(e, ephemeral=True, delete_after=5)
+            else:
+                self.stop()
 
-class GiveawayGame(Embed, View):
-    def __init__(self, game_data : dict, role : Role | None = None):
-        View.__init__(self)
-        Embed.__init__(self, 
+class DealsSetupUI(UI):
+    def __init__(self, bot : Bot, guild : Guild):
+        UI.__init__(self, bot, guild)
+        self.config = {"channels" : [],"type" : None, "stores" : None, "api" : Api.DEALS.value, "saved" : {}}
+
+    class DealsPage(UiPage):
+        def __init__(self, ui : UI):
+            UiPage.__init__(self, ui)
+
+
+
+class GiveawayGamePage(Page):
+    def __init__(self, game_data : dict, role : Role | None = None): # NOTE: Sostituire role : Role | None = None con role : list[Role] | None = None
+        Page.__init__(self, 
             title=game_data['title'], 
             timestamp=datetime.datetime.now(datetime.UTC),
-            description=f"{role.mention+" " if role else ""}{game_data['description']}",
+            description=f"{game_data['description']}\nMentions: {role.mention if role else ""}",
             url=game_data['gamerpower_url'],
             colour=Colour.green()
         )
@@ -197,13 +208,13 @@ class GiveawayGame(Embed, View):
             self.add_field(name="Expires", value=end_date_str, inline=True)
 
         self.add_field(name="Instructions", value=game_data['instructions'], inline=False)
-        
-        #self.open_giveaway = Button(
-            #label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Beta", 
-            #style=ButtonStyle.link,
-            #url=game_data["open_giveaway"]
-        #)
-        #self.add_item(self.open_giveaway)
+
+        self.open_giveaway = Button(
+            label=("Get Giveaway" if game_data['type'] == "Game" else "Get Loot") if game_data['type'] != "Early Access" else "Get Beta", 
+            style=ButtonStyle.link,
+            url=game_data["open_giveaway"]
+        )
+        self.add_item(self.open_giveaway)
 
         self.view_giveaway = Button(
             label=("View Giveaway" if game_data['type'] == "Game" else "View Loot") if game_data['type'] != "Early Access" else "View Beta", 
@@ -231,6 +242,9 @@ class CheapGames(Cog):
         self.deals : list[dict] = []
         self.bot = bot
 
+        self.gp_baseurl = "https://gamerpower.com"
+        self.cs_baseurl = "https://www.cheapshark.com"
+
     @Cog.listener()
     async def on_ready(self):
         if not self.update_giveaways_and_deals.is_running():
@@ -256,12 +270,14 @@ class CheapGames(Cog):
 
 
             if Api(update_type) == Api.DEALS:
-                ui = DealsUI(self.bot,interaction.guild)
+                ui = DealsSetupUI(self.bot,interaction.guild)
             else:
-                ui = GiveawaysUI(self.bot,interaction.guild)
+                ui = GiveawaysSetupUI(self.bot,interaction.guild)
 
-            message = await interaction.followup.send(embed=ui,view=ui, wait=True)
-            assert not await ui.wait(), f'The configuration process has expired'
+            ui.init_pages()
+
+            message = await interaction.followup.send(embed=ui.current_page,view=ui.current_page, wait=True)
+            assert not await ui.submit_page.wait(), f'The configuration process has expired'
 
             config['updates'][update_name] = ui.config
 
@@ -293,10 +309,6 @@ class CheapGames(Cog):
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
 
-            content_type, content, code, reason = await asyncget("https://gamerpower.com/api/giveaways")
-            assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-            self.giveaways = json.loads(content)
-
             configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
 
             async with self.db:
@@ -313,10 +325,6 @@ class CheapGames(Cog):
         try:
             async with self.db:
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
-
-            content_type, content, code, reason = await asyncget("https://gamerpower.com/api/giveaways")
-            assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-            self.giveaways = json.loads(content)
             
             tasks : list[asyncio.Task] = []
             for guild_id, ext_id, enabled, config in configurations:
@@ -331,12 +339,6 @@ class CheapGames(Cog):
 
             async with self.db:
                 await self.db.editAllExtensionConfig(completed)
-
-            # TODO: 
-            # 1. Creare tante task quanti sono i server (o gli updates) e devono inviare gli embed dei giochi gratuiti ecc.
-            # 2. modificare la configurazioni se bisogna
-            # 3. Fare la query al database (solo alla fine di tutte le task)
-
         except AssertionError as e:
             pass
         except Exception as e:
@@ -359,6 +361,10 @@ class CheapGames(Cog):
         giveaway_channels : list = update_config["channels"]
         giveaway_role_id : int = update_config["role"]
         saved_giveaways : dict = update_config["saved"]
+
+        content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
+        assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
+        self.giveaways = json.loads(content)
 
         guild = self.bot.get_guild(guild_id)
         if guild: role = guild.get_role(giveaway_role_id)
@@ -387,7 +393,7 @@ class CheapGames(Cog):
                 if (channel:=self.bot.get_channel(channel)) is None:
                     continue
 
-                ui = GiveawayGame(game, role)
+                ui = GiveawayGamePage(game, role)
 
                 message = await channel.send(embed=ui, view=ui)
 
@@ -402,10 +408,7 @@ class CheapGames(Cog):
                 break
 
     async def send_deal_update(self, guild_id : int, update_config : dict):
-        baseurl = ""
-
-
-        return ""
+        pass
 
 def setup(bot : Bot):
     bot.add_cog(CheapGames(bot))

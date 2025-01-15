@@ -2,6 +2,7 @@ from nextcord.ext import commands
 from dotenv import load_dotenv
 import traceback
 import nextcord
+import asyncio
 import time
 import os
 
@@ -24,6 +25,8 @@ Bot = commands.Bot(
     application_id=os.environ['APPLICATION_ID'],
     owner_id=os.environ['DEVELOPER_ID']
 )
+
+Bot.loop.set_debug(True if config['logger']['level'] == 'DEBUG' else False)
 
 db = Database(loop=Bot.loop)
 

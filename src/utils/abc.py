@@ -26,7 +26,7 @@ class BasePage(Embed, View):
         )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        logger.debug(f"Checking interaction for page {self}")
+        logger.debug(f"Checking interaction for page {self}:\nGuild:{interaction.guild}\nChannel:{interaction.channel}\nExpires in:{interaction.expires_at}")
         return await super().interaction_check(interaction)
 
     async def on_error(self, item : Item, interaction : Interaction):
@@ -67,47 +67,83 @@ class UiBasePage(BasePage):
     @num_page.setter
     def num_page(self, num_page : int): self.ui.num_page = num_page
     @property
-    def current_page(self) -> 'UiPage' | 'UiSubmitPage': return self.ui.current_page
+    def current_page(self) -> 'UiBasePage': return self.ui.current_page
     @property
-    def submit_page(self) -> 'UiSubmitPage': return self.ui.submit_page
+    def submit_page(self) -> 'UiBasePage': return self.ui.submit_page
 
 class UiPage(UiBasePage):
     def __init__(self, ui : 'UI', **kwargs):
         UiBasePage.__init__(self, ui, **kwargs)
-        self.back_button = self.BackButton(self)
-        self.next_button = self.NextButton(self)
-        self.add_item(self.back_button)
-        self.add_item(self.next_button)
-    
-    class BackButton(Button):
-        def __init__(self, page : 'UiPage'):
-            Button.__init__(self, style=ButtonStyle.primary, label="Back", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
-            self.page = page
-        
-        async def callback(self, button: Button, interaction: Interaction):
-            if self.page.num_page <= 0: 
+        #self.back_button = self.BackButton(self)
+        #self.next_button = self.NextButton(self)
+        #self.add_item(self.back_button)
+        #self.add_item(self.next_button)
+
+    @button(style=ButtonStyle.secondary, label="Back", row=4)
+    async def on_back(self, button: Button, interaction: Interaction):
+        try:
+            if self.num_page <= 0: 
+                await interaction.response.send_message("Already at the first page!", ephemeral=True)
                 return
         
-            self.page.num_page -= 1
+            self.num_page -= 1
 
-            back_page = self.page.current_page
+            back_page = self.current_page
 
             await interaction.response.edit_message(embed=back_page, view=back_page)
+        except Exception as e:
+            raise e
 
-    class NextButton(Button):
+    @button(style=ButtonStyle.primary, label="Next", row=4)
+    async def on_next(self, button: Button, interaction: Interaction):
+        try:
+            if self.num_page > self.num_pages: 
+                await interaction.response.send_message("Already at the last page!", ephemeral=True)
+                return
+
+            self.num_page += 1
+
+            next_page = self.current_page
+
+            await interaction.response.edit_message(embed=next_page, view=next_page)
+        except Exception as e:
+            raise e
+
+    class BackButton(Button):
         def __init__(self, page : 'UiPage'):
             Button.__init__(self, style=ButtonStyle.secondary, label="Back", row=4, disabled=(True if page.num_page == 0 else False))
             self.page = page
         
         async def callback(self, button: Button, interaction: Interaction):
-            if self.page.num_page > self.page.num_pages: 
-                return
+            try:
+                if self.page.num_page <= 0: 
+                    return
+            
+                self.page.num_page -= 1
 
-            self.page.num_page += 1
+                back_page = self.page.current_page
 
-            next_page = self.page.current_page
+                await interaction.response.edit_message(embed=back_page, view=back_page)
+            except Exception as e:
+                raise e
 
-            await interaction.response.edit_message(embed=next_page, view=next_page)
+    class NextButton(Button):
+        def __init__(self, page : 'UiPage'):
+            Button.__init__(self, style=ButtonStyle.primary, label="Next", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
+            self.page = page
+        
+        async def callback(self, button: Button, interaction: Interaction):
+            try:
+                if self.page.num_page > self.page.num_pages: 
+                    return
+
+                self.page.num_page += 1
+
+                next_page = self.page.current_page
+
+                await interaction.response.edit_message(embed=next_page, view=next_page)
+            except Exception as e:
+                raise e
 
 class UiSubmitPage(UiBasePage):
     def __init__(self, ui : 'UI', **kwargs):
@@ -151,7 +187,7 @@ class UiSubmitPage(UiBasePage):
 
     class SubmitButton(Button):
         def __init__(self, page : 'UiSubmitPage'):
-            Button.__init__(self, style=ButtonStyle.success, label=self.page.submit_title, row=4)
+            Button.__init__(self, style=ButtonStyle.success, label=page.submit_title, row=4)
             self.page = page
 
         async def callback(self, interaction : Interaction):
