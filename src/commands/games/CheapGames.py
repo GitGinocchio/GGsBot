@@ -174,7 +174,23 @@ class GiveawaysSetupUI(UI):
 class DealsSetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild):
         UI.__init__(self, bot, guild)
-        self.config = {"channels" : [],"type" : None, "stores" : None, "api" : Api.DEALS.value, "saved" : {}}
+        self.config = {
+            "channels" : [],
+            "type" : None, 
+            "stores" : None, 
+            "api" : Api.DEALS.value, 
+            "saved" : {}, 
+            "slc" : {},
+            "AAA" : False,
+            "steamworks" : False,
+            "onSale" : False,
+            "upperPrice" : 0,
+            "lowerPrice" : 0,
+            "minSteamRating" : 0,
+            "minMetacriticRating" : 0,
+            "steamAppIDs" : "...,...",       # Mostra solo deal relativi a questi App IDs
+            "storeIDs" : ["...","..."]
+        }
 
     class DealsPage(UiPage):
         def __init__(self, ui : UI):
@@ -226,7 +242,7 @@ class GiveawayGamePage(Page):
         self.set_author(name="GamerPower", icon_url="https://www.gamerpower.com/assets/images/logo.png")
         self.set_footer(text=f"Powered by GamerPower", icon_url="https://www.gamerpower.com/assets/images/logo.png")
 
-class CheapGame(Embed, View):
+class CheapGamePage(Page):
     def __init__(self, game_data : dict):
         pass
 
@@ -362,6 +378,8 @@ class CheapGames(Cog):
         giveaway_role_id : int = update_config["role"]
         saved_giveaways : dict = update_config["saved"]
 
+        # NOTE: Quando ottengo i nuovi giveaway non devo sostituirli con quelli precedenti ma aggiungere quelli nuovi alla lista
+
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
         assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
         self.giveaways = json.loads(content)
@@ -408,7 +426,22 @@ class CheapGames(Cog):
                 break
 
     async def send_deal_update(self, guild_id : int, update_config : dict):
+        # NOTE: Per implementare i deals non dovrei tenere conto solo della data di pubblicazione del deal insieme all'id del deal
+        #       Ma dovrei anche tenere in considerazione un enpoint fornito dall'api:
+        #
+        #       https://www.cheapshark.com/api/1.0/stores?lastChange=
+        #
+        #       Endpoint che permette di vedere l'ultima modifica effettuata ad ogni store
+        #       Cosi' da sapere quali store devo andare a controllare per aggiornare i deals
+        #       Inoltre non mi devo limitare ad ottenere i dati dei deals ma devo fare anche:
+        #
+        #       https://www.cheapshark.com/api/1.0/games?id={id}
+        #
+        #       per ottenere dati piu' specifici per ogni negozio
+        #       il parametro onSale deve essere sempre settato su on quando vado a fare le query
+        #       per evitare di ottenere deal che non sono in vendita
+
         pass
 
-def setup(bot : Bot):
+def setup(bot : Bot):#
     bot.add_cog(CheapGames(bot))
