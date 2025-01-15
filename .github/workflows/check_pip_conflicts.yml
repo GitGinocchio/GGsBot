@@ -1,0 +1,22 @@
+name: Python Check Packages Conflicts
+
+on:
+    push:
+        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
+
+jobs:
+  install-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Try installing packages
+        run: |
+          python -m pip install -r requirements.txt || {
+            echo "Error installing packages:"
+            cat $(pip list --format=columns | grep Error)
+            exit 1
+          }
