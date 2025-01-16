@@ -35,7 +35,7 @@ class BasePage(Embed, View):
         self.stop()
 
     async def on_timeout(self):
-        logger.error(f"Page: {self} timed out")
+        logger.warning(f"Page: {self} timed out")
 
 class Page(BasePage):
     def __init__(self, colour : Colour = None, title : 'str' = None, type : EmbedType = 'rich', url : str = None, description : str = None, timestamp : datetime = None):
@@ -160,7 +160,7 @@ class UiSubmitPage(UiBasePage):
 
     class BackButton(Button):
         def __init__(self, page : 'UiSubmitPage'):
-            Button.__init__(self, style=ButtonStyle.primary, label="Back", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
+            Button.__init__(self, style=ButtonStyle.secondary, label="Back", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
             self.page = page
 
         async def callback(self, interaction : Interaction):
@@ -196,6 +196,7 @@ class UiSubmitPage(UiBasePage):
             except Exception as e:
                 raise e
             
+
 
 
 class UI(object):

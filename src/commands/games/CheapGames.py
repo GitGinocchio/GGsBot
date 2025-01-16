@@ -58,7 +58,8 @@ from nextcord.ui import \
     channel_select,     \
     role_select
 
-from enum import StrEnum
+from enum import StrEnum, Enum, IntFlag, Flag, auto
+from functools import reduce
 import datetime
 import asyncio
 import json
@@ -104,6 +105,31 @@ class GiveawayStore(StrEnum):
     ORIGIN =                "origin"
     DRM_FREE =              "drm-free"
     XBOX_360 =              "xbox 360"
+
+class DealStore(Enum):
+    STEAM =                 (1,  "Steam")
+    GAMERSGATE =            (2,  "Gamers Gate")
+    GREENMANGAMING =        (3,  "Green Man Gaming")
+    AMAZON =                (4,  "Amazon")
+    GAMESTOP =              (5,  "GameStop")
+    DIRECT2DRIVE =          (6,  "Direct 2 Drive")
+    GOG =                   (7,  "GoG")
+    ORIGIN =                (8,  "Origin")
+    GETGAMES =              (9,  "Get Games")
+    SHINYLOOT =             (10, "Shiny Loot")
+    HUMBLESTORE =           (11, "Humble Store")
+    DESURA =                (12, "Desura")
+    UPLAY =                 (13, "Uplay")
+    INDIEGAMESTAND =        (14, "Indie Games Stand")
+    FANATICAL =             (15, "Fanatical")
+    GAMESROCKET =           (16, "Games Rocket")
+    GAMESREPUBLIC =         (17, "Games Republic")
+    SILAGAMES =             (18, "Sila Games")
+    PLAYFIELD =             (19, "Play Field")
+    EPICGAMESTORE =         (25, "Epic Games Store")
+    RAZERGAMESTORE =        (26, "Razer Games Store")
+    INDIEGALA =             (30, "IndieGala")
+    BLIZZARDSHOP =          (31, "Blizzard Shop")
 
 hours_select = [SelectOption(label=f'{h:02}:00 ({h if h == 12 else int(h % 12):02}:00 {"PM" if h > 11 else "AM"}) (UTC)', value=h) for h in range(0, 25)]
 
@@ -176,27 +202,114 @@ class DealsSetupUI(UI):
         UI.__init__(self, bot, guild)
         self.config = {
             "channels" : [],
-            "type" : None, 
-            "stores" : None, 
-            "api" : Api.DEALS.value, 
-            "saved" : {}, 
-            "slc" : {},
-            "AAA" : False,
+            "saved" : {},
+            "shoplastchange" : {},
+            "api" : Api.DEALS.value,
+
+            "stores" : [store.name for store in DealStore],
+            "AAA" : True,
             "steamworks" : False,
-            "onSale" : False,
-            "upperPrice" : 0,
+            
+            "upperPrice" : 50,
             "lowerPrice" : 0,
             "minSteamRating" : 0,
             "minMetacriticRating" : 0,
-            "steamAppIDs" : "...,...",       # Mostra solo deal relativi a questi App IDs
-            "storeIDs" : ["...","..."]
         }
 
-    class DealsPage(UiPage):
+        self.add_pages(self.DealSettingsPage, self.DealConditionsPage)
+        self.set_submit_page(self.DealSubmitPage)
+
+    class DealSettingsPage(UiPage):
+        availables_stores = [SelectOption(label=store.value[1], value=store.name) for store in DealStore]
+        boolean_options = [SelectOption(label=option, value=(True if option == "Yes" else False)) for option in ["Yes","No"]]
+
         def __init__(self, ui : UI):
             UiPage.__init__(self, ui)
+            self.title = "Deal Types"
+            self.description = "Choose the game types or game stores you would like to get deals from."
 
+            self.add_field(
+                name="1. Deals Stores",
+                value="Select the game store you would like to get deals from.\n(no choice=all shops)",
+                inline=False
+            )
 
+            self.add_field(
+                name="2. Triple A Games",
+                value="Select whether you want to include triple A games in deals.\n(no choice=Yes)",
+                inline=False
+            )
+
+            self.add_field(
+                name="3. Steam redeemable games",
+                value="Select whether you want to include only Steam redeemable games deals.\n(no choice=No)",
+                inline=False
+            )
+
+        @string_select(placeholder="1. Deals Stores", options=availables_stores, min_values=0, max_values=len(availables_stores))
+        async def select_deals_store(self, select: StringSelect, interaction : Interaction):
+            self.config["storeIDs"] = select.values
+
+        @string_select(placeholder="2. Triple A Games", options=boolean_options, min_values=0)
+        async def select_triple_a_games(self, select: StringSelect, interaction : Interaction):
+            self.config['AAA'] = (True if select.values[0] == 'True' else False) if len(select.values) > 0 else True
+
+        @string_select(placeholder="3. Steam Redeemable games", options=boolean_options, min_values=0)
+        async def select_steam_redeemable_games(self, select: StringSelect, interaction : Interaction):
+            self.config['steamworks'] = (True if select.values[0] == 'True' else False) if len(select.values) > 0 else False
+
+    class DealConditionsPage(UiPage):
+        def __init__(self, ui : UI):
+            UiPage.__init__(self, ui)
+            self.title = "Game Conditions"
+            self.description = "Choose the conditions for your game deals."
+
+            self.add_field(
+                name="1. Upper Price",
+                value="Only returns deals with a price less than or equal to this value\n(no choice = no limit = 50)",
+                inline=False
+            )
+
+            self.add_field(
+                name="2. Lower Price",
+                value="Only returns deals with a price greater than this value\n(no choice = 0)",
+                inline=False
+            )
+
+            self.add_field(
+                name="3. Minimum Steam Rating",
+                value="Only returns deals with a Steam rating percentage greater than this value\n(no choice = 0)",
+                inline=False
+            )
+
+            self.add_field(
+                name="3. Minimum Metacritic Rating",
+                value="Only returns deals with a metacritic rating percentage greater than this value\n(no choice = 0)",
+                inline=False
+            )
+
+        @string_select(placeholder="1. Upper Price", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
+        async def select_upper_price(self, select : StringSelect, interaction : Interaction):
+            self.config['upperPrice'] = select.values[0] if len(select.values) > 0 else "50"
+
+        @string_select(placeholder="1. Lower Price", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
+        async def select_lower_price(self, select : StringSelect, interaction : Interaction):
+            self.config['lowerPrice'] = select.values[0] if len(select.values) > 0 else "0"
+
+        @string_select(placeholder="1. Minimum Steam Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        async def select_min_steam_rating(self, select : StringSelect, interaction : Interaction):
+            self.config['minSteamRating'] = select.values[0] if len(select.values) > 0 else "0"
+
+        @string_select(placeholder="1. Minimum Metacritic Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        async def select_min_metacritic_rating(self, select : StringSelect, interaction : Interaction):
+            self.config['minMetacriticRating'] = select.values[0] if len(select.values) > 0 else "0"
+
+    class DealSubmitPage(UiSubmitPage):
+        def __init__(self, ui : UI):
+            UiSubmitPage.__init__(self, ui)
+
+        async def on_submit(self, interaction : Interaction):
+            self.stop()
 
 class GiveawayGamePage(Page):
     def __init__(self, game_data : dict, role : Role | None = None): # NOTE: Sostituire role : Role | None = None con role : list[Role] | None = None
@@ -254,6 +367,9 @@ class CheapGames(Cog):
     def __init__(self, bot: Bot):
         Cog.__init__(self)
         self.db = Database()
+
+        self.deal_shops = {}
+
         self.giveaways : list[dict] = []
         self.deals : list[dict] = []
         self.bot = bot
@@ -263,8 +379,21 @@ class CheapGames(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        if not self.update_giveaways_and_deals.is_running():
-            self.update_giveaways_and_deals.start()
+        try:
+            content_type, content, code, reason = await asyncget(f"{self.cs_baseurl}/api/1.0/stores")
+            assert content_type == 'application/json' and code == 200, f'Error while fetching {self.cs_baseurl} stores (code: {code}): {reason}'
+
+            stores : list[dict] = json.loads(content)
+
+            for store in stores:
+                if store["isActive"]:
+                    self.deal_shops[store["storeName"]] = store['storeID']
+
+            if not self.update_giveaways_and_deals.is_running():
+                self.update_giveaways_and_deals.start()
+
+        except AssertionError as e:
+            logger.error(e)
 
     @slash_command(description="Set of commands to create updates whenever a game is on sale or becomes free", default_member_permissions=permissions, integration_types=GUILD_INTEGRATION)
     async def cheapgames(self, interaction : Interaction): pass
@@ -440,6 +569,7 @@ class CheapGames(Cog):
         #       per ottenere dati piu' specifici per ogni negozio
         #       il parametro onSale deve essere sempre settato su on quando vado a fare le query
         #       per evitare di ottenere deal che non sono in vendita
+
 
         pass
 
