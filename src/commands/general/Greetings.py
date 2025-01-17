@@ -24,9 +24,13 @@ class Greetings(commands.Cog):
     async def on_member_join(self, member : nextcord.Member):
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+                config, enabled = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+
+            if not enabled: return
+
+            if not (welcome_channel_id:=config.get('welcome_channel', None)): return
         
-            channel = self.bot.get_channel(config['welcome_channel'])
+            channel = self.bot.get_channel(welcome_channel_id)
             embed = Embed(
                 title='Welcome!',
                 description=f'Welcome to {member.name}, {member.mention} Enjoy your stay and feel free to look around!',
@@ -43,9 +47,13 @@ class Greetings(commands.Cog):
     async def on_member_remove(self, member : nextcord.Member):
         try:
             async with self.db:
-                config = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
-        
-            channel = self.bot.get_channel(config['goodbye_channel'])
+                config, enabled = await self.db.getExtensionConfig(member.guild,Extensions.GREETINGS)
+
+            if not enabled: return
+
+            if not (goodbye_channel_id:=config.get('goodbye_channel', None)): return
+
+            channel = self.bot.get_channel(goodbye_channel_id)
             embed = Embed(
                 title='Goodbye!',
                 description=f'Goodbye to {member.name}, {member.mention} we\'re sorry to see you go, we hope you\'ll be back soon!',

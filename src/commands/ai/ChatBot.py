@@ -178,7 +178,7 @@ class ChatBot(commands.Cog):
 
         except (SlashCommandException, ExtensionException) as e:
             await interaction.followup.send(embed=e.asEmbed())
-            logger.log(e)
+            logger.error(e)
 
     @commands.Cog.listener()
     async def on_message(self, message : Message):
@@ -283,7 +283,7 @@ class ChatBot(commands.Cog):
 
         except AssertionError as e: pass
         except Exception as e:
-            print(e)
+            logger.error(e)
 
 def setup(bot: commands.Bot):
     bot.add_cog(ChatBot(bot))
