@@ -58,7 +58,7 @@ from nextcord.ui import \
     channel_select,     \
     role_select
 
-from enum import StrEnum, Enum, IntFlag, Flag, auto
+from enum import StrEnum, Enum
 from functools import reduce
 import datetime
 import asyncio
@@ -198,13 +198,14 @@ class GiveawaysSetupUI(UI):
                 self.stop()
 
 class DealsSetupUI(UI):
-    def __init__(self, bot : Bot, guild : Guild):
+    def __init__(self, bot : Bot, guild : Guild, shops_lastchange : dict = {}):
         UI.__init__(self, bot, guild)
         self.config = {
             "channels" : [],
             "saved" : {},
-            "shoplastchange" : {},
+            "shoplastchange" : shops_lastchange,
             "api" : Api.DEALS.value,
+            "role" : None,
 
             "stores" : [store.name for store in DealStore],
             "AAA" : True,
@@ -216,7 +217,7 @@ class DealsSetupUI(UI):
             "minMetacriticRating" : 0,
         }
 
-        self.add_pages(self.DealSettingsPage, self.DealConditionsPage)
+        self.add_pages(self.DealSettingsPage, self.DealConditionsPage, self.DealGuildSettingsPage)
         self.set_submit_page(self.DealSubmitPage)
 
     class DealSettingsPage(UiPage):
@@ -283,7 +284,7 @@ class DealsSetupUI(UI):
             )
 
             self.add_field(
-                name="3. Minimum Metacritic Rating",
+                name="4. Minimum Metacritic Rating",
                 value="Only returns deals with a metacritic rating percentage greater than this value\n(no choice = 0)",
                 inline=False
             )
@@ -292,21 +293,48 @@ class DealsSetupUI(UI):
         async def select_upper_price(self, select : StringSelect, interaction : Interaction):
             self.config['upperPrice'] = select.values[0] if len(select.values) > 0 else "50"
 
-        @string_select(placeholder="1. Lower Price", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
+        @string_select(placeholder="2. Lower Price", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
         async def select_lower_price(self, select : StringSelect, interaction : Interaction):
             self.config['lowerPrice'] = select.values[0] if len(select.values) > 0 else "0"
 
-        @string_select(placeholder="1. Minimum Steam Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        @string_select(placeholder="3. Minimum Steam Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
         async def select_min_steam_rating(self, select : StringSelect, interaction : Interaction):
             self.config['minSteamRating'] = select.values[0] if len(select.values) > 0 else "0"
 
-        @string_select(placeholder="1. Minimum Metacritic Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        @string_select(placeholder="4. Minimum Metacritic Rating", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
         async def select_min_metacritic_rating(self, select : StringSelect, interaction : Interaction):
             self.config['minMetacriticRating'] = select.values[0] if len(select.values) > 0 else "0"
+
+    class DealGuildSettingsPage(UiPage):
+        def __init__(self, ui : UI):
+            UiPage.__init__(self, ui)
+            self.title = "Guild Settings"
+            self.description = "Choose where deals messages will be sent and who will be mentioned"
+
+            self.add_field(
+                name="1. Deals Channel(s)",
+                value="Select the channel(s) where deals will be posted.",
+                inline=False
+            )
+
+            self.add_field(
+                name="2. Update Role",
+                value="Select the role that will receive notifications after an update",
+                inline=False
+            )
+
+        @channel_select(placeholder="1. Select the channels where giveaways will be posted.",max_values=3, channel_types=[ChannelType.text, ChannelType.news])
+        async def giveaway_channel(self, select: ChannelSelect, interaction : Interaction):
+            self.config['channels'] = ([channel.id for channel in select.values.channels] if len(select.values.channels) > 0 else [])
+
+        @role_select(placeholder="2. Select the role that will receive notifications after an update", min_values=0, max_values=1)
+        async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
+            self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
     class DealSubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
             UiSubmitPage.__init__(self, ui)
+            self.submit_button.callback = self.on_submit
 
         async def on_submit(self, interaction : Interaction):
             self.stop()
@@ -380,15 +408,6 @@ class CheapGames(Cog):
     @Cog.listener()
     async def on_ready(self):
         try:
-            content_type, content, code, reason = await asyncget(f"{self.cs_baseurl}/api/1.0/stores")
-            assert content_type == 'application/json' and code == 200, f'Error while fetching {self.cs_baseurl} stores (code: {code}): {reason}'
-
-            stores : list[dict] = json.loads(content)
-
-            for store in stores:
-                if store["isActive"]:
-                    self.deal_shops[store["storeName"]] = store['storeID']
-
             if not self.update_giveaways_and_deals.is_running():
                 self.update_giveaways_and_deals.start()
 
@@ -410,12 +429,17 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
 
-
             assert update_name not in config["updates"], f'Update  with name \'{update_name}\' already exists'
 
-
             if Api(update_type) == Api.DEALS:
-                ui = DealsSetupUI(self.bot,interaction.guild)
+                content_type, content, code, reason = await asyncget("https://www.cheapshark.com/api/1.0/stores?lastChange=")
+                if content_type == 'application/json' or code == 200:
+                    shops_lastchange = json.loads(content)
+                else:
+                    logger.error(f'Failed to get stores last changes: {reason}')
+                    shops_lastchange = {}
+
+                ui = DealsSetupUI(self.bot,interaction.guild, shops_lastchange)
             else:
                 ui = GiveawaysSetupUI(self.bot,interaction.guild)
 
@@ -430,10 +454,8 @@ class CheapGames(Cog):
                 await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, config)
 
         except AssertionError as e:
-            if message: 
-                await message.edit(e, view=None, embed=None)
-            else:
-                await interaction.followup.send(e, ephemeral=True)
+            await message.delete()
+            await interaction.followup.send(e, ephemeral=True)
         else:
             await message.edit(f"{update_type.capitalize()} update named \'{update_name}\' added successfully!", view=None, embed=None)
 
