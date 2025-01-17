@@ -30,7 +30,7 @@ multidict==6.1.0
 mutagen==1.47.0
 nextcord==3.0.1
 numpy==2.2.1
-pillow==10.4.0
+pillow==11.1.0
 propcache==0.2.1
 pycparser==2.22
 pycryptodomex==3.21.0
