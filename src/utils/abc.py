@@ -1,9 +1,10 @@
 from nextcord.ext.commands import Bot
-from nextcord import Embed, Interaction, Guild, Colour, ButtonStyle
+from nextcord import Embed, Interaction, Guild, Colour, ButtonStyle, Emoji, PartialEmoji
 from nextcord.ui import View, Item, Button, button
 from nextcord.types.embed import EmbedType
 from datetime import datetime, timezone
 from typing import Callable, Type
+from functools import wraps
 
 from .terminal import getlogger
 
@@ -45,64 +46,101 @@ class Page(BasePage):
 
 # Buttons
 
-class BackButton(Button):
-    def __init__(self, page : 'UiPage'):
-        Button.__init__(self, style=ButtonStyle.secondary, label="Back", row=4) #disabled=(True if page.num_page == 0 else False))
+class UiBaseButton(Button):
+    def __init__(self, 
+        page : 'UiPage', 
+        *, 
+        style: ButtonStyle = ButtonStyle.secondary,
+        label: str | None = None,
+        disabled: bool = False,
+        custom_id: str | None = None,
+        url: str | None = None,
+        emoji: str | Emoji | PartialEmoji | None = None,
+        row: int | None = None,
+        callback : Callable[[Interaction], None] | None = None
+    ):
+        Button.__init__(self, style=style, label=label, disabled=disabled, custom_id=custom_id, url=url, emoji=emoji, row=row)
+        if callback: self.callback = callback
         self.page = page
-    
-    async def callback(self, interaction: Interaction):
+
+def on_back_button(func : Callable[['UiBasePage', Interaction], bool | None]):
+    @wraps(func)
+    async def wrapper(self : 'UiBasePage', interaction: Interaction):
         try:
-            if self.page.num_page <= 0:
+            result : bool | None = await func(self, interaction)
+            
+            if (isinstance(result, bool) and not result) or result != None:
+                return
+
+            if self.num_page <= 0:
                 await interaction.response.send_message("This is the first page!",ephemeral=True)
                 return
         
-            self.page.num_page -= 1
+            self.num_page -= 1
 
-            back_page = self.page.current_page
+            back_page = self.current_page
 
             await interaction.response.edit_message(embed=back_page, view=back_page)
         except Exception as e:
             raise e
 
-class NextButton(Button):
-    def __init__(self, page : 'UiPage'):
-        Button.__init__(self, style=ButtonStyle.primary, label="Next", row=4, disabled=(True if page.num_page == page.num_pages - 1 else False))
-        self.page = page
+    return wrapper
 
-    async def callback(self, interaction: Interaction):
+def on_next_button(func : Callable[['UiBasePage', Interaction], bool | None]):
+    @wraps(func)
+    async def wrapper(self : 'UiBasePage', interaction: Interaction):
         try:
-            if self.page.num_page > self.page.num_pages:
-                await interaction.response.send_message("This is the last page!",ephemeral=True)
+            result : bool | None = await func(self, interaction)
+            
+            if (isinstance(result, bool) and not result) or result != None:
                 return
 
-            self.page.num_page += 1
+            if self.num_page > self.num_pages:
+                await interaction.response.send_message("This is the last page!", ephemeral=True)
+                return
 
-            next_page = self.page.current_page
+            self.num_page += 1
+
+            next_page = self.current_page
 
             await interaction.response.edit_message(embed=next_page, view=next_page)
         except Exception as e:
             raise e
 
-class CancelButton(Button):
-    def __init__(self, page : 'UiSubmitPage'):
-        Button.__init__(self, style=ButtonStyle.danger, label="Cancel", row=4)
-        self.page = page
+    return wrapper
 
-    async def callback(self, interaction : Interaction):
+def on_cancel_button(func : Callable[['UiBasePage', Interaction], bool | None]):
+    @wraps(func)
+    async def wrapper(self : 'UiBasePage', interaction: Interaction):
         try:
+            result : bool | None = await func(self, interaction)
+            
+            if (isinstance(result, bool) and not result) or result != None:
+                return
+
             await interaction.response.defer(ephemeral=True)
 
             await interaction.delete_original_message()
         except Exception as e:
             raise e
 
-class SubmitButton(Button):
-    def __init__(self, page : 'UiSubmitPage'):
-        Button.__init__(self, style=ButtonStyle.success, label="Submit", row=4)
-        self.page = page
+    return wrapper
 
-    async def callback(self, interaction : Interaction):
-        self.page.stop()
+def on_submit_button(func : Callable[['UiBasePage', Interaction], bool | None]):
+    @wraps(func)
+    async def wrapper(self : 'UiBasePage', interaction: Interaction):
+        try:
+            result : bool | None = await func(self, interaction)
+            
+            if (isinstance(result, bool) and not result) or result != None:
+                return
+            
+            if not self.is_finished():
+                self.stop()
+        except Exception as e:
+            raise e
+
+    return wrapper
 
 # Ui Pages
 
@@ -137,25 +175,76 @@ class UiBasePage(BasePage):
 class UiPage(UiBasePage):
     def __init__(self, ui : 'UI', **kwargs):
         UiBasePage.__init__(self, ui, **kwargs)
-        self.back_button = BackButton(self)
-        self.cancel_button = CancelButton(self)
-        self.next_button = NextButton(self)
-        self.add_item(self.back_button)
-        self.add_item(self.cancel_button)
-        self.add_item(self.next_button)
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.secondary, 
+            label="Back", 
+            row=4, 
+            callback=self.on_back
+        ))
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.danger, 
+            label="Cancel", 
+            row=4, 
+            callback=self.on_cancel
+        ))
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.primary, 
+            label="Next", 
+            row=4, 
+            callback=self.on_next
+        ))
+
+    @on_back_button
+    async def on_back(self, interaction : Interaction):
+        """Callback for the back button. This can be overrided."""
+
+    @on_cancel_button
+    async def on_cancel(self, interaction : Interaction):
+        """Callback for the cancel button. This can be overrided."""
+
+    @on_next_button
+    async def on_next(self, interaction : Interaction):
+        """Callback for the next button. This can be overrided."""
 
 class UiSubmitPage(UiBasePage):
     def __init__(self, ui : 'UI', **kwargs):
         UiBasePage.__init__(self, ui, **kwargs)
-        self.submit_title : str = kwargs.get('submit_title', "Submit")
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.secondary, 
+            label="Back", 
+            row=4, 
+            callback=self.on_back
+        ))
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.danger, 
+            label="Cancel", 
+            row=4, 
+            callback=self.on_cancel
+        ))
+        self.add_item(UiBaseButton(
+            self, 
+            style=ButtonStyle.success, 
+            label=kwargs.get('submit_title', "Submit"), 
+            row=4, 
+            callback=self.on_submit
+        ))
 
-        self.back_button = BackButton(self)
-        self.cancel_button = CancelButton(self)
-        self.submit_button = SubmitButton(self)
+    @on_back_button
+    async def on_back(self, interaction : Interaction):
+        """Callback for the back button. This can be overrided."""
 
-        self.add_item(self.back_button)
-        self.add_item(self.cancel_button)
-        self.add_item(self.submit_button)
+    @on_cancel_button
+    async def on_cancel(self, interaction : Interaction):
+        """Callback for the cancel button. This can be overrided."""
+
+    @on_submit_button
+    async def on_submit(self, interaction : Interaction):
+        """Callback for the submit button. This can be overrided."""
 
 # Ui 
 
