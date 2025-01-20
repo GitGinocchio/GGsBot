@@ -29,7 +29,7 @@ class BasePage(Embed, View):
         )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        logger.debug(f"Checking interaction for page {self}:\nGuild:{interaction.guild}\nChannel:{interaction.channel}\nExpires in:{interaction.expires_at}")
+        #logger.debug(f"Checking interaction for page {self}:\nGuild:{interaction.guild}\nChannel:{interaction.channel}\nExpires in:{interaction.expires_at}")
         return await super().interaction_check(interaction)
 
     async def on_error(self, item : Item, interaction : Interaction):
@@ -38,11 +38,31 @@ class BasePage(Embed, View):
         self.stop()
 
     async def on_timeout(self):
-        logger.warning(f"Page: {self} timed out")
+        logger.debug(f"Page: {self} timed out")
 
 class Page(BasePage):
-    def __init__(self, colour : Colour = None, title : 'str' = None, type : EmbedType = 'rich', url : str = None, description : str = None, timestamp : datetime = None):
-        BasePage.__init__(self,colour=colour,title=title,type=type,url=url,description=description,timestamp=timestamp)
+    def __init__(self, 
+        colour : Colour = None, 
+        title : 'str' = None, 
+        type : EmbedType = 'rich', 
+        url : str = None, 
+        description : str = None, 
+        timestamp : datetime = None,
+        timeout : float = 180,
+        auto_defer : bool = True,
+        prevent_update : bool = True
+    ):
+        BasePage.__init__(self,
+            colour=colour,
+            title=title,
+            type=type,
+            url=url,
+            description=description,
+            timestamp=timestamp,
+            timeout=timeout,
+            auto_defer=auto_defer,
+            prevent_update=prevent_update
+        )
 
 # Buttons
 
@@ -189,6 +209,7 @@ class UiPage(UiBasePage):
             row=4, 
             callback=self.on_cancel
         ))
+
         self.add_item(UiBaseButton(
             self, 
             style=ButtonStyle.primary, 

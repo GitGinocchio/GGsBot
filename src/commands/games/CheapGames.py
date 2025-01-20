@@ -128,10 +128,19 @@ class DealStore(Enum):
     GAMESREPUBLIC =         (17, "Games Republic")
     SILAGAMES =             (18, "Sila Games")
     PLAYFIELD =             (19, "Play Field")
+    IMPERIALGAMES =         (20, "Imperial Games")
+    WINGAMESTORE =          (21, "Win Game Store")
+    FUNSTOCKDIGITAL =       (22, "Fun Stock Digital")
+    GAMEBILLET =            (23, "Game Billet")
+    VOIDU =                 (24, "Voidu")
     EPICGAMESTORE =         (25, "Epic Games Store")
     RAZERGAMESTORE =        (26, "Razer Games Store")
     INDIEGALA =             (30, "IndieGala")
     BLIZZARDSHOP =          (31, "Blizzard Shop")
+    ALLYOUPLAY =            (32, "All You Play")
+    DLGAMER =               (33, "DL Gamer")
+    NOCTRE =                (34, "Noctre")
+    DREAMGAME =             (35, "DreamGame")
 
 hours_select = [SelectOption(label=f'{h:02}:00 ({h if h == 12 else int(h % 12):02}:00 {"PM" if h > 11 else "AM"}) (UTC)', value=h) for h in range(0, 25)]
 
@@ -189,19 +198,16 @@ class GiveawaysSetupUI(UI):
         async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
             self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
+        async def on_next(self, interaction : Interaction):
+            if len(self.config.get('channels', [])) == 0: 
+                await interaction.response.send_message("You must set at least one Deal Channel.", ephemeral=True, delete_after=5)
+                return
+            
+            await super().on_next(self, interaction)
+
     class GiveawaySubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
             UiSubmitPage.__init__(self, ui)
-
-        async def on_submit(self, interaction : Interaction):
-            try:
-                if len(self.config.get('channels', [])) == 0: 
-                    raise ValueError('You must set at least one channel for the giveaway.')
-            except ValueError as e:
-                await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
-                return False
-            else:
-                return True
 
 class DealsSetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild):
@@ -213,7 +219,8 @@ class DealsSetupUI(UI):
             "api" : Api.DEALS.value,
             "role" : None,
 
-            "stores" : [store.name for store in DealStore],
+            "storeIDs1" : [],
+            "storeIDs2" : [],
             "AAA" : True,
             "steamworks" : False,
             
@@ -227,7 +234,7 @@ class DealsSetupUI(UI):
         self.set_submit_page(self.DealSubmitPage)
 
     class DealSettingsPage(UiPage):
-        availables_stores = [SelectOption(label=store.value[1], value=store.name) for store in DealStore]
+        availables_stores = [SelectOption(label=store.value[1], value=store.value[0]) for store in DealStore]
         boolean_options = [SelectOption(label=option, value=(True if option == "Yes" else False)) for option in ["Yes","No"]]
 
         def __init__(self, ui : UI):
@@ -237,6 +244,12 @@ class DealsSetupUI(UI):
 
             self.add_field(
                 name="1. Deals Stores",
+                value="Select the game store you would like to get deals from.",
+                inline=False
+            )
+
+            self.add_field(
+                name="1. Other Deals Stores",
                 value="Select the game store you would like to get deals from.",
                 inline=False
             )
@@ -253,15 +266,19 @@ class DealsSetupUI(UI):
                 inline=False
             )
 
-        @string_select(placeholder="1. Deals Stores [Optional] (no choice=all shops)", options=availables_stores, min_values=0, max_values=len(availables_stores))
+        @string_select(placeholder="1. Deals Stores [Optional] (no choice=all shops)", options=availables_stores[0:24], min_values=0, max_values=len(availables_stores[0:24]))
         async def select_deals_store(self, select: StringSelect, interaction : Interaction):
-            self.config["storeIDs"] = select.values
+            self.config['storeIDs1'] = [int(value) for value in select.values]
 
-        @string_select(placeholder="2. Triple A Games [Optional] (no choice=Yes)", options=boolean_options, min_values=0)
+        @string_select(placeholder="2. Other Deals Stores [Optional] (no choice=all shops)", options=availables_stores[24::], min_values=0, max_values=len(availables_stores[24::]))
+        async def select_other_deals_store(self, select: StringSelect, interaction : Interaction):
+            self.config['storeIDs2'] = [int(value) for value in select.values]
+
+        @string_select(placeholder="3. Triple A Games [Optional] (no choice=Yes)", options=boolean_options, min_values=0)
         async def select_triple_a_games(self, select: StringSelect, interaction : Interaction):
             self.config['AAA'] = (True if select.values[0] == 'True' else False) if len(select.values) > 0 else True
 
-        @string_select(placeholder="3. Steam Redeemable games [Optional] (no choice=No)", options=boolean_options, min_values=0)
+        @string_select(placeholder="4. Steam Redeemable games [Optional] (no choice=No)", options=boolean_options, min_values=0)
         async def select_steam_redeemable_games(self, select: StringSelect, interaction : Interaction):
             self.config['steamworks'] = (True if select.values[0] == 'True' else False) if len(select.values) > 0 else False
 
@@ -295,21 +312,28 @@ class DealsSetupUI(UI):
                 inline=False
             )
 
-        @string_select(placeholder="1. Upper Price [Optional] (no choice = no limit = 50)", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
+        @string_select(placeholder="1. Upper Price [Optional] (no choice = no limit = 50)", min_values=0, options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
         async def select_upper_price(self, select : StringSelect, interaction : Interaction):
-            self.config['upperPrice'] = select.values[0] if len(select.values) > 0 else "50"
+            self.config['upperPrice'] = int(select.values[0]) if len(select.values) > 0 else 50
 
-        @string_select(placeholder="2. Lower Price [Optional] (no choice = 0)", options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
+        @string_select(placeholder="2. Lower Price [Optional] (no choice = 0)", min_values=0, options=[SelectOption(label=value, value=value) for value in range(0, 50, 2)])
         async def select_lower_price(self, select : StringSelect, interaction : Interaction):
-            self.config['lowerPrice'] = select.values[0] if len(select.values) > 0 else "0"
+            self.config['lowerPrice'] = int(select.values[0]) if len(select.values) > 0 else 0
 
-        @string_select(placeholder="3. Minimum Steam Rating [Optional] (no choice = 0)", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        @string_select(placeholder="3. Minimum Steam Rating [Optional] (no choice = 0)", min_values=0, options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
         async def select_min_steam_rating(self, select : StringSelect, interaction : Interaction):
-            self.config['minSteamRating'] = select.values[0] if len(select.values) > 0 else "0"
+            self.config['minSteamRating'] = int(select.values[0]) if len(select.values) > 0 else 0
 
-        @string_select(placeholder="4. Minimum Metacritic Rating [Optional] (no choice = 0)", options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
+        @string_select(placeholder="4. Minimum Metacritic Rating [Optional] (no choice = 0)", min_values=0, options=[SelectOption(label=value, value=value) for value in range(0, 100, 4)])
         async def select_min_metacritic_rating(self, select : StringSelect, interaction : Interaction):
-            self.config['minMetacriticRating'] = select.values[0] if len(select.values) > 0 else "0"
+            self.config['minMetacriticRating'] = int(select.values[0]) if len(select.values) > 0 else 0
+
+        async def on_next(self, interaction : Interaction):
+            if self.config['lowerPrice'] > self.config['upperPrice']:
+                await interaction.response.send_message("The lower price must be less than or equal to the upper price.", ephemeral=True, delete_after=5)
+                return
+
+            await super().on_next(interaction)
 
     class DealGuildSettingsPage(UiPage):
         def __init__(self, ui : UI):
@@ -337,19 +361,16 @@ class DealsSetupUI(UI):
         async def giveaway_role(self, select: RoleSelect, interaction : Interaction):
             self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
+        async def on_next(self, interaction : Interaction):
+            if len(self.config.get('channels', [])) == 0: 
+                await interaction.response.send_message("You must set at least one Deal Channel.", ephemeral=True, delete_after=5)
+                return
+            
+            await super().on_next(interaction)
+
     class DealSubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
             UiSubmitPage.__init__(self, ui)
-
-        async def on_submit(self, interaction : Interaction):
-            try:
-                if len(self.config.get('channels', [])) == 0: 
-                    raise ValueError('You must set at least one channel.')
-            except ValueError as e:
-                await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
-                return False
-            else:
-                return True
 
 # Game Pages
 
@@ -360,7 +381,8 @@ class GiveawayGamePage(Page):
             timestamp=datetime.datetime.now(datetime.UTC),
             description=f"{game_data['description']}\nMentions: {role.mention if role else ""}",
             url=game_data['gamerpower_url'],
-            colour=Colour.green()
+            colour=Colour.green(),
+            timeout=0
         )
         self.set_image(url=game_data['image'])
         self.add_field(name="Platform(s)", value=game_data['platforms'], inline=True)
@@ -398,10 +420,71 @@ class GiveawayGamePage(Page):
         self.set_footer(text=f"Powered by GamerPower", icon_url="https://www.gamerpower.com/assets/images/logo.png")
 
 class CheapGamePage(Page):
-    def __init__(self, game_data : dict, role : Role | None = None):
+    def __init__(self, deal_data : dict, role : Role | None = None):
         Page.__init__(self, 
-            colour=Colour.green()
+            colour=Colour.green(),
+            title=deal_data['title'],
+            url=f"https://www.cheapshark.com/redirect?dealID={deal_data['dealID']}",
+            description=f"{role.mention if role else ''} Take a look at this deal!",
+            timestamp=datetime.datetime.now(datetime.UTC),
+            timeout=0
         )
+        self.set_image(url=deal_data['thumb'])
+        self.set_author(name="CheapShark", icon_url="https://www.cheapshark.com/img/logo_image.png?v=1.0")
+
+        self.add_field(
+            name="Ratings",
+            value=
+            f"""Steam Rating: **{deal_data['steamRatingText']}** **{deal_data['steamRatingPercent']}%** of the {deal_data['steamRatingCount']} user reviews for this game are positive
+            Metacritic Score: **{deal_data['metacriticScore']}%**
+            Deal Rating: **{deal_data['dealRating']}**
+            """.replace('\t', ''),
+            inline=False
+        )
+
+        self.add_field(name="Price", value=f'~~{deal_data["normalPrice"]}~~ **{deal_data["salePrice"]}** (**{float(deal_data["savings"]):.2f}% less**)', inline=False)
+        self.add_field(name="Release Date", value=f"<t:{deal_data['releaseDate']}:D>", inline=False)
+
+        button =  Button(
+            style=ButtonStyle.url, 
+            label="View Deal", 
+            url=f"https://www.cheapshark.com/redirect?dealID={deal_data['dealID']}",
+        )
+        self.add_item(button)
+
+        # Aggiungere i dati 'cheaperStores' e 'cheapestStore' per mostrare i negozi dove il gioco e' piu' economico
+        # "cheaperStores": [
+        #     {
+        #     "dealID": "boC2N0Q7SMCKxv6UKjRw%2BLFY6%2BNLEeWM2Bf1i80clx0%3D",
+        #     "storeID": "21",
+        #     "salePrice": "6.37",
+        #     "retailPrice": "29.99"
+        #     },
+        #     {
+        #     "dealID": "vb3EqB4KpKbSyV83DXQYAZCSBS60LaOMgLCXSt8pQxw%3D",
+        #     "storeID": "23",
+        #     "salePrice": "24.59",
+        #     "retailPrice": "29.99"
+        #     },
+        #     {
+        #     "dealID": "DQ%2BYLI9do4mm0H2%2BDUd6npgoQoK8bseNvyjJe%2B%2F3dEo%3D",
+        #     "storeID": "15",
+        #     "salePrice": "26.28",
+        #     "retailPrice": "29.99"
+        #     },
+        #     {
+        #     "dealID": "fq0cNHiR3Z4TpZyV7WH865C1%2BCBlmufYUc%2Bu2HqyUHE%3D",
+        #     "storeID": "27",
+        #     "salePrice": "26.99",
+        #     "retailPrice": "29.99"
+        #     }
+        # ],
+        # "cheapestPrice": {
+        #     "price": "2.98",
+        #     "date": 1736154866
+        # }
+
+
 
 permissions = Permissions(
     administrator=True
@@ -512,7 +595,7 @@ class CheapGames(Cog):
         except AssertionError as e:
             pass
         except Exception as e:
-            print(e)
+            logger.error(e)
             raise e
 
     async def handle_server_updates(self, configuration : tuple[int, str, bool, dict[str, dict[str, dict]]]) -> dict:
@@ -574,12 +657,12 @@ class CheapGames(Cog):
                         await message.publish()
                     except Exception as e:
                         logger.exception(e)
-                        print(e)
 
             if n_send >= 10: # Send only 10 games at a tine
                 break
 
     async def send_deal_update(self, guild_id : int, update_config : dict):
+        """
         content_type, content, code, reason = await asyncget(f"{self.cs_baseurl}/api/1.0/stores?lastChange=")
         if content_type == 'application/json' or code == 200:
             shops_lastchange = json.loads(content)
@@ -589,7 +672,7 @@ class CheapGames(Cog):
 
         for store_id, shop in shops_lastchange.items():
             pass
-
+        """
 
         # NOTE: Per implementare i deals non dovrei tenere conto solo della data di pubblicazione del deal insieme all'id del deal
         #       Ma dovrei anche tenere in considerazione un enpoint fornito dall'api:
@@ -606,8 +689,79 @@ class CheapGames(Cog):
         #       il parametro onSale deve essere sempre settato su on quando vado a fare le query
         #       per evitare di ottenere deal che non sono in vendita
 
+        channels : list[int] = update_config.get('channels', [])
+        saved = update_config.get('saved', {})
+        role_id = update_config.get("role", None)
 
-        pass
+        storeids = ','.join(update_config.get("storeIDs1", []) + update_config.get("storeIDs2", []))
+        tripleA = update_config.get('AAA', True)
+        steamworks = update_config.get('steamworks', False)
+        upper_price = update_config.get("upperPrice", 50)
+        lower_price = update_config.get('lowerPrice', 0)
+        minSteamRating = update_config.get("minSteamRating", 0)
+        minMetacriticRating = update_config.get("minMetacriticRating", 0)
+
+        params = {
+            'AAA' : tripleA,
+            'upperPrice' : upper_price,
+            'lowerPrice' : lower_price,
+            'steamworks' : steamworks,
+            'onSale' : True,
+            "minSteamRating": minSteamRating,
+            "minMetacriticRating": minMetacriticRating
+        }
+        if len(storeids) > 0:
+            params.update(storeID=storeids)
+
+        url = f"{self.cs_baseurl}/api/1.0/deals?{'&'.join(f"{key}={value}" for key, value in params.items())}"
+
+        content_type, content, code, reason = await asyncget(url)
+        if content_type != 'application/json' or code != 200:
+            logger.error(f'Error while fetching new giveaways (code: {code}): {reason}')
+        else:
+            self.deals = json.loads(content)
+
+        guild = self.bot.get_guild(guild_id)
+        if guild and role_id: 
+            role = guild.get_role(role_id)
+        else: 
+            role = None
+
+        n_send = 0
+        for deal in self.deals:
+            if str(deal["gameID"]) in saved and deal["lastChange"] == saved[str(deal["gameID"])]:
+                # Here we are checking if this giveaway is already registered
+                continue
+
+            deal_url = f"{self.cs_baseurl}/api/1.0/deals?id={deal['dealID']}"
+            content_type, content, code, reason = await asyncget(deal_url)
+            deal_info = json.loads(content)
+
+            if content_type == 'application/json' or code == 200:
+                deal['cheaperStores'] = deal_info.get('cheaperStores', [])
+                deal['cheapestPrice'] = deal_info.get('cheapestPrice', {})
+
+            n_send += 1
+
+            saved[str(deal["gameID"])] = deal["lastChange"]
+
+            for channel in channels:
+                if (channel:=self.bot.get_channel(channel)) is None:
+                    # Eliminare i canali non piu' validi dalla configurazione
+                    continue
+
+                page = CheapGamePage(deal, role)
+
+                message = await channel.send(embed=page, view=page)
+
+                if message.channel.is_news():
+                    try:
+                        await message.publish()
+                    except Exception as e:
+                        logger.exception(e)
+            
+            if n_send >= 10: # Send only 10 games at a tine
+                break
 
 def setup(bot : Bot):#
     bot.add_cog(CheapGames(bot))
