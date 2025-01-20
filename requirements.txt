@@ -29,7 +29,7 @@ msgspec>=0.12,<0.20
 multidict==6.1.0
 mutagen==1.47.0
 nextcord==3.0.1
-numpy==2.2.1
+numpy==2.2.2
 pillow==10.4.0
 propcache==0.2.1
 pycparser==2.22
