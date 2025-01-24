@@ -50,3 +50,4 @@ colori del bot:
 
 ✔ Aggiungere una github action che prova a fare pip install con i requirements e se ottiene errore dovuto ad un conflitto tra le dipendenze impedisce il merge
 - ? Aggiungere un resoconto delle impostazioni salvate nella pagina submit
+- Modificare l'estensione verify per far si che gli utenti non possano accedere ai contenuti del server fino a quando la richiesta non e' stata accettata dai moderatori ecc.
