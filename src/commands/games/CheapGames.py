@@ -495,8 +495,8 @@ class CheapGames(Cog):
         Cog.__init__(self)
         self.db = Database()
 
-        self.giveaways : list[dict] = []
-        self.deals : list[dict] = []
+        self.giveaways : set[dict] = set()
+        self.deals : set[dict] = set()
         self.bot = bot
 
         self.gp_baseurl = "https://gamerpower.com"
@@ -619,7 +619,7 @@ class CheapGames(Cog):
 
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
         assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-        self.giveaways = json.loads(content)
+        self.giveaways = set(json.loads(content))
 
         guild = self.bot.get_guild(guild_id)
         if guild: role = guild.get_role(giveaway_role_id)
@@ -636,7 +636,7 @@ class CheapGames(Cog):
                 continue
             dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S")
 
-            if dt < datetime.datetime.now(datetime.UTC):
+            if dt < datetime.datetime.now().astimezone(None):
                 # Here we are checking if the date of this giveaway is in the past
                 continue
 
