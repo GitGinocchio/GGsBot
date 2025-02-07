@@ -25,7 +25,15 @@ from utils.commons import \
     GUILD_INTEGRATION,    \
     USER_INTEGRATION
 
-from .ExtensionsUi import *
+from .ExtensionsUi import \
+    SetupUI,              \
+    AiChatBotSetupUI,     \
+    GreetingsSetupUI,     \
+    CheapGamesSetupUI,    \
+    VerifySetupUI,       \
+    StaffSetupUI,        \
+    TempVCSetupUI
+
 
 logger = getlogger()
 
@@ -38,13 +46,13 @@ class CommandsManager(commands.Cog):
         commands.Cog.__init__(self)
         self.db = Database()
         self.bot = bot
-        self.setup_dict : dict[Extensions, ExtensionUI] = {
-            Extensions.AICHATBOT : AiChatBotUi,
-            Extensions.GREETINGS : GreetingsUi,
-            Extensions.CHEAPGAMES : CheapGamesUi,
-            Extensions.VERIFY : VerifyUi,
-            Extensions.STAFF : StaffUi,
-            Extensions.TEMPVC : TempVCUi
+        self.setup_dict : dict[Extensions, SetupUI] = {
+            Extensions.AICHATBOT  : AiChatBotSetupUI,
+            Extensions.GREETINGS  : GreetingsSetupUI,
+            Extensions.CHEAPGAMES : CheapGamesSetupUI,
+            Extensions.VERIFY     : VerifySetupUI,
+            Extensions.STAFF      : StaffSetupUI,
+            Extensions.TEMPVC     : TempVCSetupUI
         }
 
     @slash_command(name='ext', description='Set of commands to manage bot extensions',default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
@@ -114,17 +122,21 @@ class CommandsManager(commands.Cog):
             if ui_type is not None:
                 ui = ui_type(self.bot, interaction.guild, extension)
             else:
-                ui = ExtensionUI(self.bot, interaction.guild, extension, lambda _:None)
+                ui = SetupUI(self.bot, interaction.guild, extension)
 
-            print('pre-interaction')
-            message = await interaction.followup.send(embed=ui,view=ui, wait=True)
+            ui.init_pages(extension=extension)
 
-            assert not await ui.wait(), f'The configuration process has expired'
-            print('post-interaction')
-            config = dict(ui.config)
+            page = ui.current_page
+            submit_page = ui.submit_page
+
+            logger.debug(f"Configuration process started for Extension {extension} in guild {interaction.guild}")
+            message = await interaction.followup.send(embed=page,view=page, wait=True)
+
+            assert not await submit_page.wait(), f'The configuration process has expired'
+            logger.debug(f"Configuration process completed for {extension} in guild {interaction.guild.id}")
             
             async with self.db:
-                await self.db.setupExtension(interaction.guild,Extensions(extension),config)
+                await self.db.setupExtension(interaction.guild,Extensions(extension),ui.config)
 
         except AssertionError as e:
             if message: 

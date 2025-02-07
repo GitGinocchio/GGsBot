@@ -2,6 +2,7 @@ from nextcord.ext import commands
 from dotenv import load_dotenv
 import traceback
 import nextcord
+import asyncio
 import time
 import os
 
@@ -11,7 +12,13 @@ from utils.db import Database
 from utils.terminal import clear, erase, getlogger,F
 from utils.intents import getintents
 from utils.system import getsysteminfo
-from utils.config import config
+from utils.config import \
+    APPLICATION_ID,      \
+    DEV_APPLICATION_ID,  \
+    DEVELOPER_ID,        \
+    DEV_TOKEN,           \
+    TOKEN,               \
+    config
 
 clear()
 getsysteminfo()
@@ -21,9 +28,11 @@ intents = getintents()
 Bot = commands.Bot(
     intents=intents,
     command_prefix=config['COMMAND_PREFIX'],
-    application_id=os.environ['APPLICATION_ID'],
-    owner_id=os.environ['DEVELOPER_ID']
+    application_id=DEV_APPLICATION_ID if (config['logger']['level'] == 'DEBUG' and DEV_APPLICATION_ID) else APPLICATION_ID,
+    owner_id=DEVELOPER_ID
 )
+
+Bot.loop.set_debug(True if config['logger']['level'] == 'DEBUG' else False)
 
 db = Database(loop=Bot.loop)
 
@@ -57,7 +66,7 @@ def run():
     load_commands()
     try:
         logger.info("Loggin in...")
-        Bot.run(token=os.environ['TOKEN'], reconnect=True)
+        Bot.run(token=DEV_TOKEN if (config['logger']['level'] == 'DEBUG' and DEV_TOKEN) else TOKEN, reconnect=True)
     except nextcord.errors.HTTPException as e:
         logger.error(f"An HTTPException occurred (status code: {e.status})")
         match e.status:
