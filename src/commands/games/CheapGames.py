@@ -435,15 +435,36 @@ class CheapGamePage(Page):
         self.add_field(
             name="Ratings",
             value=
-            f"""Steam Rating: **{deal_data['steamRatingText']}** **{deal_data['steamRatingPercent']}%** of the {deal_data['steamRatingCount']} user reviews for this game are positive
+            f"""Steam Rating: {"**" + steamRatingText + "**" if (steamRatingText:=deal_data['steamRatingText']) != None else ''} **{deal_data['steamRatingPercent']}%** of the {deal_data['steamRatingCount']} user reviews for this game are positive
             Metacritic Score: **{deal_data['metacriticScore']}%**
             Deal Rating: **{deal_data['dealRating']}**
             """.replace('\t', ''),
             inline=False
         )
 
-        self.add_field(name="Price", value=f'~~{deal_data["normalPrice"]}~~ **{deal_data["salePrice"]}** (**{float(deal_data["savings"]):.2f}% less**)', inline=False)
-        self.add_field(name="Release Date", value=f"<t:{deal_data['releaseDate']}:D>", inline=False)
+        self.add_field(name="Price", value=f'~~{deal_data["normalPrice"]}$~~ **{deal_data["salePrice"]}$** (**{float(deal_data["savings"]):.2f}% less**)', inline=False)
+       
+        if deal_data['releaseDate'] != 0:
+            self.add_field(name="Release Date", value=f"<t:{deal_data['releaseDate']}:D>", inline=False)
+
+        if deal_data['cheapestPrice'].get('price', None) != None:
+            self.add_field(
+                name="Cheapest Price",
+                value=f"**{deal_data['cheapestPrice']['price']}$** on <t:{deal_data['cheapestPrice']['date']}:D>",
+                inline=False
+            )
+
+        cheaperStores = ""
+        for store in deal_data.get('cheapStores', []):
+            store = [store.value[1] for store in DealStore if store.value[0] == int(store['storeID'])][0]
+            cheaperStores += f"**{store}**: ~~{deal_data["retailPrice"]}$~~ **{deal_data["salePrice"]}$**\n"
+
+        if cheaperStores != '':
+            self.add_field(
+                name="Cheaper Stores",
+                value=cheaperStores,
+                inline=False
+            )
 
         button =  Button(
             style=ButtonStyle.url, 
@@ -451,40 +472,6 @@ class CheapGamePage(Page):
             url=f"https://www.cheapshark.com/redirect?dealID={deal_data['dealID']}",
         )
         self.add_item(button)
-
-        # Aggiungere i dati 'cheaperStores' e 'cheapestStore' per mostrare i negozi dove il gioco e' piu' economico
-        # "cheaperStores": [
-        #     {
-        #     "dealID": "boC2N0Q7SMCKxv6UKjRw%2BLFY6%2BNLEeWM2Bf1i80clx0%3D",
-        #     "storeID": "21",
-        #     "salePrice": "6.37",
-        #     "retailPrice": "29.99"
-        #     },
-        #     {
-        #     "dealID": "vb3EqB4KpKbSyV83DXQYAZCSBS60LaOMgLCXSt8pQxw%3D",
-        #     "storeID": "23",
-        #     "salePrice": "24.59",
-        #     "retailPrice": "29.99"
-        #     },
-        #     {
-        #     "dealID": "DQ%2BYLI9do4mm0H2%2BDUd6npgoQoK8bseNvyjJe%2B%2F3dEo%3D",
-        #     "storeID": "15",
-        #     "salePrice": "26.28",
-        #     "retailPrice": "29.99"
-        #     },
-        #     {
-        #     "dealID": "fq0cNHiR3Z4TpZyV7WH865C1%2BCBlmufYUc%2Bu2HqyUHE%3D",
-        #     "storeID": "27",
-        #     "salePrice": "26.99",
-        #     "retailPrice": "29.99"
-        #     }
-        # ],
-        # "cheapestPrice": {
-        #     "price": "2.98",
-        #     "date": 1736154866
-        # }
-
-
 
 permissions = Permissions(
     administrator=True
@@ -619,7 +606,8 @@ class CheapGames(Cog):
 
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
         assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-        self.giveaways = set(json.loads(content))
+
+        self.giveaways =json.loads(content)
 
         guild = self.bot.get_guild(guild_id)
         if guild: role = guild.get_role(giveaway_role_id)
@@ -627,22 +615,31 @@ class CheapGames(Cog):
 
         n_send : int = 0  # Number of games to send
         for game in self.giveaways:
+            str_game_id = str(game["id"])
+
             if len(giveaway_stores) > 0 and not any(store in str(game["platforms"]).lower().split(", ") for store in giveaway_stores): 
                 continue
             if len(giveaway_types) > 0 and not str(game["type"]).lower() in giveaway_types:
                 continue
-            if str(game["id"]) in saved_giveaways and game["published_date"] == saved_giveaways[str(game["id"])]:
+
+            current_dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S").astimezone(datetime.UTC)
+
+            if current_dt < datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1):
+                # Here we are checking if the date of this giveaway is older than one day
+                continue
+
+            current_dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S").astimezone(datetime.UTC)
+            saved_dt = datetime.datetime.strptime(saved_giveaways[str(game["id"])], "%Y-%m-%d %H:%M:%S").astimezone(datetime.UTC) if saved_giveaways.get(str_game_id, None) else None
+
+            if str_game_id in saved_giveaways and ((current_dt <= saved_dt) if saved_dt else False):
+                print('already registered')
                 # Here we are checking if this giveaway is already registered
                 continue
-            dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S")
-
-            if dt < datetime.datetime.now().astimezone(None):
-                # Here we are checking if the date of this giveaway is in the past
-                continue
+            
 
             n_send += 1
 
-            saved_giveaways[str(game["id"])] = game["published_date"]
+            saved_giveaways[str_game_id] = game["published_date"]
 
             for channel in giveaway_channels:
                 if (channel:=self.bot.get_channel(channel)) is None:
@@ -690,7 +687,7 @@ class CheapGames(Cog):
         #       per evitare di ottenere deal che non sono in vendita
 
         channels : list[int] = update_config.get('channels', [])
-        saved = update_config.get('saved', {})
+        saved : dict = update_config.get('saved', {})
         role_id = update_config.get("role", None)
 
         storeids = ','.join(update_config.get("storeIDs1", []) + update_config.get("storeIDs2", []))
@@ -729,7 +726,19 @@ class CheapGames(Cog):
 
         n_send = 0
         for deal in self.deals:
-            if str(deal["gameID"]) in saved and deal["lastChange"] == saved[str(deal["gameID"])]:
+            str_game_id = str(deal["gameID"])
+
+            current_dt = datetime.datetime.fromtimestamp(deal["lastChange"],datetime.UTC)
+
+            if current_dt < datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1):
+                print('older than one day')
+                # Here we are checking if the date of this giveaway is older than one day
+                continue
+
+            saved_dt = datetime.datetime.fromtimestamp(saved[str_game_id], datetime.UTC) if saved.get(str_game_id, None) else None
+
+            if str_game_id in saved and ((current_dt <= saved_dt) if saved_dt else False):
+                print('already registered')
                 # Here we are checking if this giveaway is already registered
                 continue
 
@@ -737,13 +746,15 @@ class CheapGames(Cog):
             content_type, content, code, reason = await asyncget(deal_url)
             deal_info = json.loads(content)
 
+            print(deal_info)
+
             if content_type == 'application/json' or code == 200:
                 deal['cheaperStores'] = deal_info.get('cheaperStores', [])
                 deal['cheapestPrice'] = deal_info.get('cheapestPrice', {})
 
             n_send += 1
 
-            saved[str(deal["gameID"])] = deal["lastChange"]
+            saved[str_game_id] = deal["lastChange"]
 
             for channel in channels:
                 if (channel:=self.bot.get_channel(channel)) is None:
