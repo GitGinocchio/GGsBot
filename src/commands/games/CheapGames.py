@@ -35,6 +35,7 @@ from nextcord.ext import tasks
 from nextcord import \
     Permissions,     \
     HTTPException,   \
+    NotFound,        \
     Forbidden,       \
     ButtonStyle,     \
     SelectOption,    \
@@ -73,6 +74,7 @@ from utils.commons import \
     GLOBAL_INTEGRATION,   \
     GUILD_INTEGRATION,    \
     USER_INTEGRATION,     \
+    is_developer,         \
     asyncget
 
 logger = getlogger()
@@ -109,42 +111,45 @@ class GiveawayStore(StrEnum):
     XBOX_360 =              "xbox 360"
 
 class DealStore(Enum):
-    STEAM =                 (1,  "Steam")
-    GAMERSGATE =            (2,  "Gamers Gate")
-    GREENMANGAMING =        (3,  "Green Man Gaming")
-    AMAZON =                (4,  "Amazon")
-    GAMESTOP =              (5,  "GameStop")
-    DIRECT2DRIVE =          (6,  "Direct 2 Drive")
-    GOG =                   (7,  "GoG")
-    ORIGIN =                (8,  "Origin")
-    GETGAMES =              (9,  "Get Games")
-    SHINYLOOT =             (10, "Shiny Loot")
-    HUMBLESTORE =           (11, "Humble Store")
-    DESURA =                (12, "Desura")
-    UPLAY =                 (13, "Uplay")
-    INDIEGAMESTAND =        (14, "Indie Games Stand")
-    FANATICAL =             (15, "Fanatical")
-    GAMESROCKET =           (16, "Games Rocket")
-    GAMESREPUBLIC =         (17, "Games Republic")
-    SILAGAMES =             (18, "Sila Games")
-    PLAYFIELD =             (19, "Play Field")
-    IMPERIALGAMES =         (20, "Imperial Games")
-    WINGAMESTORE =          (21, "Win Game Store")
-    FUNSTOCKDIGITAL =       (22, "Fun Stock Digital")
-    GAMEBILLET =            (23, "Game Billet")
-    VOIDU =                 (24, "Voidu")
-    EPICGAMESTORE =         (25, "Epic Games Store")
-    RAZERGAMESTORE =        (26, "Razer Games Store")
-    INDIEGALA =             (30, "IndieGala")
-    BLIZZARDSHOP =          (31, "Blizzard Shop")
-    ALLYOUPLAY =            (32, "All You Play")
-    DLGAMER =               (33, "DL Gamer")
-    NOCTRE =                (34, "Noctre")
-    DREAMGAME =             (35, "DreamGame")
+    STEAM =                 (1,  "Steam"              )
+    GAMERSGATE =            (2,  "Gamers Gate"        )
+    GREENMANGAMING =        (3,  "Green Man Gaming"   )
+    AMAZON =                (4,  "Amazon"             )
+    GAMESTOP =              (5,  "GameStop"           )
+    DIRECT2DRIVE =          (6,  "Direct 2 Drive"     )
+    GOG =                   (7,  "GoG"                )
+    ORIGIN =                (8,  "Origin"             )
+    GETGAMES =              (9,  "Get Games"          )
+    SHINYLOOT =             (10, "Shiny Loot"         )
+    HUMBLESTORE =           (11, "Humble Store"       )
+    DESURA =                (12, "Desura"             )
+    UPLAY =                 (13, "Uplay"              )
+    INDIEGAMESTAND =        (14, "Indie Games Stand"  )
+    FANATICAL =             (15, "Fanatical"          )
+    GAMESROCKET =           (16, "Games Rocket"       )
+    GAMESREPUBLIC =         (17, "Games Republic"     )
+    SILAGAMES =             (18, "Sila Games"         )
+    PLAYFIELD =             (19, "Play Field"         )
+    IMPERIALGAMES =         (20, "Imperial Games"     )
+    WINGAMESTORE =          (21, "Win Game Store"     )
+    FUNSTOCKDIGITAL =       (22, "Fun Stock Digital"  )
+    GAMEBILLET =            (23, "Game Billet"        )
+    VOIDU =                 (24, "Voidu"              )
+    EPICGAMESTORE =         (25, "Epic Games Store"   )
+    RAZERGAMESTORE =        (26, "Razer Games Store"  )
+    GAMESPLANET =           (27, "Games Planet"       )
+    GAMESLOAD =             (28, "Games Load"         )
+    TWOGAME =               (29, "2Game"              )
+    INDIEGALA =             (30, "IndieGala"          )
+    BLIZZARDSHOP =          (31, "Blizzard Shop"      )
+    ALLYOUPLAY =            (32, "All You Play"       )
+    DLGAMER =               (33, "DL Gamer"           )
+    NOCTRE =                (34, "Noctre"             )
+    DREAMGAME =             (35, "DreamGame"          )
 
 hours_select = [SelectOption(label=f'{h:02}:00 ({h if h == 12 else int(h % 12):02}:00 {"PM" if h > 11 else "AM"}) (UTC)', value=h) for h in range(0, 25)]
 
-# Add Update Ui
+# CheapGames Ui 
 
 class GiveawaysSetupUI(UI):
     def __init__(self, bot :  Bot, guild : Guild):
@@ -199,15 +204,22 @@ class GiveawaysSetupUI(UI):
             self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
         async def on_next(self, interaction : Interaction):
-            if len(self.config.get('channels', [])) == 0: 
-                await interaction.response.send_message("You must set at least one Deal Channel.", ephemeral=True, delete_after=5)
+            if len(self.config.get('channels', [])) == 0:
+                await interaction.response.send_message("You must set at least one Giveaway Channel.", ephemeral=True, delete_after=5)
                 return
             
-            await super().on_next(self, interaction)
+            await super().on_next(interaction)
 
     class GiveawaySubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
             UiSubmitPage.__init__(self, ui)
+            self.description = "All data saved so far will be saved."
+
+            self.add_field(
+                name="Next Update",
+                value="The first update will be at minute 0 of the next hour",
+                inline=False
+            )
 
 class DealsSetupUI(UI):
     def __init__(self, bot : Bot, guild : Guild):
@@ -215,7 +227,6 @@ class DealsSetupUI(UI):
         self.config = {
             "channels" : [],
             "saved" : {},
-            "shoplastchange" : {},
             "api" : Api.DEALS.value,
             "role" : None,
 
@@ -371,8 +382,34 @@ class DealsSetupUI(UI):
     class DealSubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
             UiSubmitPage.__init__(self, ui)
+            self.description = "All data saved so far will be saved."
 
-# Game Pages
+            self.add_field(
+                name="Next Update",
+                value="The first update will be at minute 0 of the next hour",
+                inline=False
+            )
+# CheapGames Pages
+
+class ViewUpdatesPage(Page):
+    def __init__(self, bot : Bot, data : dict):
+        Page.__init__(self,
+            title="CheapGames Updates",
+            description="Here are a list of all CheapGames updates created for this server:",
+            timestamp = datetime.datetime.now(datetime.UTC),
+            colour=Colour.green(),
+            timeout=0
+        )
+
+        for update, config in data['updates'].items():
+            channels = [f'{channel.mention}' for channel_id in config['channels'] if (channel:=bot.get_channel(channel_id))]
+            self.add_field(
+                name=f"Name: {update}",
+                value=f"Type: {config['api']}\nChannel(s): {','.join(channels)}\n",
+                inline=False
+            )
+
+        self.set_author(name=bot.user.display_name, icon_url=(bot.user.avatar if bot.user.avatar else bot.user.default_avatar).url)
 
 class GiveawayGamePage(Page):
     def __init__(self, game_data : dict, role : Role | None = None): # NOTE: Sostituire role : Role | None = None con role : list[Role] | None = None
@@ -432,6 +469,18 @@ class CheapGamePage(Page):
         self.set_image(url=deal_data['thumb'])
         self.set_author(name="CheapShark", icon_url="https://www.cheapshark.com/img/logo_image.png?v=1.0")
 
+        if deal_data['releaseDate'] != 0:
+            self.add_field(name="Release Date", value=f"<t:{deal_data['releaseDate']}:D>", inline=False)
+
+        deal_shop_names = [s.value[1] for s in DealStore if s.value[0] == int(deal_data['storeID'])]
+
+        if len(deal_shop_names) > 0:
+            self.add_field(
+                name="Shop",
+                value=deal_shop_names[0],
+                inline=False
+            )
+
         self.add_field(
             name="Ratings",
             value=
@@ -442,22 +491,21 @@ class CheapGamePage(Page):
             inline=False
         )
 
-        self.add_field(name="Price", value=f'~~{deal_data["normalPrice"]}$~~ **{deal_data["salePrice"]}$** (**{float(deal_data["savings"]):.2f}% less**)', inline=False)
-       
-        if deal_data['releaseDate'] != 0:
-            self.add_field(name="Release Date", value=f"<t:{deal_data['releaseDate']}:D>", inline=False)
-
-        if deal_data['cheapestPrice'].get('price', None) != None:
-            self.add_field(
-                name="Cheapest Price",
-                value=f"**{deal_data['cheapestPrice']['price']}$** on <t:{deal_data['cheapestPrice']['date']}:D>",
-                inline=False
-            )
+        self.add_field(
+            name="Price", 
+            value=f'~~{deal_data["normalPrice"]}$~~ **{deal_data["salePrice"]}$** (**{float(deal_data["savings"]):.2f}% less**)', 
+            inline=False
+        )
 
         cheaperStores = ""
-        for store in deal_data.get('cheapStores', []):
-            store = [store.value[1] for store in DealStore if store.value[0] == int(store['storeID'])][0]
-            cheaperStores += f"**{store}**: ~~{deal_data["retailPrice"]}$~~ **{deal_data["salePrice"]}$**\n"
+        for store in deal_data.get('cheaperStores', []):
+            cheaper_store_names = [s.value[1] for s in DealStore if s.value[0] == int(store['storeID'])]
+
+            if len(cheaper_store_names) == 0:
+                logger.error(f"Could not find game with id: {store['storeID']}")
+                continue
+
+            cheaperStores += f"**{cheaper_store_names[0]}**: ~~{store["retailPrice"]}$~~ **{store["salePrice"]}$**\n"
 
         if cheaperStores != '':
             self.add_field(
@@ -466,7 +514,14 @@ class CheapGamePage(Page):
                 inline=False
             )
 
-        button =  Button(
+        if deal_data['cheapestPrice'].get('price', None) != None:
+            self.add_field(
+                name="Cheapest Price",
+                value=f"**{deal_data['cheapestPrice']['price']}$** on <t:{deal_data['cheapestPrice']['date']}:D>",
+                inline=False
+            )
+
+        button = Button(
             style=ButtonStyle.url, 
             label="View Deal", 
             url=f"https://www.cheapshark.com/redirect?dealID={deal_data['dealID']}",
@@ -482,8 +537,8 @@ class CheapGames(Cog):
         Cog.__init__(self)
         self.db = Database()
 
-        self.giveaways : set[dict] = set()
-        self.deals : set[dict] = set()
+        self.giveaways : list[dict] = []
+        self.deals : list[dict] = []
         self.bot = bot
 
         self.gp_baseurl = "https://gamerpower.com"
@@ -509,7 +564,7 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
 
-            assert update_name not in config["updates"], f'Update  with name \'{update_name}\' already exists'
+            if update_name in config['updates']: raise ValueError(f'Update  with name \'{update_name}\' already exists')
 
             if Api(update_type) == Api.DEALS:
                 ui = DealsSetupUI(self.bot,interaction.guild)
@@ -519,28 +574,70 @@ class CheapGames(Cog):
             ui.init_pages()
 
             message = await interaction.followup.send(embed=ui.current_page,view=ui.current_page, wait=True)
-            assert not await ui.submit_page.wait(), f'The configuration process has expired'
+            expired = await ui.submit_page.wait()
+
+            if expired:
+                try:
+                    await message.delete()
+                except (Forbidden, NotFound, HTTPException) as e:
+                    logger.exception(e)
+
+                raise TimeoutError(f'The configuration process has expired')
+
 
             config['updates'][update_name] = ui.config
 
             async with self.db:
                 await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, config)
 
-        except AssertionError as e:
-            await message.delete()
+        except (ValueError, TimeoutError) as e:
             await interaction.followup.send(e, ephemeral=True)
         else:
             await message.edit(f"{update_type.capitalize()} update named \'{update_name}\' added successfully!", view=None, embed=None)
 
     @cheapgames.subcommand(name="del-update", description="Command that allows the removal of an automatic update")
-    async def del_update(self, interaction : Interaction):
-        pass
+    async def del_update(self, 
+            interaction : Interaction, 
+            update_name : str = SlashOption(description="Name of the update to be deleted", required=True, min_length=1)
+        ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            
+            async with self.db:
+                config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
+
+            if update_name not in config['updates']:
+                raise ValueError(f"CheapGames update with name \'{update_name}\' does not exist.")
+
+            config['updates'].pop(update_name)
+
+            async with self.db:
+                await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, config)
+
+        except (HTTPException,ExtensionException) as e:
+            logger.exception(e)
+        except (ValueError, TimeoutError) as e:
+            await interaction.followup.send(e, ephemeral=True)
+        else:
+            await interaction.followup.send(f"Update named \'{update_name}\' removed successfully!", ephemeral=True)
 
     @cheapgames.subcommand(name="list-updates", description="Command that lists all the automatic updates")
     async def list_updates(self, interaction : Interaction):
-        pass
+        try:
+            await interaction.response.defer(ephemeral=True)
+            
+            async with self.db:
+                config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
+
+            page = ViewUpdatesPage(self.bot, config)
+
+        except (HTTPException,ExtensionException) as e:
+            logger.exception(e)
+        else:
+            await interaction.followup.send(embed=page, ephemeral=True)
 
     @cheapgames.subcommand(name="trigger-update", description="Command that triggers an update manually")
+    @is_developer()
     async def trigger_update(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
@@ -548,6 +645,8 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
             assert enabled, f'The extension is not enabled'
+
+            await self.retrive_giveaways_data()
 
             configuration = await self.handle_server_updates((interaction.guild.id, Extensions.CHEAPGAMES.value, enabled, config))
 
@@ -560,12 +659,20 @@ class CheapGames(Cog):
         else:
             await interaction.followup.send("Update triggered successfully", ephemeral=True)
 
+
+    async def retrive_giveaways_data(self):
+        content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
+        assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
+        self.giveaways = json.loads(content)
+
     @tasks.loop(time=[datetime.time(hour=h, minute=0, second=0) for h in range(0, 24)])
     async def update_giveaways_and_deals(self):
         try:
             async with self.db:
                 configurations = await self.db.getAllExtensionConfig(Extensions.CHEAPGAMES)
-            
+
+            await self.retrive_giveaways_data()
+
             tasks : list[asyncio.Task] = []
             for guild_id, ext_id, enabled, config in configurations:
                 if not enabled: continue
@@ -606,7 +713,6 @@ class CheapGames(Cog):
 
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
         assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-
         self.giveaways =json.loads(content)
 
         guild = self.bot.get_guild(guild_id)
@@ -628,7 +734,6 @@ class CheapGames(Cog):
                 # Here we are checking if the date of this giveaway is older than one day
                 continue
 
-            current_dt = datetime.datetime.strptime(game["published_date"], "%Y-%m-%d %H:%M:%S").astimezone(datetime.UTC)
             saved_dt = datetime.datetime.strptime(saved_giveaways[str(game["id"])], "%Y-%m-%d %H:%M:%S").astimezone(datetime.UTC) if saved_giveaways.get(str_game_id, None) else None
 
             if str_game_id in saved_giveaways and ((current_dt <= saved_dt) if saved_dt else False):
@@ -649,11 +754,10 @@ class CheapGames(Cog):
 
                 message = await channel.send(embed=ui, view=ui)
 
-                if message.channel.is_news():
-                    try:
-                        await message.publish()
-                    except Exception as e:
-                        logger.exception(e)
+                try:
+                    if message.channel.is_news(): await message.publish()
+                except HTTPException as e:
+                    logger.exception(e)
 
             if n_send >= 10: # Send only 10 games at a tine
                 break
@@ -705,24 +809,28 @@ class CheapGames(Cog):
             'steamworks' : steamworks,
             'onSale' : True,
             "minSteamRating": minSteamRating,
-            "minMetacriticRating": minMetacriticRating
+            "minMetacriticRating": minMetacriticRating,
+            "maxAge" : 1 # Get only latest deals (1 hour)
         }
-        if len(storeids) > 0:
-            params.update(storeID=storeids)
+        if len(storeids) > 0: params.update(storeID=storeids)
+
+        # Sostituire questo metodo per ottenere i dati con uno piu' centralizzato
+        # Per come funziona ora, vengono ottenuti i deal per ogni update impostato dall'utente, il che e' poco efficente
+        # Dovrei ottenere i dati solo una volta e poi utilizzarli per tutti gli update
 
         url = f"{self.cs_baseurl}/api/1.0/deals?{'&'.join(f"{key}={value}" for key, value in params.items())}"
-
         content_type, content, code, reason = await asyncget(url)
         if content_type != 'application/json' or code != 200:
             logger.error(f'Error while fetching new giveaways (code: {code}): {reason}')
         else:
             self.deals = json.loads(content)
+        
+        print(url)
+
+        # ---
 
         guild = self.bot.get_guild(guild_id)
-        if guild and role_id: 
-            role = guild.get_role(role_id)
-        else: 
-            role = None
+        role = guild.get_role(role_id) if role_id and guild else None
 
         n_send = 0
         for deal in self.deals:
@@ -731,48 +839,44 @@ class CheapGames(Cog):
             current_dt = datetime.datetime.fromtimestamp(deal["lastChange"],datetime.UTC)
 
             if current_dt < datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1):
-                print('older than one day')
-                # Here we are checking if the date of this giveaway is older than one day
+                # Here we are checking if the date of this giveaway is older than one hour
                 continue
 
             saved_dt = datetime.datetime.fromtimestamp(saved[str_game_id], datetime.UTC) if saved.get(str_game_id, None) else None
 
             if str_game_id in saved and ((current_dt <= saved_dt) if saved_dt else False):
-                print('already registered')
                 # Here we are checking if this giveaway is already registered
                 continue
 
             deal_url = f"{self.cs_baseurl}/api/1.0/deals?id={deal['dealID']}"
             content_type, content, code, reason = await asyncget(deal_url)
-            deal_info = json.loads(content)
 
-            print(deal_info)
+            if code == 200:
+                deal_info = json.loads(content)
 
-            if content_type == 'application/json' or code == 200:
                 deal['cheaperStores'] = deal_info.get('cheaperStores', [])
                 deal['cheapestPrice'] = deal_info.get('cheapestPrice', {})
 
-            n_send += 1
-
             saved[str_game_id] = deal["lastChange"]
 
-            for channel in channels:
-                if (channel:=self.bot.get_channel(channel)) is None:
-                    # Eliminare i canali non piu' validi dalla configurazione
+            n_send += 1
+
+            for channel_id in channels.copy():
+                if (channel:=self.bot.get_channel(channel_id)) is None:
+                    channels.remove(channel_id)
                     continue
 
                 page = CheapGamePage(deal, role)
 
                 message = await channel.send(embed=page, view=page)
 
-                if message.channel.is_news():
-                    try:
-                        await message.publish()
-                    except Exception as e:
-                        logger.exception(e)
+                try:
+                    if message.channel.is_news(): await message.publish()
+                except HTTPException as e:
+                    pass
             
             if n_send >= 10: # Send only 10 games at a tine
                 break
 
-def setup(bot : Bot):#
+def setup(bot : Bot):
     bot.add_cog(CheapGames(bot))

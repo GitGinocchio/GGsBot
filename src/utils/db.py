@@ -105,11 +105,11 @@ class Database:
             await self._connection.close()
 
     # Guilds
-    async def getAllGuildIds(self) -> list[int]:
+    async def getAllGuildIds(self) -> set[int]:
         cursor = await self.execute("SELECT guild_id FROM guilds")
         rows = await cursor.fetchall()
 
-        return [row[0] for row in rows]
+        return set(row[0] for row in rows)
  
     async def hasGuild(self, guild : Guild) -> bool:
         cursor = await self.execute("SELECT 1 FROM guilds WHERE guild_id = ?", (guild.id,))
@@ -148,13 +148,16 @@ class Database:
             logger.error(e)
             raise e
 
-    async def delGuild(self, guild : Guild) -> None:
-        query = """DELETE FROM guilds WHERE guild_id = ?"""
+    async def delGuild(self, guild : Guild | int) -> None:
+        queries = [
+            "DELETE FROM guilds WHERE guild_id = ?",
+            "DELETE FROM extensions WHERE guild_id = ?",
+            "DELETE FROM users WHERE guild_id = ?"
+        ]
 
         try:
-            cursor = await self.execute(query, (guild.id,))
-
-            if cursor.rowcount == 0: raise DatabaseException("RecordNotFoundError")
+            for query in queries:
+                cursor = await self.execute(query, (guild.id if type(guild) == Guild else guild,))
 
 
             await self.connection.commit()
@@ -252,10 +255,11 @@ class Database:
 
     async def getExtensionConfig(self, guild : Guild, extension : Extensions) -> tuple[dict, bool]:
         query = """SELECT config, enabled FROM extensions WHERE guild_id = ? AND extension_id = ?"""
-        cursor = await self.execute(query, (guild.id, extension.value))
-        result = await cursor.fetchone()
 
         try:
+            cursor = await self.execute(query, (guild.id, extension.value))
+            result = await cursor.fetchone()
+
             if result is None: raise ExtensionException("Not Configured")
 
         except ExtensionException as e:
@@ -266,7 +270,7 @@ class Database:
             await self.connection.rollback()
             raise e
         else:
-            return json.loads(result[0]), result[1]
+            return json.loads(result[0]), result[1] == 1
 
     async def getAllExtensionConfig(self, extension : Extensions | None = None, guild : Guild | None = None) -> list[tuple[int, str, bool, dict]]:
         if guild and extension:
@@ -290,7 +294,7 @@ class Database:
             await self.connection.rollback()
             raise e
         else:
-            return [(row[0],row[1], row[2], json.loads(row[3])) for row in rows]
+            return list((row[0],row[1], row[2], json.loads(row[3])) for row in rows)
 
     async def editExtensionConfig(self, guild : Guild, extension : Extensions, updated_values : str | dict) -> None:
         update_query = """
