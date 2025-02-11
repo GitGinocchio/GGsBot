@@ -632,7 +632,7 @@ class CheapGames(Cog):
 
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
-            if enabled: raise ExtensionException("Already Enabled")
+            if not enabled: raise ExtensionException("Not Enabled")
 
             await self.retrive_giveaways_data()
 
