@@ -60,7 +60,6 @@ from nextcord.ui import \
     role_select
 
 from enum import StrEnum, Enum
-from functools import reduce
 import datetime
 import asyncio
 import json
