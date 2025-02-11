@@ -1,35 +1,3 @@
-# Se dopo aver fatto una fetch al al database e' presente lo stesso:
-# - gameid
-# - publish_datetime
-
-# allora non e' necessario inviare il messaggio
-
-"""
-updates : {
-    name : {
-        "channels" : [],
-        "api" : "DEALS"
-        "stores" : "Steam" | etc.
-        "lowerPrice" : 0 | None        # ritorna tutti i deal con prezzo superiore a lowerPrice
-        "upperPrice" : 0 | None        # ritorna tutti i deal con prezzo inferiore ad upperPrice
-        "steamAppID" : 0 | None        # guarda per determinati giochi di steam in base al loro ID
-        "saved" : {
-            gameID : publish_time
-        },
-        "on" : "hour"
-    },
-    name2 : {
-        "channels" : [],
-        "api" : "GIVEAWAYS"
-        "type" : "game" | "loot" | "beta" | "all"
-        "stores" : "Steam" | etc.
-        "saved" : {
-            gameID : publish_time
-        },
-        "on" : "hour"
-    },
-}
-"""
 from nextcord.ext.commands import Bot, Cog
 from nextcord.ext import tasks
 from nextcord import \
