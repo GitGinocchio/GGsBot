@@ -15,23 +15,28 @@ class UpdateMetadata(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        for guild in self.bot.guilds:
-            try:
-                # maybe too many query at the same time:
-                # hasGuild
-                # adjustGuildMemberCount
-                # newGuild
-                async with self.db:
-                    if await self.db.hasGuild(guild) and guild.member_count is not None:
-                        await self.db.adjustGuildMemberCount(guild, guild.member_count,True)
-                    else:
-                        await self.db.newGuild(guild)
-            except DatabaseException as e:
-                logger.error(e)
+        async with self.db:
+            savedGuildIDs = await self.db.getAllGuildIds()
+            unsavedGuilds = set(self.bot.guilds)
 
-  
-        #logger.warning(f"Leaving guild \'{guild.name}\'({guild.id}) no data found!")
-        #await guild.leave()
+            for guild_id in savedGuildIDs:
+                # Here we are checking if the guild exist and if the bot is a member of it
+                if ((guild:=self.bot.get_guild(guild_id)) == None) and guild not in self.bot.guilds:
+                    logger.debug(f"No Guild found for ID: {guild_id}, deleting it from the database.")
+                    await self.db.delGuild(guild_id)
+
+                elif guild in self.bot.guilds:
+                    logger.debug(f"Updating guild member count for guild {guild.name}(id: {guild.id})")
+                    await self.db.adjustGuildMemberCount(guild, guild.member_count,True)
+
+                # List of guild that are not saved in the database and we need to add them to the database
+                unsavedGuilds.discard(guild)
+
+            # Here we do not need to check if there is already every guild in the database
+            # since we have already done it before
+            for guild in unsavedGuilds:
+                logger.debug(f"Adding new guild {guild.name} (id: {guild.id}) in the database")
+                await self.db.newGuild(guild)
 
     @commands.Cog.listener()
     async def on_member_join(self, member : nextcord.Member):
