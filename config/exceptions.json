@@ -1,26 +1,57 @@
 {
+
     "ExtensionException" : {
         "Not Configured" : {
             "title" : "Extension not Configured",
             "description" : "It looks like this extension is not configured for this server",
             "suggestions" : "If you have the correct permissions try configuring the extension and try again"
         },
+        "Not Enabled" : {
+            "title" : "Extension not Enabled",
+            "description" : "It looks like this extension is not enabled for this server",
+            "suggestions" : "If you have the correct permissions try enabling the extension and try again"
+        },
         "Already Configured" : {
             "title" :  "Extension Already Configured",
             "description" : "It looks like this extension is already configured for this server",
             "suggestions" : "Before you can configure the extension again you must delete the current configuration"
+        },
+        "Already Enabled" : {
+            "title" : "Extension Already Enabled",
+            "description" : "It looks like this extension is already enabled for this server",
+            "suggestions" : "Before you can enable the extension again you must disable it"
+        },
+        "Already Disabled" : {
+            "title" : "Extension Already Disabled",
+            "description" : "It looks like this extension is already disabled for this server",
+            "suggestions" : "Before you can disable the extension again you must enable it"
+        },
+        "Configuration Timed Out" : {
+            "title" : "Configuration Timed Out",
+            "description" : "It looks like the configuration for this extension took too long to complete",
+            "suggestions" : "If you have the correct permissions try configuring the extension again"
+        },
+        "Missing Argument" : {
+            "title" : "Missing Argument",
+            "description" : "The required argument(s) is/are missing: {arguments}",
+            "suggestions" : "Make sure you provide all the required arguments and try again"
+        },
+        "default" : {
+            "title" : "Default Error",
+            "description" : "An unexpected error occurred while processing your request",
+            "suggestions" : "Please try again later"
         }
     },
 
     "SlashCommandException" : {
         "Invalid Permissions" : {
-            "title" : "Invalid permissions",
+            "title" : "Invalid Permissions",
             "description" : "You do not have permission to use this command",
             "suggestions" : "Make sure you have all the necessary roles and try again"
         },
         
         "Invalid Channel" : {
-            "title" : "Invalid channel",
+            "title" : "Invalid Channel",
             "description" : "This command can not be used in this channel",
             "suggestions" : "Try using this command in its appropriate channel"
         },
@@ -29,6 +60,12 @@
             "title" : "Interaction expired",
             "description" :  "This interaction has expired and is no longer valid.",
             "suggestions" : "Try again one or two times"
+        },
+
+        "default" : {
+            "title" : "SlashCommandException",
+            "description" : "An unknown error has occurred.",
+            "suggestions" : ""
         }
     },
 
@@ -65,5 +102,7 @@
             "description" : "An unknown error has occurred.",
             "suggestions" : "Try again later"
         }
-    }
+    },
+
+    "$schema": "./exceptions-schema.json"
 }

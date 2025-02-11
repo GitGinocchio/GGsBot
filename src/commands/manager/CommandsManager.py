@@ -20,7 +20,8 @@ from datetime import datetime, timezone
 import asyncio
 
 from utils.db import Database
-from utils.exceptions import ExtensionException
+from utils.exceptions import ExtensionException, GGsBotException
+from utils.embeds import SuccessEmbed
 from utils.terminal import getlogger
 from utils.commons import \
     Extensions,           \
@@ -95,9 +96,7 @@ class CommandsManager(commands.Cog):
             embed.add_field(name='Installed Extensions:', value=installed_str, inline=True)
 
             embed.set_author(name=self.bot.user.name,icon_url=self.bot.user.avatar.url)
-
-        except AssertionError as e:
-            await interaction.followup.send(e)
+        
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else: 
@@ -114,7 +113,9 @@ class CommandsManager(commands.Cog):
             await interaction.response.defer(ephemeral=True)
 
             async with self.db:
-                assert not await self.db.hasExtension(interaction.guild, Extensions(extension)), f'Extension {extension} already configured for this server'
+                hasExtension = await self.db.hasExtension(interaction.guild, Extensions(extension))
+
+            if hasExtension: raise ExtensionException("Already Configured")
 
             ui_type = self.setup_dict.get(Extensions(extension), None)
 
@@ -131,28 +132,28 @@ class CommandsManager(commands.Cog):
             page = ui.current_page
             submit_page = ui.submit_page
 
-            logger.debug(f"Configuration process started for Extension {extension} in guild {interaction.guild}")
+            logger.debug(f"Configuration process started for Extension {extension} in guild {interaction.guild}(id: {interaction.guild.id})")
+
             message = await interaction.followup.send(embed=page,view=page, wait=True)
             expired = await ui.submit_page.wait()
 
-            if expired:
-                raise TimeoutError(f'The configuration process has expired')
+            if expired: raise ExtensionException("Configuration Timed Out")
             
-            logger.debug(f"Configuration process completed for {extension} in guild {interaction.guild.id}")
+            logger.debug(f"Configuration process completed for Extension {extension} in guild {interaction.guild}(id: {interaction.guild.id})")
             
             async with self.db:
                 await self.db.setupExtension(interaction.guild,Extensions(extension),ui.config)
-        except (HTTPException, Forbidden, TimeoutError) as e:
-            if message is not None:
-                await message.edit(e, embed=None, view=None)
-            else:
-                await interaction.followup.send(e, ephemeral=True)
+        except (HTTPException, Forbidden, TimeoutError, ExtensionException) as e:
+            exception = GGsBotException.formatException(e)
 
-            logger.exception(e)
-        except ExtensionException as e:
-            await message.edit(embed=e.asEmbed(), view=None)
+            if message is not None:
+                await message.edit(embed=exception.asEmbed(), view=None)
+            else:
+                await interaction.followup.send(embed=exception.asEmbed(), ephemeral=True)
+
+            if not isinstance(e, ExtensionException): logger.exception(e)
         else:
-            await message.edit(f'{extension.capitalize()} extension configured successfully', view=None, embed=None)
+            await message.edit(embed=SuccessEmbed(description=f'{extension.capitalize()} extension configured successfully'), view=None)
 
     # Enable
     @extensions.subcommand(description='Enable a bot extension')
@@ -166,16 +167,14 @@ class CommandsManager(commands.Cog):
             async with self.db:
                 _, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions(extension))
 
-                if enabled: raise AssertionError(f'{extension.capitalize()} extension already enabled')
+                if enabled: raise ExtensionException("Already Enabled")
 
                 await self.db.setExtension(interaction.guild, Extensions(extension), True)
 
-        except AssertionError as e:
-            await interaction.followup.send(e)
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:
-            await interaction.followup.send(f'{extension.capitalize()} extension enabled successfully')
+            await interaction.followup.send(embed=SuccessEmbed(description=f'{extension.capitalize()} extension enabled successfully'))
 
     # Disable
     @extensions.subcommand(description='Disable a bot extension')
@@ -189,16 +188,14 @@ class CommandsManager(commands.Cog):
             async with self.db:
                 _, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions(extension))
 
-                if not enabled: raise AssertionError(f'{extension.capitalize()} extension already disabled')
+                if not enabled: raise ExtensionException("Already Disabled")
                 
                 await self.db.setExtension(interaction.guild, Extensions(extension), False)
 
-        except AssertionError as e:
-            await interaction.followup.send(e)
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:
-            await interaction.followup.send(f'{extension.capitalize()} extension disabled successfully')
+            await interaction.followup.send(embed=SuccessEmbed(description=f'{extension.capitalize()} extension disabled successfully'))
 
     # Teardown
     @extensions.subcommand(description='Teardown a previously configured bot extension')
@@ -215,7 +212,7 @@ class CommandsManager(commands.Cog):
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:
-            await interaction.followup.send(f"{extension.capitalize()} extension teardown completed successfully!")
+            await interaction.followup.send(embed=SuccessEmbed(description=f"{extension.capitalize()} extension teardown completed successfully!"))
             
 def setup(bot : commands.Bot):
     bot.add_cog(CommandsManager(bot))

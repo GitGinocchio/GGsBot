@@ -19,7 +19,6 @@ from nextcord import \
     Colour             
 
 from nextcord.ext.commands import Bot
-
 from typing import Callable
 
 from ..verify.VerificationUis import \
@@ -27,6 +26,11 @@ from ..verify.VerificationUis import \
     StartVerificationUI
 
 from utils.abc import UI, UiPage, UiSubmitPage
+from utils.exceptions import \
+    GGsBotException
+from utils.terminal import getlogger
+
+logger = getlogger()
 
 # NOTE: il parametro extension viene passato automaticamente alle pagine e alle UI
 
@@ -71,7 +75,6 @@ class GreetingsSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
         SetupUI.__init__(self, bot, guild, extension)
         self.config = { 'welcome_channel' : None, 'goodbye_channel' : None}
-        self.DefaultSetupSubmitPage.SubmitButton.callback = self.on_submit
         self.add_pages(self.GreetingsPage)
 
     class GreetingsPage(UiPage):
@@ -98,15 +101,18 @@ class GreetingsSetupUI(SetupUI):
         async def goodbye_channel(self, select: ChannelSelect, interaction : Interaction):
             self.config['goodbye_channel'] = (select.values[0].id if len(select.values) > 0 else None)
 
-    async def on_submit(self, interaction : Interaction):
-        try:
-            assert self.config.get('welcome_channel') is not None or self.config.get('goodbye_channel') is not None, "You must choose at least one welcome channel or one goodbye channel!"
-        except AssertionError as e:
-            await interaction.response.send_message(e, ephemeral=True, delete_after=5)
-        except Exception as e:
-            print(e)
-        else:
-            self.stop()
+        async def on_next(self, interaction : Interaction):
+            try:
+                if self.config.get('welcome_channel') == None and self.config.get('goodbye_channel') == None:
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must choose at least one welcome channel or one goodbye channel!",
+                        suggestions="Choose a welcome channel or a goodbye channel and try again.",
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
 
 class TempVCSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
@@ -114,9 +120,9 @@ class TempVCSetupUI(SetupUI):
         self.config = { 'listeners' : {}, 'channels' : {} }
         self.add_pages(self.TempVCPage)
 
-    class TempVCPage(UiSubmitPage):
+    class TempVCPage(UiPage):
         def __init__(self, ui : UI, extension : str):
-            UiSubmitPage.__init__(self, ui)
+            UiPage.__init__(self, ui)
             self.description = "This extension allows you to transform voice channels into \"generators\" of temporary voice channels"
 
 class VerifySetupUI(SetupUI):
@@ -150,7 +156,7 @@ class VerifySetupUI(SetupUI):
                 value="Select which verification modes you want to enable.\n(Each member can choose from one of these modes to verify)",
                 inline=False
             )
-        
+
         @channel_select(placeholder="1. Verification Channel",channel_types=[ChannelType.text], min_values=0, row=1)
         async def verify_channel(self, select: ChannelSelect, interaction : Interaction):
             self.config['verify_channel'] = (select.values[0].id if len(select.values) > 0 else None)
@@ -163,12 +169,24 @@ class VerifySetupUI(SetupUI):
         async def verification_modes(self, select: StringSelect, interaction : Interaction):
             self.config['modes'] = select.values
 
+        async def on_next(self, interaction : Interaction):
+            try:
+                if len(self.config.get('modes', [])) == 0:
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must select at least one verification mode",
+                        suggestions="Select at least one verification mode and try again",
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
+        
     class VerifySubmitPage(UiSubmitPage):
         def __init__(self, ui : UI, extension : str):
             UiSubmitPage.__init__(self, ui)
             self.description = f"Clicking Setup will confirm all saved settings so far and install the {extension.capitalize()} extension on the server, do you want to continue?"
             self.colour = Colour.green()
-            self.SubmitButton.callback = self.on_submit
 
         async def setup_verified_role(self, role : Role | None = None):
             if role == None:
@@ -211,10 +229,8 @@ class VerifySetupUI(SetupUI):
             message = await channel.send(embed=ui, view=ui)
             self.config['verify_message'] = message.id
 
-        async def on_submit(self, interaction: Interaction):
+        async def on_submit(self, interaction : Interaction):
             try:
-                assert len(self.config.get('modes')), "You must choose at least one verification mode!"
-
                 await self.ensure_everyone_permissions()
 
                 verified_role = (self.guild.get_role(verified_role_id) if (verified_role_id:=self.config.get('verified_role')) else None)
@@ -227,12 +243,8 @@ class VerifySetupUI(SetupUI):
                 self.config['verified_role'] = verified_role.id
 
                 await self.send_verification_message(verify_channel)
-            except AssertionError as e:
-                await interaction.response.send_message(e, ephemeral=True, delete_after=5)
-            except Forbidden as e:
-                await interaction.response.send_message(e, ephemeral=True, delete_after=5)
             except Exception as e:
-                print(e)
+                logger.exception(e)
             else:
                 self.stop()
 
@@ -242,7 +254,6 @@ class StaffSetupUI(SetupUI):
         self.config = {'staff_role': None, 'inactive_role': None, 'inactive': {}}
 
         self.add_pages(self.StaffPage)
-        self.set_submit_page(self.StaffSubmitPage)
 
     class StaffPage(UiPage):
         def __init__(self, ui : UI, extension : str):
@@ -269,19 +280,21 @@ class StaffSetupUI(SetupUI):
         async def inactive_role(self, select: RoleSelect, interaction : Interaction):
             self.config['inactive_role'] = (select.values[0].id if len(select.values) > 0 else None)
 
-    class StaffSubmitPage(SetupUI.DefaultSetupSubmitPage):
-        def __init__(self, ui : UI, extension : str):
-            SetupUI.DefaultSetupSubmitPage.__init__(self, ui, extension)
-            self.SubmitButton.callback = self.on_submit
-
-        async def on_submit(self, interaction : Interaction):
+        async def on_next(self, interaction : Interaction):
             try:
-                assert self.config.get('staff_role') is not None and self.config.get('inactive_role') is not None, "You must choose at least one staff role and one inactive role!"
-                assert self.config.get('staff_role') != self.config.get('inactive_role'), "The staff role and inactive role cannot be the same!"
-            except AssertionError as e:
-                await interaction.response.send_message(e, ephemeral=True, delete_after=5)
-            except Exception as e:
-                raise e
+                if self.config.get('staff_role') == None and self.config.get('inactive_role') == None:
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must choose at least one staff role and one inactive role!",
+                    )
+                elif self.config.get('staff_role') == self.config.get('inactive_role'):
+                    raise GGsBotException(
+                        title="Invalid Argument",
+                        description="Staff Role and Inactive Role cannot be the same!",
+                        suggestions="Choose a different role for the staff role or Inactive Role.",
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
             else:
                 self.stop()
     

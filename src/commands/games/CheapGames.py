@@ -65,7 +65,7 @@ import datetime
 import asyncio
 import json
 
-from utils.exceptions import ExtensionException
+from utils.exceptions import ExtensionException, GGsBotException
 from utils.terminal import getlogger
 from utils.db import Database
 from utils.abc import UI, UiPage, UiSubmitPage, Page
@@ -204,11 +204,17 @@ class GiveawaysSetupUI(UI):
             self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
         async def on_next(self, interaction : Interaction):
-            if len(self.config.get('channels', [])) == 0:
-                await interaction.response.send_message("You must set at least one Giveaway Channel.", ephemeral=True, delete_after=5)
-                return
-            
-            await super().on_next(interaction)
+            try:
+                if len(self.config.get('channels', [])) == 0:
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must set at least one Giveaway Channel.",
+                        suggestions="Please set a Giveaway Channel and then try again."
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
 
     class GiveawaySubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
@@ -340,11 +346,17 @@ class DealsSetupUI(UI):
             self.config['minMetacriticRating'] = int(select.values[0]) if len(select.values) > 0 else 0
 
         async def on_next(self, interaction : Interaction):
-            if self.config['lowerPrice'] > self.config['upperPrice']:
-                await interaction.response.send_message("The lower price must be less than or equal to the upper price.", ephemeral=True, delete_after=5)
-                return
-
-            await super().on_next(interaction)
+            try:
+                if self.config['lowerPrice'] > self.config['upperPrice']:
+                    raise GGsBotException(
+                        title="Invalid Price Range",
+                        description="The lower price must be less than or equal to the upper price.",
+                        suggestions="Please adjust the price range and try again.",
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
 
     class DealGuildSettingsPage(UiPage):
         def __init__(self, ui : UI):
@@ -373,11 +385,17 @@ class DealsSetupUI(UI):
             self.config['role'] = select.values[0].id if len(select.values) > 0 else None
 
         async def on_next(self, interaction : Interaction):
-            if len(self.config.get('channels', [])) == 0: 
-                await interaction.response.send_message("You must set at least one Deal Channel.", ephemeral=True, delete_after=5)
-                return
-            
-            await super().on_next(interaction)
+            try:
+                if len(self.config.get('channels', [])) == 0: 
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must set at least one Deal Channel.",
+                        suggestions="Please set a Deal Channel and then try again."
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
 
     class DealSubmitPage(UiSubmitPage):
         def __init__(self, ui : UI):
@@ -389,17 +407,20 @@ class DealsSetupUI(UI):
                 value="The first update will be at minute 0 of the next hour",
                 inline=False
             )
+
 # CheapGames Pages
 
 class ViewUpdatesPage(Page):
     def __init__(self, bot : Bot, data : dict):
         Page.__init__(self,
             title="CheapGames Updates",
-            description="Here are a list of all CheapGames updates created for this server:",
             timestamp = datetime.datetime.now(datetime.UTC),
             colour=Colour.green(),
             timeout=0
         )
+        self.description = "Here are a list of all CheapGames updates created for this server:" \
+                            if len(data['updates']) > 0 else                                    \
+                           "There are no updates created for this server."
 
         for update, config in data['updates'].items():
             channels = [f'{channel.mention}' for channel_id in config['channels'] if (channel:=bot.get_channel(channel_id))]
@@ -644,7 +665,7 @@ class CheapGames(Cog):
 
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
-            assert enabled, f'The extension is not enabled'
+            if enabled: raise ExtensionException("Already Enabled")
 
             await self.retrive_giveaways_data()
 
@@ -654,8 +675,6 @@ class CheapGames(Cog):
                 await self.db.editExtensionConfig(interaction.guild, Extensions.CHEAPGAMES, configuration[3])
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
-        except AssertionError as e:
-            await interaction.followup.send(e, ephemeral=True)
         else:
             await interaction.followup.send("Update triggered successfully", ephemeral=True)
 
@@ -692,8 +711,6 @@ class CheapGames(Cog):
 
             async with self.db:
                 await self.db.editAllExtensionConfig(completed)
-        except AssertionError as e:
-            pass
         except Exception as e:
             logger.error(e)
             raise e
@@ -719,8 +736,10 @@ class CheapGames(Cog):
 
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
 
-        assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-        self.giveaways =json.loads(content)
+        if content_type != 'application/json' or code != 200:
+            logger.exception(f'Error while fetching new giveaways (code: {code}): {reason}')
+        else:
+            self.giveaways = json.loads(content)
 
         guild = self.bot.get_guild(guild_id)
         if guild: role = guild.get_role(giveaway_role_id)
@@ -831,8 +850,6 @@ class CheapGames(Cog):
             logger.error(f'Error while fetching new giveaways (code: {code}): {reason}')
         else:
             self.deals = json.loads(content)
-        
-        print(url)
 
         # ---
 

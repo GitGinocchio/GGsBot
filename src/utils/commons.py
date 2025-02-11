@@ -1,4 +1,4 @@
-from nextcord import IntegrationType, Interaction
+from nextcord import IntegrationType, Interaction, Colour
 from functools import wraps
 from typing import Callable
 from enum import StrEnum
@@ -29,6 +29,34 @@ GUILD_INTEGRATION = [
 USER_INTEGRATION = [
     IntegrationType.user_install
 ]
+
+def hex_to_rgb(hex : str) -> tuple[int, int, int]:
+    """
+    Converts a hexadecimal color code to RGB format.
+    Args:
+       hex (:class:`str`): The hexadecimal color code to convert.
+    Returns:
+       :class:`tuple[int, int, int]`: The RGB color values as a tuple.
+    """
+    hex = hex.lstrip('#').replace("0x", "")
+    int_color = int(hex.replace("0x", ""), 16)
+    r = (int_color >> 16) & 0xFF
+    g = (int_color >> 8) & 0xFF
+    b = int_color & 0xFF
+    return (r, g, b)
+
+def hex_to_colour(hex : str) -> Colour:
+    """
+    Converts a hexadecimal color code to a Colour object.
+    Args:
+       hex (:class:`str`): The hexadecimal color code to convert.
+    Returns:
+       :class:`Colour`: The Colour object representing the color.
+    """
+    return Colour.from_rgb(*hex_to_rgb(hex))
+
+
+
 
 async def asyncget(url : str, timeout : int = 60, max_redirects : int = 5) -> tuple[str, bytes, int, str | None]:
     """
