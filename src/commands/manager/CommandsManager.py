@@ -1,5 +1,8 @@
 from nextcord.ext import commands
 from nextcord import \
+    HTTPException,   \
+    Forbidden,       \
+    NotFound,        \
     WebhookMessage,  \
     Permissions,     \
     Interaction,     \
@@ -106,10 +109,9 @@ class CommandsManager(commands.Cog):
             interaction : Interaction,
             extension : str = SlashOption(description="The extension you want to setup", choices=Extensions, required=True)
         ):
+        message : WebhookMessage | None = None
         try:
             await interaction.response.defer(ephemeral=True)
-
-            message : WebhookMessage = None
 
             async with self.db:
                 assert not await self.db.hasExtension(interaction.guild, Extensions(extension)), f'Extension {extension} already configured for this server'
@@ -131,18 +133,22 @@ class CommandsManager(commands.Cog):
 
             logger.debug(f"Configuration process started for Extension {extension} in guild {interaction.guild}")
             message = await interaction.followup.send(embed=page,view=page, wait=True)
+            expired = await ui.submit_page.wait()
 
-            assert not await submit_page.wait(), f'The configuration process has expired'
+            if expired:
+                raise TimeoutError(f'The configuration process has expired')
+            
             logger.debug(f"Configuration process completed for {extension} in guild {interaction.guild.id}")
             
             async with self.db:
                 await self.db.setupExtension(interaction.guild,Extensions(extension),ui.config)
-
-        except AssertionError as e:
-            if message: 
-                await message.edit(e, view=None, embed=None)
+        except (HTTPException, Forbidden, TimeoutError) as e:
+            if message is not None:
+                await message.edit(e, embed=None, view=None)
             else:
                 await interaction.followup.send(e, ephemeral=True)
+
+            logger.exception(e)
         except ExtensionException as e:
             await message.edit(embed=e.asEmbed(), view=None)
         else:

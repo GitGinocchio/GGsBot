@@ -661,9 +661,15 @@ class CheapGames(Cog):
 
 
     async def retrive_giveaways_data(self):
-        content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
-        assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
-        self.giveaways = json.loads(content)
+        try:
+            content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
+            
+            if content_type != "application/json" or code != 200:
+                raise ValueError(f'Error while fetching new giveaways (code: {code}): {reason}')
+            
+            self.giveaways = json.loads(content)
+        except Exception as e:
+            logger.exception(e)
 
     @tasks.loop(time=[datetime.time(hour=h, minute=0, second=0) for h in range(0, 24)])
     async def update_giveaways_and_deals(self):
@@ -712,6 +718,7 @@ class CheapGames(Cog):
         # NOTE: Quando ottengo i nuovi giveaway non devo sostituirli con quelli precedenti ma aggiungere quelli nuovi alla lista
 
         content_type, content, code, reason = await asyncget(f"{self.gp_baseurl}/api/giveaways")
+
         assert content_type == 'application/json' and code == 200, f'Error while fetching new giveaways (code: {code}): {reason}'
         self.giveaways =json.loads(content)
 
