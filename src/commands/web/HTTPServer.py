@@ -14,9 +14,9 @@ class HTTPServer(Cog):
     def __init__(self, bot : Bot):
         Cog.__init__(self)
         self.app = Application(logger=logger, loop=bot.loop)
-        self.address = '127.0.0.1'
+        self.address = '0.0.0.0'
         self.protocol = 'http'
-        self.port = 8080
+        self.port = 21662
         self.bot = bot
 
         self.app.router.add_get('/', self.index)

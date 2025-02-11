@@ -160,3 +160,4 @@ data/cookies/*
 /bin/**/ffmpeg.*
 
 !placeholder.txt
+/logs

@@ -83,9 +83,12 @@ class RandomCats(commands.Cog):
         if not self.fetched_tags:
             try:
                 content_type, content, code, reason = await asyncget(f'{self.baseurl}/api/tags')
-                assert content_type == 'application/json' and code == 200, f'Error while fetching tags (code: {code}): {reason}'
+                if content_type != 'application/json' or code != 200:
+                    raise ValueError(f'Error while fetching tags (code: {code}): {reason}')
                 self.tags : list = json.loads(content)
-            except AssertionError as e:
+                self.fetched_tags = True
+            except (ValueError, TimeoutError) as e:
+                self.tags = []
                 logger.error(e)
 
     @slash_command(name="cats", description="Set of commands to get cat images")
@@ -95,8 +98,6 @@ class RandomCats(commands.Cog):
     async def get_tags(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            assert self.tags is not None, "Tags are not loaded at the moment"
-
 
             embed = Embed(
                 title="Available Tags",
@@ -104,11 +105,11 @@ class RandomCats(commands.Cog):
                 color=Color.green()
             )
             
-            view =  View(timeout=3)
+            view =  View(timeout=0)
             link = Button(style=ButtonStyle.url, label="All available tags", url=f"{self.baseurl}/api/tags")
             view.add_item(link)
 
-        except AssertionError as e:
+        except ValueError as e:
             await interaction.followup.send(e, ephemeral=True, delete_after=5)
         else:
             await interaction.followup.send(embed=embed, view=view, ephemeral=True)
@@ -142,11 +143,14 @@ class RandomCats(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
 
+            if len(self.tags) == 0: raise ValueError("Tags are not loaded at the moment")
+
             if tags != "":
                 tags_pattern = r"^([_,]+(?:,[_,]+)*$" # comma separated list of strings regex
                 assert re.match(tags_pattern, tags) if tags else True, "Tags must be a comma separated list of strings"
-                for tag in tags.split(','): assert tag in self.tags, f"Tag \'{tag}\' is not an available tag"
-
+                for tag in tags.split(','): 
+                    if not tag in self.tags: raise ValueError(f"Tag \'{tag}\' is not an available tag")
+            
             params = [
                 f'font={font}',
                 f'fontSize={fontsize}',
@@ -170,20 +174,19 @@ class RandomCats(commands.Cog):
             if fontbackground: params.append(f'fontBackground={fontbackground}')
 
             url = f'{self.baseurl}/cat/{tags}/says/{text.replace(' ','%20')}?{'&'.join(params)}'
-
-            print(url)
-
             content_type, content, status, reason = await asyncget(url)
 
-            assert status != 404, f"Cat not found with tags {tags} "
-            assert status == 200 and content_type.startswith("image/"), f"An unexpected error occurred: {reason}"
+            if status == 404: 
+                raise ValueError(f"Cat not found with tags {tags}")
+            elif status == 200 and content_type.startswith("image/"): 
+                raise ValueError(f"An unexpected error occurred: {reason}")
             
             ext = content_type.split('/')[1]
             filelike = BytesIO(content)
             filelike.seek(0)
 
             file = File(filelike, filename=f"cat.{ext}", description=f"Cat says {text}", spoiler=spoiler)
-        except AssertionError as e:
+        except ValueError as e:
             await interaction.followup.send(e, ephemeral=True, delete_after=5)
         else:
             await interaction.followup.send(file=file, ephemeral=ephemeral)

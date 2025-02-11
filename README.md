@@ -1,7 +1,7 @@
 <p align="center">
     <img height="150px" src="./docs/media/circular_icon.png" align="center" />
     <h2 align="center">GGsBot</h2>
-    <p align="center">GGsBot is a <strong>multi-purpose</strong>, <strong>highly customizable</strong> discord bot powered by artificial intelligence</p>
+    <p align="center">GGsBot is a <strong>multi-purpose</strong>, <strong>highly customizable</strong> discord bot</p>
     <p align="center">
         <a href="https://github.com/GitGinocchio/GGsBot/stargazers">
         <img alt="Stars" src="https://img.shields.io/github/stars/GitGinocchio/GGsBot?style=for-the-badge&logo=reverbnation&logoSize=auto&logoColor=yellow" />
