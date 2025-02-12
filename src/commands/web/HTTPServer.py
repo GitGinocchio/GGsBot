@@ -56,7 +56,11 @@ class HTTPServer(Cog):
             },
             'memory' : ram_usage,
             'disk' : disk_usage,
-            'swap' : swap_usage
+            'swap' : swap_usage,
+
+            'discord' : {
+                'latency' : self.bot.latency
+            }
         }
 
         return Response(text=json.dumps(status), content_type="application/json")
