@@ -31,7 +31,7 @@ mutagen==1.47.0
 nextcord==3.0.1
 numpy==2.2.3
 pillow==10.4.0
-propcache==0.2.1
+propcache==0.3.0
 psutil==7.0.0
 pycparser==2.22
 pycryptodomex==3.21.0
