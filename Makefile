@@ -4,6 +4,9 @@ install:
 uninstall:
 	pip uninstall -y -r requirements.txt
 
+freeze: 
+	pip freeze > requirements.txt
+
 clearpycache:
 	python ./src/.make/clearpycache.py
 
