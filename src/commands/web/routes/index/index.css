@@ -1,0 +1,28 @@
+body{
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll;
+}
+
+header{
+    background: linear-gradient(to bottom, #46dd9c, #02e6fd);
+    height: 125px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo{
+    margin: 50px;
+}
+
+.logo img{
+    width: 150px;
+    height: auto;
+}
+
+.main-cont{
+    border-top: 1px solid black;
+    background-color: #02e6fd;
+    min-height: 600px;
+}
