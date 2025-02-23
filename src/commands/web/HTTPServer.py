@@ -20,11 +20,13 @@ class HTTPServer(Cog):
         self.bot = bot
 
         self.app.router.add_get('/', self.index)
+        self.app.router.add_get('/tos', self.tos)
 
     async def index(self, request : Request):
         return Response(text="Hello World!", content_type="text/plain")
-
-
+    
+    async def tos(self, request : Request):
+        return Response(text="Terms of Service", content_type="text/plain")
 
     @Cog.listener()
     async def on_ready(self):
