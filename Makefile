@@ -1,3 +1,5 @@
+
+
 install:
 	pip install -r requirements.txt
 
@@ -12,3 +14,9 @@ clearpycache:
 
 run:
 	python ./src/main.py
+
+runbot:
+	python ./src/main.py --bot
+
+runweb:
+	python ./src/main.py --web

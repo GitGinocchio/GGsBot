@@ -1,3 +1,5 @@
+from argparse import ArgumentParser, Namespace
+from nextcord.ext.commands import Bot, Cog
 from nextcord.ext import commands
 from dotenv import load_dotenv
 import traceback
@@ -23,28 +25,19 @@ from utils.config import \
 clear()
 getsysteminfo()
 logger = getlogger()
-intents = getintents()
 
-Bot = commands.Bot(
-    intents=intents,
-    command_prefix=config['COMMAND_PREFIX'],
-    application_id=DEV_APPLICATION_ID if (config['logger']['level'] == 'DEBUG' and DEV_APPLICATION_ID) else APPLICATION_ID,
-    owner_id=DEVELOPER_ID
-)
+def load_commands(bot : Bot, *, categories : list[str] = None, ignore_categories : list[str] = []):
+    if not categories:
+        categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
 
-Bot.loop.set_debug(True if config['logger']['level'] == 'DEBUG' else False)
-
-db = Database(loop=Bot.loop)
-
-def load_commands():
-    categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
     logger.info('Loading extensions...')
     for category in categories:
-        #logger.info(f'Looking in commands.{category}...')
+        if category in ignore_categories: continue
+
         for filename in os.listdir(f'./src/commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
-                    Bot.load_extension(f'commands.{category}.{filename[:-3]}')
+                    bot.load_extension(f'commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
@@ -61,12 +54,27 @@ def load_commands():
             else:
                 logger.warning(f'Skipping non-py file: \'{filename}\'')
 
-def run():
+def run(args : Namespace):
+    intents = getintents()
+
+    bot = commands.Bot(
+        intents=intents,
+        command_prefix=config['COMMAND_PREFIX'],
+        application_id=DEV_APPLICATION_ID if (config['logger']['level'] == 'DEBUG' and DEV_APPLICATION_ID) else APPLICATION_ID,
+        owner_id=DEVELOPER_ID
+    )
+
+    bot.loop.set_debug(True if config['logger']['level'] == 'DEBUG' else False)
+
+    db = Database(loop=bot.loop)
+
     logger.info("Starting bot...")
-    load_commands()
+
+    load_commands(bot, ignore_categories=['web'] if args.bot else [])
+
     try:
         logger.info("Loggin in...")
-        Bot.run(token=DEV_TOKEN if (config['logger']['level'] == 'DEBUG' and DEV_TOKEN) else TOKEN, reconnect=True)
+        bot.run(token=DEV_TOKEN if (config['logger']['level'] == 'DEBUG' and DEV_TOKEN) else TOKEN, reconnect=True)
     except nextcord.errors.HTTPException as e:
         logger.error(f"An HTTPException occurred (status code: {e.status})")
         match e.status:
@@ -85,5 +93,28 @@ def run():
     except Exception as e:
         logger.critical(f'Unhandled Exception occurred: {e}')
 
+def run_webserver_only(args : Namespace):
+    from commands.web.HTTPServer import HTTPServer
+    server = HTTPServer()
+    asyncio.run(server.run())
+
+def main():
+
+    parser = ArgumentParser(
+        description="GGsBot command line interface"
+    )
+
+    #parser.add_argument('-v', '--version', action='store_true', help='Show the version of GGsBot')
+    #parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+    parser.add_argument('--bot', action='store_true', help="Run only the discord bot")
+    parser.add_argument('--web', action='store_true', help="Run only the web server")
+
+    args = parser.parse_args()
+
+    if args.web:
+        run_webserver_only(args)
+    else:
+        run(args)
+
 if __name__ == '__main__':
-    run()
+    main()
