@@ -48,6 +48,9 @@ colori del bot:
 #02e6fd
 #41c9a9
 #1e8156
+#3f6866
+#61a8a6
+#025854
 
 ✔ Aggiungere una github action che prova a fare pip install con i requirements e se ottiene errore dovuto ad un conflitto tra le dipendenze impedisce il merge
 - ? Aggiungere un resoconto delle impostazioni salvate nella pagina submit

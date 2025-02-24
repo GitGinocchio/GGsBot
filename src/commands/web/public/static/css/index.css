@@ -1,8 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Anta&family=Audiowide&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 body{
     margin: 0;
     padding: 0;
     overflow-y: scroll;
 }
+
+/* Header */
 
 header{
     background: linear-gradient(to bottom, #46dd9c, #02e6fd);
@@ -21,8 +25,147 @@ header{
     height: auto;
 }
 
+.addbot-btn1{
+    margin: 50px;
+    background-color: #025854;
+    padding: 20px;
+    border-radius: 40px;
+    width: 150px;
+    text-align: center;
+    font-size: 18px;
+    font-family: "Merriweather", serif;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.4s, transform 0.3s;
+    cursor: pointer;
+}
+
+.addbot-btn1:hover{
+    background-color: #058f88;
+}
+
+
+/* First section */
+
 .main-cont{
     border-top: 1px solid black;
     background-color: #02e6fd;
-    min-height: 600px;
+    min-height: 700px; 
+}
+
+.main-cont .content{
+    display: flex;
+    justify-content: space-between;
+}
+
+.main-cont .content .left-content{
+    margin: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+
+.left-content p{
+    font-family: "Anta", serif;
+    color: black;
+    font-size: 80px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    width: 800px;
+}
+
+.left-content .addbot-btn2{
+    background-color: #025854;
+    padding: 20px;
+    border-radius: 40px;
+    width: 150px;
+    text-align: center;
+    font-size: 18px;
+    font-family: "Merriweather", serif;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.4s, transform 0.3s;
+    cursor: pointer;
+}
+
+.addbot-btn2:hover{
+    background-color: #058f88;
+}
+
+.content .mascotte{
+    width: 700px; /* Quando verrà messa la vera mascotte sistemare le dimensioni */
+}
+
+
+/* Second section */
+
+.second-cont{
+    border-top: 1px solid black;
+    background-color: #7FFFD4;
+    min-height: 700px; 
+}
+
+.second-cont h2{
+    font-size: 60px;
+    font-family: "Audiowide", serif;
+    letter-spacing: 3px;
+    margin: 100px;
+}
+
+.second-cont .cards{
+    display: flex;
+    margin: 100px;
+    gap: 7vh;
+}
+
+.second-cont .cards #card{
+    min-height: 350px;
+}
+
+#card h3{
+    font-size: 30px;
+    font-family:"Audiowide", serif;
+}
+
+#card p{
+    font-size: 24px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+
+/* Third section */
+
+.third-cont{
+    border-top: 1px solid black;
+    background-color: #70DB93;
+    min-height: 700px; 
+}
+
+
+/* Fourth section */
+
+.fourth-cont{
+    border-top: 1px solid black;
+    background-color: #7FFFD4;
+    min-height: 700px; 
+}
+
+
+/* EVENTUALY fifth section */
+
+.fifth-cont{
+    border-top: 1px solid black;
+    background-color: #02e6fd;
+    min-height: 700px; 
+}
+
+
+
+footer{
+    border-top: 1px solid black;
+    background: linear-gradient(to bottom, #02e6fd , #46dd9c);
+    height: 350px;
 }
