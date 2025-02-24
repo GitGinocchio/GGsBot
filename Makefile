@@ -19,4 +19,4 @@ runbot:
 	python ./src/main.py --bot
 
 runweb:
-	python ./src/main.py --web
+	python ./src/main.py --web --address 127.0.0.1 --port 8080 --debug
