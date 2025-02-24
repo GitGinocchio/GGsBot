@@ -16,7 +16,7 @@ import psutil
 import json
 import ssl
 
-from utils.terminal import getlogger, clear
+from utils.terminal import getlogger
 from utils.config import config
 from utils.db import Database
 
