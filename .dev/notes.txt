@@ -44,6 +44,7 @@
 colori del bot:
 #46dd9c
 #120804
+#152025
 #3cb6b2
 #02e6fd
 #41c9a9
