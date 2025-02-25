@@ -3,91 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GGsBot | Discord Bot</title>
+    <title>GGsBot</title>
     <link rel="stylesheet" href="/static/css/index.css">
-    <link rel="icon" href="/static/images/circular_icon.ico">
 </head>
 <body>
-    <header>
-        <a href="/" class="logo">
-            <img src="/static/images/logo.png" alt="logo">
-        </a>
-        <nav>
-        </nav>
-        <a class="button font-nunito-bold" href="/invite">Invite GGsBot</a>
-    </header>
-    <div class="container-main">
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="/">
+                    <img src="./static/images/circular_icon.ico" alt="GGsBot Logo">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Home     </a></li>
+                <li><a href="/about">About                   </a></li>
+                <li><a href="/docs">Documentation           </a></li>
+                <li><a href="/support">Support                 </a></li>
+                <li><a href="/faq">FAQ                     </a></li>
+            </ul>
+            <button class="nav-invite-button">Invite GGsBot</button>
+        </div>
+    </nav>
+
+    <header class="hero">
         <div class="content">
-            <div class="left">
-                <h1 class="font-syne-bold">GGsBot - Multipurpose discord bot </h1>
-                <p class="font-nunito-bold">GGsbot is a highly customizable bot that can be used for various purposes such as moderation, automation, and more.</p>
-                <a class="button font-nunito-bold" href="/invite">Invite GGsBot</a>
-            </div>
-            <img class="mascotte" src="/static/images/mascotte.png" alt="mascotte">
+            <h1>GGsBot - all-in-one bot</h1>
+            <button class="invite-button">Invite GGsBot</button>
         </div>
-    </div>
-    
-    <div class="container-features">
-        <h2 class="font-syne-bold">Key Features</h2>
-        <div class="cards font-nunito-bold">
-            <div class="card">
+        <div class="image"></div>
+    </header>
+
+    <section class="features">
+        <h2>Key Features</h2>
+        <div class="features-container">
+            <div class="feature">
                 <h3>Moderation</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
+                <p>Keep your server safe and organized with GGsBot's powerful moderation tools, including anti-spam, auto-moderation, and custom roles.</p>
             </div>
-            <div class="card">
-                <h3>Fun and Games</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
+            <div class="feature">
+                <h3>Fun & Games</h3>
+                <p>Engage your community with fun games, trivia, and interactive features. GGsBot can help create a more lively and engaging atmosphere.</p>
             </div>
-            <div class="card">
+            <div class="feature">
                 <h3>Utilities</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
+                <p>Streamline server management with helpful utilities like polls, reminders, and custom commands. GGsBot can save you time and effort.</p>
             </div>
         </div>
-    </div>
-    
-    <div class="container-commands">
-        <h2 class="font-syne-bold">Available commands</h2>
-        <div class="cards font-nunito-bold">
-            <div class="card">
-                <h3>Moderation</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
-            </div>
-            <div class="card">
-                <h3>Fun and Games</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
-            </div>
-            <div class="card">
-                <h3>Utilities</h3>
-                <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-                    Corporis quasi aperiam distinctio aliquid repellat ad. 
-                    Quia molestias reiciendis, incidunt quas minima, aut, et 
-                    veniam dolor doloribus exercitationem libero ea inventore.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-pp">
-    </div>
-
-    <div class="container-tos">
-    </div>
-
-    <footer>
-    </footer>
+    </section>
 </body>
 </html>

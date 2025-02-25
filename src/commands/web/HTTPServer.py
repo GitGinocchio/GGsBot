@@ -56,10 +56,14 @@ class HTTPServer(Cog):
 
         # user
         self.app.router.add_get('/',                        self.index)
+        self.app.router.add_get('/about',                   self.about)
+        self.app.router.add_get('/docs',                    self.docs)
+        self.app.router.add_get('/support',                 self.support)
+        self.app.router.add_get('/faq',                     self.faq)
+
         self.app.router.add_get('/privacy-policy',          self.pp)
         self.app.router.add_get('/terms-of-service',        self.tos)
         self.app.router.add_get('/invite',                  self.invite)
-        self.app.router.add_get('/about',                   self.about)
         self.app.router.add_get('/contact',                 self.contact)
 
 
@@ -84,6 +88,18 @@ class HTTPServer(Cog):
     @aiojinja.template('index.html')
     async def index(self, request : Request): return {}
 
+    async def about(self, request : Request):
+        return Response(text="About", status=200)
+
+    async def docs(self, request : Request):
+        return Response(text="Docs", status=200)
+
+    async def support(self, request : Request):
+        return Response(text="Docs", status=200)
+
+    async def faq(self, request : Request):
+        return Response(text="Docs", status=200)
+
     @aiojinja.template('tos.html')
     async def tos(self, request : Request): return {}
     
@@ -92,9 +108,6 @@ class HTTPServer(Cog):
 
     async def invite(self, request : Request):
         return Response(text="Invite", status=200)
-    
-    async def about(self, request : Request):
-        return Response(text="About", status=200)
     
     async def contact(self, request : Request):
         return Response(text="Contact", status=200)
@@ -144,10 +157,6 @@ class HTTPServer(Cog):
         }
 
         return Response(text=json.dumps(status), content_type="application/json")
-
-
-
-
 
 
 

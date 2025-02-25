@@ -1,183 +1,228 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,800;1,800&family=Syne:wght@800&display=swap');
 
-.font-syne-regular {
-    font-family: "Syne";
-    font-weight: normal;
-    font-optical-sizing: auto;
-    font-stretch: condensed;
-}
 
-.font-syne-bold {
-    font-family: "Syne";
-    font-optical-sizing: auto;
-    font-weight: bold;
-    font-stretch: condensed;
-}
-
-.font-nunito-regular {
-    font-family: "Nunito";
-    font-optical-sizing: auto;
-    font-weight: normal;
-    font-stretch:condensed;
-}
-
-.font-nunito-bold {
-    font-family: "Nunito";
-    font-optical-sizing: auto;
-    font-weight: bold;
-    font-stretch:condensed;
-}
-
-h1 {
-    font-size: 35px;
-}
-
-h2 { 
-    font-size: 30px;
-}
-
-h3 {
-    font-size: 25px;
-}
-
-p, a {
-    font-size: 20px;
+:root { 
+    --content-margin: 20%;
+    --primary-color: #2ad3b5;
+    --heading-color: #02e6fd;
+    --background-color: #152025;
 }
 
 body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--primary-color);
     margin: 0;
     padding: 0;
-    overflow-y: scroll;
+    color: var(--background-color);
+}
+
+/* Navbar */
+
+.navbar {
+    background-color: var(--background-color);
+    padding: 0px var(--content-margin);
+    height: 75px;
+}
+
+.navbar .container {
+    margin-left: 1%;
+    margin-right: 1%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 75px;
+}
+
+/* Logo */
+
+.logo {
+    display: flex;
+    align-items: center;
+    color: var(--primary-color);
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Syne', sans-serif;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    display: block;
+    height: 55px;
+    margin-right: 10px;
+}
+
+/* Nav Links */
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+}
+
+.nav-links li {
+    position: relative;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    padding: 10px 15px;
+    position: relative;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    width: 0;
+    height: 3px;
+    background-color: #46DD9C;
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%);
+    border-radius: 5px;
+}
+
+.nav-links a:hover::after {
+    width: 80%;
+}
+
+.nav-links a.active {
+    background-color: #46DD9C;
+    color: var(--background-color);
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+
+/* Nav Invite Button */
+
+.nav-invite-button {
+    background-color: #152025;
+    border: none;
+    padding: 8px 16px;
+    color: #46DD9C;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 0.75em;
+    box-shadow: inset 0 0 0 0.125em #46DD9C;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    height: 42px;
+}
+
+.nav-invite-button:hover {
+    background-color: #46DD9C;
+    color : #152025;
+}
+
+/* Invite Button */
+
+.invite-button {
+    background-color: #152025;
+    border: none;
+    padding: 8px 16px;
+    color: #46DD9C;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 0.75em;
+    box-shadow: inset 0 0 0 0.125em #46DD9C;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    height: 42px;
+}
+
+.invite-button:hover {
+    background-color: #46DD9C;
+    color : #152025;
 }
 
 /* Header */
 
-header {
-    background: linear-gradient(to bottom, #46dd9c, #02e6fd);
-    height: 125px;
+body header {
+    height: 60%;
+}
+
+/* Hero Section */
+
+.hero {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between;
+    background-color: var(--background-color);
+    color: var(--heading-color);
+    padding: 0px 0px 0px 50px;
+    border-radius: 15px;
+    margin: 32px var(--content-margin) 32px var(--content-margin);
+    height: 40vh;
 }
 
-.logo {
-    margin: 50px;
+.hero .content {
+    /* non eliminare, utile sapere che esiste... */
 }
 
-.logo img {
-    width: 150px;
-    height: auto;
+.hero .content h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
 }
 
-.button {
-    margin-top: 50px;
-    margin-bottom: 50px;
-    margin-right: 50px;
-    margin-left: 0px;
-    background-color: #025854;
-    padding: 20px;
-    border-radius: 20px;
-    font-size: 20px;
-    width: 200px;
+.hero .image {
+    /* Gradient / Mask */
+    mask-image: url("/static/images/left-gradient.svg");
+    mask-size: cover;
+    mask-repeat: no-repeat;
+    mask-position: 10% center;
+    margin-left: -10%;
+
+    /* Image */
+    inset: 0px;
+    overflow: hidden;
+    border-radius: 10px;
+    background-image: url("/static/images/banner.png");
+    width: 300px;
+    height: inherit;
+    background-size: auto;
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* Section 1 */
+
+.features {
     text-align: center;
-    text-decoration: none;
-    color: white;
-    transition: background-color 0.4s, transform 0.3s;
-    cursor: pointer;
+    padding: 40px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
 }
 
-.button:hover{
-    background-color: #058f88;
+.features h2 {
+    text-align: left;
+    font-family: 'Syne', sans-serif;
 }
 
-
-/* First section */
-
-.container-main {
-    border-top: 1px solid black;
-    background-color: #02e6fd;
-    min-height: 700px; 
-}
-
-.content {
+.features-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
-.left {
-    margin: 150px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+.feature {
+    max-width: 300px;
+    text-align: left;
 }
 
-.left {
-    width: 1000px;
-}
-
-.mascotte {
-    width: 600px; /* Quando verrà messa la vera mascotte sistemare le dimensioni */
-}
-
-
-/* Second section */
-
-.container-features {
-    border-top: 1px solid black;
-    background-color: #7FFFD4;
-    min-height: 700px; 
-}
-
-.container-features .font-syne-bold {
-    letter-spacing: 3px;
-    margin: 100px;
-}
-
-.cards {
-    display: flex;
-    margin: 100px;
-    gap: 7vh;
-}
-
-.card {
-    min-height: 350px;
-}
-
-/* Third section */
-
-.container-commands {
-    border-top: 1px solid black;
-    background-color: #70DB93;
-    min-height: 700px; 
-}
-
-.container-commands .font-syne-bold {
-    letter-spacing: 3px;
-    margin: 100px;
-}
-
-
-/* Fourth section */
-
-.container-pp {
-    border-top: 1px solid black;
-    background-color: #7FFFD4;
-    min-height: 700px; 
-}
-
-
-/* EVENTUALY fifth section */
-
-.container-tos {
-    border-top: 1px solid black;
-    background-color: #02e6fd;
-    min-height: 700px; 
-}
-
-
-
-footer {
-    border-top: 1px solid black;
-    background: linear-gradient(to bottom, #02e6fd , #46dd9c);
-    height: 350px;
+.feature h3 {
+    font-family: 'Syne', sans-serif;
 }
