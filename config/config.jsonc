@@ -75,5 +75,12 @@
                 "cookiefile": "./data/cookies/ytdlcookies.txt"
             }
         }
+    },
+
+    "web" : {
+        "address" : "0.0.0.0",
+        "port" : 21662,
+        "protocol" : "http",
+        "debug" : false
     }
 }

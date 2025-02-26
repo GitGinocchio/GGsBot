@@ -1,5 +1,6 @@
 from utils.terminal import getlogger
 import platform
+import os
 
 logger = getlogger()
 
@@ -8,6 +9,7 @@ OS = platform.system()
 ARCH = 'x64' if '64' in platform.architecture()[0] else 'x32'
 
 def getsysteminfo():
+    logger.debug(f'Current Working Directory: {os.getcwd()}')
     logger.debug(f'Architecture: {platform.architecture()}')
     logger.debug(f'Platform: {platform.platform()}')
     logger.debug(f'Machine: {platform.machine()}')
