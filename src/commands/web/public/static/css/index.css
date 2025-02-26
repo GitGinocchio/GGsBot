@@ -2,10 +2,22 @@
 
 
 :root { 
-    --content-margin: 20%;
-    --primary-color: #2ad3b5;
-    --heading-color: #02e6fd;
-    --background-color: #152025;
+    --content-margin:               20%;
+
+    --primary-color:                #2ad3b5;
+    --heading-color:                #02e6fd;
+
+    --header-background-color:      #46DD9C;
+
+    --primary-background-color:     #152025;
+    --secondary-background-color:   #565151;
+    --third-background-color:       #3c3838;
+
+    --primary-shadow-color:         rgba(86, 81, 81, 0.5);
+    --secondary-shadow-color:       rgba(86, 81, 81, 0.7);
+
+    --transparent-color:            rgba(255, 255, 255, 0.0);
+
 }
 
 body {
@@ -13,15 +25,15 @@ body {
     background-color: var(--primary-color);
     margin: 0;
     padding: 0;
-    color: var(--background-color);
+    color: var(--primary-background-color);
 }
 
 /* Navbar */
 
 .navbar {
-    background-color: var(--background-color);
+    background-color: var(--primary-background-color);
     padding: 0px var(--content-margin);
-    height: 75px;
+    height: 7vh;
 }
 
 .navbar .container {
@@ -30,7 +42,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 75px;
+    height: 7vh;
 }
 
 /* Logo */
@@ -89,7 +101,7 @@ body {
     gap: 30px;
     width: 0;
     height: 3px;
-    background-color: #46DD9C;
+    background-color: var(--header-background-color);
     transition: all 0.3s ease-in-out;
     transform: translateX(-50%);
     border-radius: 5px;
@@ -100,8 +112,8 @@ body {
 }
 
 .nav-links a.active {
-    background-color: #46DD9C;
-    color: var(--background-color);
+    background-color: var(--header-background-color);
+    color: var(--primary-background-color);
     font-weight: bold;
     border-radius: 8px;
     padding: 10px 15px;
@@ -113,18 +125,18 @@ body {
     background-color: #152025;
     border: none;
     padding: 8px 16px;
-    color: #46DD9C;
+    color: var(--header-background-color);
     font-weight: bold;
     cursor: pointer;
     border-radius: 0.75em;
-    box-shadow: inset 0 0 0 0.125em #46DD9C;
+    box-shadow: inset 0 0 0 0.125em var(--header-background-color);
     font-family: 'Nunito', sans-serif;
     font-weight: 600;
     height: 42px;
 }
 
 .nav-invite-button:hover {
-    background-color: #46DD9C;
+    background-color: var(--header-background-color);
     color : #152025;
 }
 
@@ -138,21 +150,21 @@ body {
     font-weight: bold;
     cursor: pointer;
     border-radius: 0.75em;
-    box-shadow: inset 0 0 0 0.125em #46DD9C;
+    box-shadow: inset 0 0 0 0.125em var(--header-background-color);
     font-family: 'Nunito', sans-serif;
     font-weight: 600;
     height: 42px;
 }
 
 .invite-button:hover {
-    background-color: #46DD9C;
+    background-color: var(--header-background-color);
     color : #152025;
 }
 
 /* Header */
 
 body header {
-    height: 60%;
+    height: 60vh;
 }
 
 /* Hero Section */
@@ -161,21 +173,29 @@ body header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--background-color);
+    background-color: var(--primary-background-color);
     color: var(--heading-color);
     padding: 0px 0px 0px 50px;
     border-radius: 15px;
     margin: 32px var(--content-margin) 32px var(--content-margin);
     height: 40vh;
+    border: 5px solid var(--secondary-background-color);
+    box-shadow: 5px 5px 5px var(--primary-shadow-color);
 }
 
+
 .hero .content {
-    /* non eliminare, utile sapere che esiste... */
+    max-width: 60%;
 }
+
 
 .hero .content h1 {
     font-family: 'Syne', sans-serif;
     font-size: 32px;
+}
+
+.hero .content p {
+    font-size: 16px;
 }
 
 .hero .image {
@@ -184,14 +204,13 @@ body header {
     mask-size: cover;
     mask-repeat: no-repeat;
     mask-position: 10% center;
-    margin-left: -10%;
 
     /* Image */
     inset: 0px;
     overflow: hidden;
     border-radius: 10px;
     background-image: url("/static/images/banner.png");
-    width: 300px;
+    width: 40%;
     height: inherit;
     background-size: auto;
     background-position: center center;
@@ -199,13 +218,14 @@ body header {
     background-repeat: no-repeat;
 }
 
-/* Section 1 */
+/* Features */
 
 .features {
     text-align: center;
-    padding: 40px;
+    padding: 40px 10px 40px 10px;
     margin-left: var(--content-margin);
     margin-right: var(--content-margin);
+    height: 25vh;
 }
 
 .features h2 {
@@ -216,13 +236,102 @@ body header {
 .features-container {
     display: flex;
     justify-content: space-around;
+    gap: 10vh;
 }
 
 .feature {
-    max-width: 300px;
+    max-width: 30%;
     text-align: left;
 }
 
 .feature h3 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.3rem;
+}
+
+/* Arrow */
+
+.arrow {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2.5vh;
+    padding-bottom: 2.5vh;
+    height: 8vh;
+}
+
+.shadow {
+    position: relative;
+    top: 2.5vh;
+    width: 100vw;
+    height: 0px;
+    box-shadow: 0px 1vh 20px 2.5vh var(--secondary-shadow-color);
+    z-index: -1;
+}
+
+.arrow img {
+    height: 100%;
+}
+
+
+/* Custom Built Ui */
+
+.custom-built-ui {
+    background-color: var(--secondary-background-color);
+    min-height: 80vh;
+}
+
+.custom-built-ui .content {
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.custom-built-ui .content h2 {
     font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}
+
+/* Highly Customizable */
+
+.highly-customizable {
+    background-color: var(--third-background-color);
+    min-height: 80vh;
+}
+
+.highly-customizable .content {
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.highly-customizable .content h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}
+
+/* Multipurpuse */
+
+.multipurpuse {
+    background-color: var(--primary-background-color);
+    min-height: 80vh;
+}
+
+.multipurpuse .content {
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.multipurpuse .content h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}
+
+footer {
+    min-height: 40vh;
 }
