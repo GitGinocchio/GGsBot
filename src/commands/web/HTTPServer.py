@@ -86,25 +86,25 @@ class HTTPServer(Cog):
     # user
 
     @aiojinja.template('index.html')
-    async def index(self, request : Request): return {}
+    async def index(self, request : Request): return { "request" : request}
 
-    async def about(self, request : Request):
-        return Response(text="About", status=200)
+    @aiojinja.template('about.html')
+    async def about(self, request : Request): return { "request" : request}
 
-    async def docs(self, request : Request):
-        return Response(text="Docs", status=200)
+    @aiojinja.template('docs.html')
+    async def docs(self, request : Request): return { "request" : request}
 
-    async def support(self, request : Request):
-        return Response(text="Docs", status=200)
+    @aiojinja.template('support.html')
+    async def support(self, request : Request): return { "request" : request}
 
-    async def faq(self, request : Request):
-        return Response(text="Docs", status=200)
+    @aiojinja.template('faq.html')
+    async def faq(self, request : Request): return { "request" : request}
 
     @aiojinja.template('tos.html')
-    async def tos(self, request : Request): return {}
+    async def tos(self, request : Request): return { "request" : request}
     
     @aiojinja.template('pp.html')
-    async def pp(self, request : Request): return {}
+    async def pp(self, request : Request): return { "request" : request}
 
     async def invite(self, request : Request):
         return Response(text="Invite", status=200)

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}{% endblock title %}</title>
+
+        <link rel="icon" href="/static/images/circular_icon.ico">
+        <link rel="stylesheet" href="/static/css/template.css">
+        <script src="/static/js/template.js"></script>
+        {% block script %}{% endblock script %}
+        {% block style %}{% endblock style %}
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <a href="/">
+                        <img src="./static/images/circular_icon.ico" alt="GGsBot Logo">
+                    </a>
+                </div>
+                    <ul class="nav-links">
+                        <li><a href="/" onclick="setActiveAndRedirect(event, this)">Home</a></li>
+                        <li><a href="/about" onclick="setActiveAndRedirect(event, this)">About</a></li>
+                        <li><a href="/docs" onclick="setActiveAndRedirect(event, this)">Documentation</a></li>
+                        <li><a href="/support" onclick="setActiveAndRedirect(event, this)">Support</a></li>
+                        <li><a href="/faq" onclick="setActiveAndRedirect(event, this)">FAQ</a></li>
+                    </ul>
+                <button class="nav-invite-button">Invite GGsBot</button>
+            </div>
+        </nav>
+        {% block content %}
+
+        {% endblock content %}
+    </body>
+</html>
