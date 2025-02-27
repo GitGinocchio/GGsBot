@@ -116,37 +116,64 @@ body header {
 
 /* Custom Built Ui */
 
-.custom-built-ui {
-    background-color: var(--secondary-background-color);
+.ui {
+    background-color: var(--primary-background-color);
     min-height: 80vh;
 }
 
-.custom-built-ui .content {
+.ui .content {
+    display:flex;
+    flex-direction:column;
     padding: 40px 10px;
     margin-left: var(--content-margin);
     margin-right: var(--content-margin);
 }
 
-.custom-built-ui .content h2 {
+.ui .content h2 {
     font-family: 'Syne', sans-serif;
     color: var(--heading-color);
     text-align: left;
 }
 
+.ui .content .alignment {
+    display: flex;
+    flex-direction:row;
+    justify-content: space-around;
+    align-items: center;
+    height: inherit;
+    width: inherit;
+    gap: 5%;
+}
+
+.ui .content .alignment .description p {
+    color: var(--primary-color);
+    font-size: 18px;
+}
+
+.ui .content .alignment .description h3 {
+    color: var(--heading-color);
+    font-size: 30px;
+}
+
+.ui .content .alignment img {
+    box-shadow: 0px 0px 10px 10px var(--third-shadow-color);
+    border-radius: 15px;
+}
+
 /* Highly Customizable */
 
-.highly-customizable {
-    background-color: var(--third-background-color);
+.customizable {
+    background-color: var(--primary-background-color);
     min-height: 80vh;
 }
 
-.highly-customizable .content {
+.customizable .content {
     padding: 40px 10px;
     margin-left: var(--content-margin);
     margin-right: var(--content-margin);
 }
 
-.highly-customizable .content h2 {
+.customizable .content h2 {
     font-family: 'Syne', sans-serif;
     color: var(--heading-color);
     text-align: left;

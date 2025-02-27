@@ -1,30 +1,57 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log(window.location.pathname);
-    
-    const currentActive = document.getElementById('active');
-    if (currentActive) { currentActive.removeAttribute("id"); }
-    
+    const navLinks = document.querySelector('.nav-links');
     const links = document.querySelectorAll('.nav-links li a');
+
+    // Crea l'elemento che farà da background animato
+    const background = document.createElement('div');
+    background.classList.add('background');
+    navLinks.appendChild(background);
+
     links.forEach(link => {
         if (link.getAttribute('href') === window.location.pathname) {
             link.setAttribute("id", "active");
         }
+
+        link.addEventListener("click", (event) => setActiveAndRedirect(event, link));
     });
 
-    function setActiveAndRedirect(event, link) {
-        event.preventDefault(); // Previene il comportamento di default (il redirect immediato)
+    let currentSelected = document.getElementById('active');
+    
 
-        const currentActive = document.getElementById('active');
-        currentActive.removeAttribute("id");
+    function updateBackground(newLink, instant = false) {
+        const newRect = newLink.getBoundingClientRect();
+        const navRect = navLinks.getBoundingClientRect();
+        const newX = newRect.left - navRect.left;
+
+        if (currentSelected) {
+            const currentRect = currentSelected.getBoundingClientRect();
+            const currentX = currentRect.left - navRect.left;
+
+            // Se ci stiamo spostando, anima la transizione dal punto attuale
+            background.style.transition = instant ? "none" : "transform 0.3s ease-in-out, width 0.3s ease-in-out";
+        }
+
+        // Imposta la larghezza e la posizione
+        background.style.width = `${newRect.width}px`;
+        background.style.transform = `translateX(${newX}px) translateY(-50%)`;
+    }
+
+    if (currentSelected) {
+        updateBackground(currentSelected, true); // Posiziona il background senza animazione
+    }
+
+    function setActiveAndRedirect(event, link) {
+        event.preventDefault();
+
+        // Rimuove lo stato attivo precedente
+        document.querySelector('.nav-links li a#active')?.removeAttribute('id');
         
         // Aggiungi la classe 'active' al link cliccato
-        link.setAttribute("id", "active");
+        updateBackground(link);
         
         // Esegui il redirect dopo 300 millisecondi (per vedere l'animazione)
-        /*
-        setTimeout(function() {
+        setTimeout(() => {
             window.location.href = link.href;
-        }, 10000); // Tempo per l'animazione
-        */
+        }, 300); // Tempo per l'animazione
     }
 });
