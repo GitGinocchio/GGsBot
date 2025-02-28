@@ -88,7 +88,6 @@ body {
     padding: 10px 15px;
     position: relative;
     border-radius: 8px;
-    transition: background-color 0.3s ease;
     z-index: 1;
 }
 
