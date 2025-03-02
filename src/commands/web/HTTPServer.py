@@ -78,7 +78,7 @@ class HTTPServer(Cog):
     async def logger(self, request : Request, handler : RequestHandler):
         response : Response = await handler(request)
 
-        print(request.message)
+        logger.info(request.message)
 
         log = f"{request.remote} - {request.method} ({response.status}) {request.path}"
 
