@@ -66,11 +66,12 @@ class HTTPServer(Cog):
         self.app.router.add_get('/invite',                  self.invite)
         self.app.router.add_get('/contact',                 self.contact)
 
+        self.app.router.add_get('/authorize',           self.authorize)
+
         # api
         self.app.router.add_get('/api/status',              self.status)
         self.app.router.add_get('/api/verify',              self.verify)
         self.app.router.add_get('/api/webhooks',            self.webhooks)
-        self.app.router.add_get('/api/authorize',           self.authorize)
         self.app.router.add_get('/api/interactions',        self.interactions)
 
     @middleware
@@ -128,6 +129,7 @@ class HTTPServer(Cog):
         return Response(text="Webhooks", status=200)
 
     async def authorize(self, request : Request):
+        print(request.message)
         return Response(text="Authorize", status=200)
     
     async def interactions(self, request : Request):
