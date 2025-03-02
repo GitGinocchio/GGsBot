@@ -33,7 +33,7 @@ class HTTPServer(Cog):
     def __init__(self, 
         bot : Bot = None, 
         *, 
-        address : str = web_config.get('address', '0.0.0.0'), 
+        address : str = web_config.get('address', '127.0.0.1'), 
         protocol : str = web_config.get('protocol', 'http'),
         port : int = web_config.get('port', 21662), 
         debug : bool = web_config.get('debug', False)

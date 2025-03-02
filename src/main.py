@@ -115,7 +115,7 @@ def main():
     #parser.add_argument('-v', '--version', action='store_true', help='Show the version of GGsBot')
     parser.add_argument('--bot',        '-b',       action='store_true', help="Run only the discord bot")
     parser.add_argument('--web',        '-w',       action='store_true', help="Run only the web server")
-    parser.add_argument('--address',    '-a',       type=str, default='0.0.0.0', help="Address to use for the web server")
+    parser.add_argument('--address',    '-a',       type=str, default='127.0.0.1', help="Address to use for the web server")
     parser.add_argument('--port',       '-po',      type=int, default=8080, help="Port to use for the web server")
     parser.add_argument('--proto',      '-pr',      type=str, default='http', help="Protocol to use for the web server")
     parser.add_argument('--debug',      '-d',       action='store_true', help="Enable debug mode")
