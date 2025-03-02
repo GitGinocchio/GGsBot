@@ -77,6 +77,9 @@ class HTTPServer(Cog):
     @middleware
     async def logger(self, request : Request, handler : RequestHandler):
         response : Response = await handler(request)
+
+        print(request.message)
+
         log = f"{request.remote} - {request.method} ({response.status}) {request.path}"
 
         if response.status < 399: logger.info(log)
@@ -129,7 +132,6 @@ class HTTPServer(Cog):
         return Response(text="Webhooks", status=200)
 
     async def authorize(self, request : Request):
-        print(request.message)
         return Response(text="Authorize", status=200)
     
     async def interactions(self, request : Request):
