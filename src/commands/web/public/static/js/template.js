@@ -51,11 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (background) {
            // Aggiungi la classe 'active' al link cliccato
            updateBackground(link);
+
+            // Esegui il redirect dopo 300 millisecondi (per vedere l'animazione)
+            redirectTimeout = setTimeout(() => {
+                window.location.href = link.href;
+            }, 300); // Tempo per l'animazione
         }
-        
-        // Esegui il redirect dopo 300 millisecondi (per vedere l'animazione)
-        redirectTimeout = setTimeout(() => {
+        else {
             window.location.href = link.href;
-        }, 300); // Tempo per l'animazione
+        }
     }
 });

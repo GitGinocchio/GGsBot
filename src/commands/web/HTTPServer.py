@@ -70,7 +70,7 @@ class HTTPServer(Cog):
         self.app.router.add_get('/api/status',              self.status)
         self.app.router.add_get('/api/verify',              self.verify)
         self.app.router.add_get('/api/webhooks',            self.webhooks)
-        self.app.router.add_get('/api/authorize'            self.authorize)
+        self.app.router.add_get('/api/authorize',           self.authorize)
         self.app.router.add_get('/api/interactions',        self.interactions)
 
     @middleware
@@ -86,25 +86,32 @@ class HTTPServer(Cog):
     # user
 
     @aiojinja.template('index.html')
-    async def index(self, request : Request): return { "request" : request}
+    async def index(self, request : Request): 
+        return { "request" : request}
 
     @aiojinja.template('about.html')
-    async def about(self, request : Request): return { "request" : request, "underconstruction" : True}
+    async def about(self, request : Request): 
+        return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('docs.html')
-    async def docs(self, request : Request): return { "request" : request, "underconstruction" : True}
+    async def docs(self, request : Request): 
+        return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('support.html')
-    async def support(self, request : Request): return { "request" : request, "underconstruction" : True}
+    async def support(self, request : Request): 
+        return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('faq.html')
-    async def faq(self, request : Request): return { "request" : request, "underconstruction" : True}
+    async def faq(self, request : Request): 
+        return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('tos.html')
-    async def tos(self, request : Request): return { "request" : request}
+    async def tos(self, request : Request): 
+        return { "request" : request}
     
     @aiojinja.template('pp.html')
-    async def pp(self, request : Request): return { "request" : request, "underconstruction" : True}
+    async def pp(self, request : Request): 
+        return { "request" : request, "underconstruction" : True}
 
     async def invite(self, request : Request):
         return Response(text="Invite", status=200)
