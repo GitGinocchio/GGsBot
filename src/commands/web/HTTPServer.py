@@ -197,12 +197,13 @@ class HTTPServer(Cog):
         except asyncio.CancelledError: 
             # TODO: Handle shutdown gracefully
             # == KeyboardInterrupt
-            pass
-        except Exception as e:
-            logger.error(e)
-        finally:
             logger.info("User requested shutdown")
             await self.shutdown()
+        except Exception as e:
+            logger.error(e)
+            logger.erro("A fatal error occurred, shutting down")
+            await self.shutdown()
+
 
     async def restart(self):
         logger.info("Restarting HTTP Server...")
