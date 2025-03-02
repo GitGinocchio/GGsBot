@@ -124,6 +124,8 @@ body header {
 .ui {
     background-color: var(--primary-background-color);
     min-height: 80vh;
+    align-content: center;
+    border-bottom: 1px solid var(--secondary-background-color);
 }
 
 .ui .content {
@@ -170,6 +172,7 @@ body header {
 .customizable {
     background-color: var(--primary-background-color);
     min-height: 80vh;
+    border-bottom: 1px solid var(--secondary-background-color);
 }
 
 .customizable .content {
@@ -189,6 +192,7 @@ body header {
 .multipurpuse {
     background-color: var(--primary-background-color);
     min-height: 80vh;
+    border-bottom: 1px solid var(--secondary-background-color);
 }
 
 .multipurpuse .content {

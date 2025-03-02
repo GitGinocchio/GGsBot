@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelector('.nav-links');
     const links = document.querySelectorAll('.nav-links li a');
+    let redirectTimeout;
 
     // Crea l'elemento che farà da background animato
     const background = document.createElement('div');
@@ -41,6 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setActiveAndRedirect(event, link) {
+        clearTimeout(redirectTimeout);
         event.preventDefault();
 
         // Rimuove lo stato attivo precedente
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateBackground(link);
         
         // Esegui il redirect dopo 300 millisecondi (per vedere l'animazione)
-        setTimeout(() => {
+        redirectTimeout = setTimeout(() => {
             window.location.href = link.href;
         }, 300); // Tempo per l'animazione
     }
