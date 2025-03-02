@@ -6,6 +6,7 @@ from aiohttp.web import \
     Request,            \
     RequestHandler,     \
     TCPSite,            \
+    HTTPFound,          \
     middleware
 from datetime import datetime, timezone
 from os.path import join, abspath
@@ -15,6 +16,7 @@ import asyncio
 import psutil
 import json
 import ssl
+import os
 
 from utils.terminal import getlogger
 from utils.config import config
@@ -66,7 +68,7 @@ class HTTPServer(Cog):
         self.app.router.add_get('/invite',                  self.invite)
         self.app.router.add_get('/contact',                 self.contact)
 
-        self.app.router.add_get('/authorize',           self.authorize)
+        self.app.router.add_get('/authorize',               self.authorize)
 
         # api
         self.app.router.add_get('/api/status',              self.status)
@@ -77,8 +79,6 @@ class HTTPServer(Cog):
     @middleware
     async def logger(self, request : Request, handler : RequestHandler):
         response : Response = await handler(request)
-
-        logger.info(request.message)
 
         log = f"{request.remote} - {request.method} ({response.status}) {request.path}"
 
@@ -132,7 +132,12 @@ class HTTPServer(Cog):
         return Response(text="Webhooks", status=200)
 
     async def authorize(self, request : Request):
-        return Response(text="Authorize", status=200)
+        client_id = os.environ.get('CLIENT_ID', None)
+
+        if not client_id:
+            return Response(text="No client id found, cannot redirect.", status=200)
+        
+        raise HTTPFound(f'https://discord.com/oauth2/authorize?client_id={client_id}')
     
     async def interactions(self, request : Request):
         return Response(text="Interactions", status=200)

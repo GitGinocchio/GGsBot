@@ -158,7 +158,7 @@ body {
     box-shadow: inset 0 0 0 0.125em var(--header-background-color);
     font-family: 'Nunito', sans-serif;
     font-size: var(--p-font-size);
-    height: 42px;
+    text-decoration: none;
 }
 
 .nav-invite-button:hover {
@@ -178,7 +178,7 @@ body {
     box-shadow: inset 0 0 0 0.125em var(--header-background-color);
     font-family: 'Nunito', sans-serif;
     font-size: var(--p-font-size);
-    height: 42px;
+    text-decoration: none;
 }
 
 .invite-button:hover {
