@@ -1,0 +1,19 @@
+{% extends 'template.html' %}
+
+{% block title %}GGsBot | Captcha {% endblock title %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/css/captcha.css">
+{% endblock style %}
+
+{% block script %}
+<script nonce="{{nonce}}" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endblock script %}
+
+{% block content %}
+<h1>Please complete the CAPTCHA</h1>
+<form method="POST" action="/captcha?r={{redirect}}">
+    <div class="cf-turnstile" data-sitekey="{{turnstile_site_key}}" data-theme="dark"></div>
+    <button type="submit">Submit</button>
+</form>
+{% endblock content %}

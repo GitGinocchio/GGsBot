@@ -1,4 +1,5 @@
 from nextcord.ext.commands import Bot, Cog
+from aiohttp import request as aiohttp_request
 from aiohttp.web import \
     Application,        \
     AppRunner,          \
@@ -6,15 +7,22 @@ from aiohttp.web import \
     Request,            \
     RequestHandler,     \
     TCPSite,            \
+    HTTPFound,          \
+    HTTPTemporaryRedirect, \
     middleware
 from datetime import datetime, timezone
 from os.path import join, abspath
 import aiohttp_jinja2 as aiojinja
 import jinja2
 import asyncio
+import base64
 import psutil
 import json
 import ssl
+import os
+
+import requests
+import hashlib
 
 from utils.terminal import getlogger
 from utils.config import config
@@ -53,6 +61,7 @@ class HTTPServer(Cog):
         self.app.router.add_static('/static/', STAITC_DIR, show_index=True)
         aiojinja.setup(self.app, loader=jinja2.FileSystemLoader(TEMPLATES_DIR))
         self.app.middlewares.append(self.logger)
+        self.app.middlewares.append(self.captchaMiddleware)
 
         # user
         self.app.router.add_get('/',                        self.index)
@@ -66,7 +75,9 @@ class HTTPServer(Cog):
         self.app.router.add_get('/invite',                  self.invite)
         self.app.router.add_get('/contact',                 self.contact)
 
-        self.app.router.add_get('/authorize',           self.authorize)
+        self.app.router.add_get('/captcha',                 self.captcha)
+        #self.app.router.add_post('/captcha',                 self.captcha)
+        self.app.router.add_get('/authorize',               self.authorize)
 
         # api
         self.app.router.add_get('/api/status',              self.status)
@@ -78,8 +89,6 @@ class HTTPServer(Cog):
     async def logger(self, request : Request, handler : RequestHandler):
         response : Response = await handler(request)
 
-        logger.info(request.message)
-
         log = f"{request.remote} - {request.method} ({response.status}) {request.path}"
 
         if response.status < 399: logger.info(log)
@@ -87,7 +96,56 @@ class HTTPServer(Cog):
 
         return response
     
+    @middleware
+    async def captchaMiddleware(self, request : Request, handler : RequestHandler):
+        if request.path.startswith(('/static','/captcha')):
+            return await handler(request)
+
+        loggedin = request.cookies.get('__cf_logged_in')
+
+        if not loggedin or loggedin != "1":
+            raise HTTPFound(f'/captcha{"?r="+request.path if request.path != '/' else ''}')
+        
+        return await handler(request)
+    
     # user
+
+    #@aiojinja.template('captcha.html')
+    async def captcha(self, request : Request):
+        r = request.query.get('r', '/')
+
+        print(request.headers)
+
+        if request.method == "POST":
+            # URL dell'endpoint di verifica di Cloudflare Turnstile
+            url = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+            
+            # Prepara i dati da inviare nella richiesta POST
+            data = {
+                'secret': os.environ['TURNSTILE_SECRET_KEY'],
+                'response': request.headers.get('cf-turnstile-response'),
+                'remoteip': request.headers.get('CF-Connecting-IP', request.header.get('Referer'))
+            }
+
+            async with aiohttp_request('POST', url, data=data) as response:
+                outcome = await response.json()
+
+                if outcome.get('success', False): raise HTTPFound(r)
+                
+                return Response(body="An error occured with turnstile")
+        else:
+            nonce = os.urandom(16).hex()
+
+            response = aiojinja.render_template("captcha.html", request, { 
+                "nonce" : nonce, 
+                "redirect" : r, 
+                "request" : request, 
+                "turnstile_site_key" : os.environ['TURNSTILE_SITE_KEY']
+            })
+            response.headers['Content-Security-Policy'] = f"script-src 'self' 'nonce-{nonce}';"
+
+            return response
+
 
     @aiojinja.template('index.html')
     async def index(self, request : Request): 
