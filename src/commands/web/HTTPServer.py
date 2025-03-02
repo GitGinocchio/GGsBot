@@ -137,7 +137,9 @@ class HTTPServer(Cog):
         if not client_id:
             return Response(text="No client id found, cannot redirect.", status=200)
         
-        raise HTTPFound(f'https://discord.com/oauth2/authorize?client_id={client_id}')
+        return Response(status=302, headers={
+            "Location": f"https://discord.com/oauth2/authorize?client_id={client_id}"
+        })
     
     async def interactions(self, request : Request):
         return Response(text="Interactions", status=200)
