@@ -2,22 +2,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelector('.nav-links');
     const links = document.querySelectorAll('.nav-links li a');
     let redirectTimeout;
-
-    // Crea l'elemento che farà da background animato
-    const background = document.createElement('div');
-    background.classList.add('background');
-    navLinks.appendChild(background);
+    let background;
 
     links.forEach(link => {
         if (link.getAttribute('href') === window.location.pathname) {
             link.setAttribute("id", "active");
+
+            // Crea l'elemento che farà da background animato
+            background = document.createElement('div');
+            background.classList.add('background');
+            navLinks.appendChild(background);
         }
 
         link.addEventListener("click", (event) => setActiveAndRedirect(event, link));
     });
 
     let currentSelected = document.getElementById('active');
-    
 
     function updateBackground(newLink, instant = false) {
         const newRect = newLink.getBoundingClientRect();
@@ -47,9 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Rimuove lo stato attivo precedente
         document.querySelector('.nav-links li a#active')?.removeAttribute('id');
-        
-        // Aggiungi la classe 'active' al link cliccato
-        updateBackground(link);
+
+        if (background) {
+           // Aggiungi la classe 'active' al link cliccato
+           updateBackground(link);
+        }
         
         // Esegui il redirect dopo 300 millisecondi (per vedere l'animazione)
         redirectTimeout = setTimeout(() => {

@@ -29,8 +29,28 @@
                 <button class="nav-invite-button">Invite GGsBot</button>
             </div>
         </nav>
-        {% block content %}
 
-        {% endblock content %}
+        {% if underconstruction %}
+            <!-- Se il blocco content non è stato definito, verrà mostrato il messaggio sotto -->
+            <div class="under-construction">
+                <div>
+                    <div class="icon">🚧</div>
+                    <h1>Questa pagina è sotto costruzione!</h1>
+                    <p>Ci stiamo lavorando, torna presto!</p>
+                </div>
+            </div>
+        {% else %}
+            {% block content %}
+            {% endblock content %}
+        {% endif %}
+
+        <footer>
+            <div class="content">
+                <p>&copy; 2025-now <a href="https://github.com/GitGinocchio" target="_blank">Giulio</a>. Tutti i diritti riservati.</p>
+                <ul class="links">
+                    <li><a href="/terms-of-service">Termini di servizio</a></li>
+                </ul>
+            </div>
+        </footer>
     </body>
 </html>

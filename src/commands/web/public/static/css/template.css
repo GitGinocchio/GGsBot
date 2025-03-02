@@ -239,3 +239,33 @@ footer .content .links a {
 footer .content .links a:hover {
     color: var(--heading-color); /* Colore al passaggio del mouse */
 }
+
+/* CSS per lo stile del messaggio "Sotto Costruzione" */
+.under-construction {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--third-background-color);
+    font-family: Arial, sans-serif;
+    color: #333;
+    text-align: center;
+}
+
+.under-construction h1 {
+    font-size: 3rem;
+    color: var(--heading-color);
+    margin: 0;
+}
+
+.under-construction p {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    margin-top: 10px;
+}
+
+.under-construction .icon {
+    font-size: 5rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}

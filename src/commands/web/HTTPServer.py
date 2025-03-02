@@ -89,22 +89,22 @@ class HTTPServer(Cog):
     async def index(self, request : Request): return { "request" : request}
 
     @aiojinja.template('about.html')
-    async def about(self, request : Request): return { "request" : request}
+    async def about(self, request : Request): return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('docs.html')
-    async def docs(self, request : Request): return { "request" : request}
+    async def docs(self, request : Request): return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('support.html')
-    async def support(self, request : Request): return { "request" : request}
+    async def support(self, request : Request): return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('faq.html')
-    async def faq(self, request : Request): return { "request" : request}
+    async def faq(self, request : Request): return { "request" : request, "underconstruction" : True}
 
     @aiojinja.template('tos.html')
     async def tos(self, request : Request): return { "request" : request}
     
     @aiojinja.template('pp.html')
-    async def pp(self, request : Request): return { "request" : request}
+    async def pp(self, request : Request): return { "request" : request, "underconstruction" : True}
 
     async def invite(self, request : Request):
         return Response(text="Invite", status=200)
