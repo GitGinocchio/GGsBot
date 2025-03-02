@@ -1,0 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,800;1,800&family=Syne:wght@800&display=swap');
+
+.font-syne-regular {
+    font-family: "Syne";
+    font-weight: normal;
+    font-optical-sizing: auto;
+    font-stretch: condensed;
+}
+
+.font-syne-bold {
+    font-family: "Syne";
+    font-optical-sizing: auto;
+    font-weight: bold;
+    font-stretch: condensed;
+}
+
+.font-nunito-regular {
+    font-family: "Nunito";
+    font-optical-sizing: auto;
+    font-weight: normal;
+    font-stretch:condensed;
+}
+
+.font-nunito-bold {
+    font-family: "Nunito";
+    font-optical-sizing: auto;
+    font-weight: bold;
+    font-stretch:condensed;
+}
+
+h1 {
+    font-size: 35px;
+}
+
+h2 { 
+    font-size: 30px;
+}
+
+h3 {
+    font-size: 25px;
+}
+
+p, a {
+    font-size: 20px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll;
+}
+
+/* Header */
+
+header {
+    background: linear-gradient(to bottom, #46dd9c, #02e6fd);
+    height: 125px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    margin: 50px;
+}
+
+.logo img {
+    width: 150px;
+    height: auto;
+}
+
+.button {
+    margin-top: 50px;
+    margin-bottom: 50px;
+    margin-right: 50px;
+    margin-left: 0px;
+    background-color: #025854;
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 20px;
+    width: 200px;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.4s, transform 0.3s;
+    cursor: pointer;
+}
+
+.button:hover{
+    background-color: #058f88;
+}
+
+
+/* First section */
+
+.container-main {
+    border-top: 1px solid black;
+    background-color: #02e6fd;
+    min-height: 700px; 
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.left {
+    margin: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.left {
+    width: 1000px;
+}
+
+.mascotte {
+    width: 600px; /* Quando verrà messa la vera mascotte sistemare le dimensioni */
+}
+
+
+/* Second section */
+
+.container-features {
+    border-top: 1px solid black;
+    background-color: #7FFFD4;
+    min-height: 700px; 
+}
+
+.container-features .font-syne-bold {
+    letter-spacing: 3px;
+    margin: 100px;
+}
+
+.cards {
+    display: flex;
+    margin: 100px;
+    gap: 7vh;
+}
+
+.card {
+    min-height: 350px;
+}
+
+/* Third section */
+
+.container-commands {
+    border-top: 1px solid black;
+    background-color: #70DB93;
+    min-height: 700px; 
+}
+
+.container-commands .font-syne-bold {
+    letter-spacing: 3px;
+    margin: 100px;
+}
+
+
+/* Fourth section */
+
+.container-pp {
+    border-top: 1px solid black;
+    background-color: #7FFFD4;
+    min-height: 700px; 
+}
+
+
+/* EVENTUALY fifth section */
+
+.container-tos {
+    border-top: 1px solid black;
+    background-color: #02e6fd;
+    min-height: 700px; 
+}
+
+
+
+footer {
+    border-top: 1px solid black;
+    background: linear-gradient(to bottom, #02e6fd , #46dd9c);
+    height: 350px;
+}

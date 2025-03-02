@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}{% endblock title %}</title>
+
+        <link rel="icon" href="/static/images/circular_icon.ico">
+        <link rel="stylesheet" href="/static/css/template.css">
+        <script src="/static/js/template.js"></script>
+        {% block script %}{% endblock script %}
+        {% block style %}{% endblock style %}
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <a href="/">
+                        <img src="./static/images/circular_icon.ico" alt="GGsBot Logo">
+                    </a>
+                </div>
+                    <ul class="nav-links">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/docs">Docs</a></li>
+                        <li><a href="/support">Support</a></li>
+                        <li><a href="/faq">FAQ</a></li>
+                    </ul>
+                <button class="nav-invite-button">Invite GGsBot</button>
+            </div>
+        </nav>
+
+        {% if underconstruction %}
+            <!-- Se il blocco content non è stato definito, verrà mostrato il messaggio sotto -->
+            <div class="under-construction">
+                <div>
+                    <div class="icon">🚧</div>
+                    <h1>This page is under construction!</h1>
+                    <p>We are working on it, come back later!</p>
+                </div>
+            </div>
+        {% else %}
+            {% block content %}
+            {% endblock content %}
+        {% endif %}
+
+        <footer>
+            <div class="content">
+                <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
+                    <a property="dct:title" rel="cc:attributionURL" href="https://github.com/GitGinocchio/GGsBot">GGsBot</a> &copy; 2025 by 
+                    <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/GitGinocchio">Giulio</a> 
+                    is licensed under 
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">
+                        CC BY-NC-SA 4.0
+                    </a>
+                    <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt="">
+                    <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt="">
+                    <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" alt="">
+                    <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt="">
+                </p>
+                <ul class="links">
+                    <li><a href="/terms-of-service">Terms of Service</a></li>
+                </ul>
+            </div>
+        </footer>
+    </body>
+</html>
