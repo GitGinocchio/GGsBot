@@ -135,9 +135,9 @@ class HTTPServer(Cog):
         client_id = os.environ.get('CLIENT_ID', None)
 
         if not client_id:
-            return Response(text="No client id found, cannot redirect.", status=200)
+            return Response(text="No client id found, cannot redirect.", status=404)
         
-        return Response(status=302, headers={
+        return Response(status=302, content_type="text/html", headers={
             "Location": f"https://discord.com/oauth2/authorize?client_id={client_id}"
         })
     
