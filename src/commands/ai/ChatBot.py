@@ -27,7 +27,9 @@ from utils.commons import \
     Extensions,           \
     USER_INTEGRATION,     \
     GUILD_INTEGRATION,    \
-    GLOBAL_INTEGRATION
+    GLOBAL_INTEGRATION,   \
+    getsession,           \
+    asyncget
 from utils.db import Database
 from utils.exceptions import *
 from utils.config import config
@@ -70,15 +72,14 @@ class ChatBot(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
             url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
-            headers = { 'Content-Type': 'application/json' }
+            headers = { 
+                "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
+                'Content-Type': 'application/json' 
+            }
             data = [
                 {
                     "provider": "workers-ai",
                     "endpoint": model,
-                    "headers": {
-                        "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
-                        "Content-Type": "application/json"
-                    },
                     "query": {
                         "messages": [
                             { "role" : "system", "content" : "The user will ask you a question, answer in the same language, give your opinion on the topic discussed, you must be concise" },
@@ -88,7 +89,9 @@ class ChatBot(commands.Cog):
                 }
             ]
 
-            content = requests.get(url, headers=headers, data=json.dumps(data)).json()
+            content_type, content, status, reason = await asyncget(url, headers=headers, data=data)
+            if status != 200: raise CloudFlareAIException("default")
+            content : dict = json.loads(content)
 
             if not content['success']: raise CloudFlareAIException(code=content['errors'][0]['code'])
             result : str = content['result']['response']
@@ -200,29 +203,16 @@ class ChatBot(commands.Cog):
             response = await message.reply("Sto formulando una risposta...")
 
             url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
+            data = [{ "provider": "workers-ai", "endpoint": model, "query": { "messages": [] } }]
             headers = {
-                'Content-Type': 'application/json'
+                "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
+                "Content-Type": "application/json"
             }
-
-            data = [
-                {
-                    "provider": "workers-ai",
-                    "endpoint": model,
-                    "headers": {
-                        "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
-                        "Content-Type": "application/json"
-                    },
-                    "query": {
-                        "messages": [
-                        ]
-                    }
-                }
-            ]
 
             if template_name:
                 developer = await self.bot.fetch_user(os.environ['DEVELOPER_ID'])
 
-                jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}')
+                jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}', autoescape=True)
                 template = jinjaenv.get_template(template_name)
                 template_content = template.render({
                     'name' : self.bot.user.name,
@@ -240,7 +230,8 @@ class ChatBot(commands.Cog):
                     }
                 )
 
-            async for history_message in message.channel.history(limit=None,oldest_first=True):
+            
+            async for history_message in message.channel.history(limit=25,oldest_first=False):
                 if history_message.clean_content == '': continue
                 data[0]['query']['messages'].append(
                     {
@@ -248,9 +239,11 @@ class ChatBot(commands.Cog):
                         "content": history_message.clean_content
                     }
                 )
-            data[0]['query']['messages'].pop(-1)
+            data[0]['query']['messages'].pop()
 
-            content = requests.get(url, headers=headers, data=json.dumps(data)).json()
+            content_type, content, status, reason = await asyncget(url, headers=headers, data=data)
+            if status != 200: raise CloudFlareAIException("default")
+            content : dict = json.loads(content)
 
             assert content['success'], f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}"
 
