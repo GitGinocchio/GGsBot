@@ -132,6 +132,8 @@ class HTTPServer(Cog):
         return Response(text="Webhooks", status=200)
 
     async def authorize(self, request : Request):
+        pass
+        """
         client_id = os.environ.get('CLIENT_ID', None)
 
         if not client_id:
@@ -141,6 +143,7 @@ class HTTPServer(Cog):
             "Location": f"https://discord.com/oauth2/authorize?client_id={client_id}",
             "Proxy-Pass" : True
         })
+        """
     
     async def interactions(self, request : Request):
         return Response(text="Interactions", status=200)
