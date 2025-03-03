@@ -8,6 +8,11 @@
         <link rel="icon" href="/static/images/circular_icon.ico">
         <link rel="stylesheet" href="/static/css/template.css">
         <script src="/static/js/template.js"></script>
+        <script>
+            function onInviteButtonClicked() {
+                window.location = "https://discord.com/oauth2/authorize?client_id=1219665653003190293"
+            }
+        </script>
         {% block script %}{% endblock script %}
         {% block style %}{% endblock style %}
     </head>
@@ -26,7 +31,7 @@
                         <li><a href="/support">Support</a></li>
                         <li><a href="/faq">FAQ</a></li>
                     </ul>
-                <a class="nav-invite-button" href="/authorize">Invite GGsBot</a>
+                <button class="nav-invite-button" onclick="onInviteButtonClicked()"">Invite GGsBot</button>
             </div>
         </nav>
 
