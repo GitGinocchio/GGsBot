@@ -1,0 +1,273 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,800;1,800&family=Syne:wght@800&display=swap');
+
+
+:root { 
+    --content-margin:               20%;
+
+    --primary-color:                #2ad3b5;
+    --heading-color:                #02e6fd;
+
+    --header-background-color:      #46DD9C;
+
+    --primary-background-color:     #152025;
+    --secondary-background-color:   #565151;
+    --third-background-color:       #3c3838;
+
+    --primary-shadow-color:         rgba(86, 81, 81, 0.5);
+    --secondary-shadow-color:       rgba(86, 81, 81, 0.7);
+    --third-shadow-color:           rgba(42, 211, 107, 0.1);
+
+    --transparent-color:            rgba(255, 255, 255, 0.0);
+
+    --default-font-size:            18px;      /* 18px */
+    --h1-font-size:                 1.78rem;   /* 32px */
+    --h2-font-size:                 1.56rem;   /* 28px */
+    --h3-font-size:                 1.33rem;   /* 24px */
+    --h4-font-size:                 1.11rem;   /* 20px */
+    --p-font-size:                  1.00rem;   /* 18px */
+
+    --default-border-radius:        12px;      /* 12px */
+    --small-border-radius:          0.556rem;  /* 10px */
+    --medium-border-radius:         0.833rem;  /* 15px */
+    --large-border-radius:          1.111rem;  /* 20px */
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: var(--default-font-size);
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--primary-color);
+    margin: 0;
+    padding: 0;
+    color: var(--primary-background-color);
+}
+
+body {
+    overflow-y: scroll;  /* Sempre visibile la scrollbar verticale */
+}
+
+/* Navbar */
+
+.navbar {
+    background-color: var(--primary-background-color);
+    padding: 0px var(--content-margin);
+    height: 7vh;
+}
+
+.navbar .container {
+    margin-left: 1%;
+    margin-right: 1%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 7vh;
+}
+
+/* Logo */
+
+.logo a {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    display: block;
+    height: 55px;
+    margin-right: 10px;
+}
+
+/* Nav Links */
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    position: relative;
+}
+
+.nav-links li {
+    position: relative;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    padding: 10px 15px;
+    position: relative;
+    border-radius: var(--default-border-radius);
+    z-index: 1;
+}
+
+.nav-links li a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    width: 0;
+    height: 3px;
+    background-color: var(--header-background-color);
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%);
+    border-radius: 5px;
+}
+
+.nav-links li a:hover::after {
+    width: 80%;
+}
+
+.nav-links li a#active {
+    background-color: var(--header-background-color);
+    color: var(--primary-background-color);
+    font-weight: bold;
+    border-radius: var(--default-border-radius);
+    padding: 10px 15px;
+    /*transition: color 0.3s ease, background-color 0.3s ease;*/
+}
+
+/* Background animato */
+.background {
+    position: absolute;
+    top: 50%;
+    height: 44px;
+    width: 80px;
+    background-color: var(--header-background-color);
+    border-radius: 8px;
+    z-index: 0;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Nav Invite Button */
+
+.nav-invite-button {
+    background-color: #152025;
+    border: none;
+    padding: 8px 16px;
+    color: var(--header-background-color);
+    cursor: pointer;
+    border-radius: var(--default-border-radius);
+    box-shadow: inset 0 0 0 0.125em var(--header-background-color);
+    font-family: 'Nunito', sans-serif;
+    font-size: var(--p-font-size);
+    text-decoration: none;
+    height: 44px;
+}
+
+.nav-invite-button:hover {
+    background-color: var(--header-background-color);
+    color : #152025;
+}
+
+/* Invite Button */
+
+.invite-button {
+    background-color: #152025;
+    border: none;
+    padding: 8px 16px;
+    color: #46DD9C;
+    cursor: pointer;
+    border-radius: var(--default-border-radius);
+    box-shadow: inset 0 0 0 0.125em var(--header-background-color);
+    font-family: 'Nunito', sans-serif;
+    font-size: var(--p-font-size);
+    text-decoration: none;
+    height: 44px;
+}
+
+.invite-button:hover {
+    background-color: var(--header-background-color);
+    color : #152025;
+}
+
+/* Stili per il footer */
+footer {
+    min-height: 40vh;
+    background-color: #333; /* Colore di sfondo scuro */
+    color: var(--primary-color); /* Colore del testo */
+    padding: 20px 0; /* Spazio interno sopra e sotto */
+    text-align: center; /* Centra il contenuto */
+    position: relative; /* Può essere utile per posizionamento in caso di footer fisso */
+    bottom: 0;
+    width: 100%;
+}
+
+footer p {
+    color: var(--primary-color); /* Colore del testo */
+    margin: 0; /* Rimuove margine predefinito */
+    font-size: 14px; /* Imposta la dimensione del font */
+}
+
+footer p a {
+    color: var(--primary-color); /* Colore del testo */
+}
+
+footer p a:hover {
+    color: var(--heading-color); /* Colore del testo */
+}
+
+footer .content {
+    max-width: 1200px; /* Limita la larghezza massima */
+    margin: 0 auto; /* Centra il contenuto */
+    padding: 0 20px; /* Padding laterale */
+}
+
+footer .content .links {
+    list-style: none; /* Rimuove i punti elenco */
+    padding: 0;
+    margin: 10px 0 0; /* Aggiunge margine sopra */
+}
+
+footer .content .links li {
+    display: inline-block; /* Fa sì che i link siano affiancati orizzontalmente */
+    margin: 0 15px; /* Spazio tra i link */
+}
+
+footer .content .links a {
+    text-decoration: none; /* Rimuove la sottolineatura */
+    color: var(--primary-color);
+    font-size: 14px; /* Imposta la dimensione del font */
+    transition: color 0.3s; /* Transizione morbida per il colore */
+}
+
+footer .content .links a:hover {
+    color: var(--heading-color); /* Colore al passaggio del mouse */
+}
+
+/* CSS per lo stile del messaggio "Sotto Costruzione" */
+.under-construction {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--third-background-color);
+    font-family: Arial, sans-serif;
+    color: #333;
+    text-align: center;
+}
+
+.under-construction h1 {
+    font-size: 3rem;
+    color: var(--heading-color);
+    margin: 0;
+}
+
+.under-construction p {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    margin-top: 10px;
+}
+
+.under-construction .icon {
+    font-size: 5rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}

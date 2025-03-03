@@ -1,0 +1,85 @@
+{% extends 'template.html' %}
+
+{% block title %}GGsBot{% endblock title %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/css/index.css">
+{% endblock style %}
+
+{% block script %}
+{% endblock script %}
+
+{% block content %}
+<header class="hero">
+    <div class="content">
+        <h1>GGsBot - Discord Bot</h1>
+        <p>Customizable Discord bot with all commands in one place</p>
+        <p>Without the clutter!</p>
+        <button class="invite-button" onclick="onInviteButtonClicked()">Invite GGsBot</button>
+    </div>
+    <div class="image"></div>
+</header>
+
+<section class="features">
+    <h2>Key Features</h2>
+    <div class="features-container">
+        <div class="feature">
+            <h3>Custom Built Ui</h3>
+            <p>A custom-built interface designed for users. Enjoy an intuitive and seamless experience while interacting with the bot’s features.</p>
+        </div>
+        <div class="feature">
+            <h3>Highly Customizable</h3>
+            <p>Tailor the bot to your needs with extensive customization. Adjust settings, permissions, and features to fit your community perfectly.</p>
+        </div>
+        <div class="feature">
+            <h3>Multipurpuse</h3>
+            <p>Access a wide range of commands for moderation, fun, and utilities. Everything you need to enhance and manage your server efficiently.</p>
+        </div>
+    </div>
+</section>
+
+<section class="arrow">
+    <img src="./static/images/arrow.gif">
+    <div class="shadow"></div>
+</section>
+
+<section class="ui">
+    <div class="content">
+        <!-- <h2>Custom Built Ui</h2> -->
+        <div class="alignment">
+            <img src="./static/images/ui_demo1.jpg">
+            <div class="description">
+                <h3>Not Your Average Bot Interface!</h3>
+                <p>GGsBot ui is structured around modular pages, allowing for a higly customizable and flexible layout</p>
+                <p>Each page can be indipendently configured and adapted to meet specific needs, ensuring that the bot's interface evolves alongside new features and updates.</p>
+                <p>Whether it's for easier navigation or specialized functionalities, the modularity of this UI empowers users to interact with the bot in a more intuitive and engaging way.</p>
+            </div>
+        </div>
+        <!--
+        <div class="alignment">
+            <div class="description">
+                <h3>Not Your Average Bot Interface!</h3>
+                <p>GGsBot ui is structured around modular pages, allowing for a higly customizable and flexible layout</p>
+                <p>Each page can be indipendently configured and adapted to meet specific needs, ensuring that the bot's interface evolves alongside new features and updates.</p>
+                <p>Whether it's for easier navigation or specialized functionalities, the modularity of this UI empowers users to interact with the bot in a more intuitive and engaging way.</p>
+            </div>
+            <img src="./static/images/ui_demo2.jpg">
+        </div>
+        -->
+    </div>
+</section>
+
+<!--
+<section class="customizable">
+    <div class="content">
+        <h2>Higly Customizable</h2>
+    </div>
+</section>
+
+<section class="multipurpuse">
+    <div class="content">
+        <h2>Multipurpuse</h2>
+    </div>
+</section>
+-->
+{% endblock content %}
