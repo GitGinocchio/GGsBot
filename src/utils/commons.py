@@ -55,10 +55,29 @@ def hex_to_colour(hex : str) -> Colour:
     """
     return Colour.from_rgb(*hex_to_rgb(hex))
 
+sessions : dict[str, aiohttp.ClientSession] = {}
 
+def getbaseurl(url : str):
+    return (splitted_url:=url.split('/'))[0] + '//' + splitted_url[2]
 
+def getsession(url : str, **kwargs):
+    base_url = getbaseurl(url)
+    if base_url not in sessions:
+        sessions[base_url] = aiohttp.ClientSession(base_url=base_url, **kwargs)
 
-async def asyncget(url : str, timeout : int = 60, max_redirects : int = 5) -> tuple[str, bytes, int, str | None]:
+    return sessions[base_url]
+
+async def asyncget(
+        url : str = "",
+        data : str = None, 
+        json : dict = None,
+        headers : dict = None,
+        cookies : dict = None,
+        timeout : int = 60,
+        max_redirects : int = 5,
+        session : aiohttp.ClientSession = None,
+        **session_kwargs
+    ) -> tuple[str, bytes, int, str | None]:
     """
     Fetches the content from the given URL asynchronously.
 
@@ -74,10 +93,12 @@ async def asyncget(url : str, timeout : int = 60, max_redirects : int = 5) -> tu
             \t- int: The HTTP status code of the response.
             \t- str | None: The reason phrase returned by the server, or None if not provided.
     """
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout=timeout, max_redirects=max_redirects) as response:
+    session = getsession(url, **session_kwargs) if not session else session
+    
+    async with session:
+        async with session.get(url, timeout=timeout, max_redirects=max_redirects, data=data, json=json, headers=headers, cookies=cookies) as response:
             return response.content_type, await response.content.read(), response.status, response.reason
-        
+
 # Commons slash commands checks
 
 def is_developer(*, behavior : Callable = None):
