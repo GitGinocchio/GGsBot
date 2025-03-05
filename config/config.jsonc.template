@@ -29,7 +29,7 @@
 
     // Paths
     "paths" : {
-        "bin" : "/bin/{os}/{arch}/",
+        "bin" : "./src/bin/{os}/{arch}/",
         
         "db" : "./data/database.db",
         "db_script" : "./config/database.sql",
