@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelector('.nav-links');
     const links = document.querySelectorAll('.nav-links li a');
+    const hamburger = document.getElementById("hamburger");
     let redirectTimeout;
     let background;
 
@@ -15,6 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         link.addEventListener("click", (event) => setActiveAndRedirect(event, link));
+    });
+
+    hamburger.addEventListener("click", function () {
+        navLinks.classList.toggle("active");
+        hamburger.classList.toggle("active"); // Attiva la classe per l'animazione
     });
 
     let currentSelected = document.getElementById('active');
