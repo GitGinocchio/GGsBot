@@ -10,7 +10,7 @@ logger = getlogger()
 DEV_ID = os.environ['DEVELOPER_ID']
 DEVGUILD_ID = os.environ['DEVELOPER_GUILD_ID']
 
-EXTENSIONS = [extension for extension in os.listdir('./src/commands')]
+EXTENSIONS = [extension for extension in os.listdir('./src/bot/commands') if extension not in config['ignore_categories']]
 
 permissions = Permissions(0)
 
@@ -32,13 +32,13 @@ class Development(commands.Cog):
             return
         
         if not extension:
-            categories = categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
+            categories = EXTENSIONS
         else:
             categories = [extension]
 
         for category in categories:
             logger.info(f'Looking in commands.{category}...')
-            for filename in os.listdir(f'./src/commands/{category}'):
+            for filename in os.listdir(f'./src/bot/commands/{category}'):
                 if filename.endswith('.py') and filename not in config['ignore_files']:
                     try:
                         self.bot.reload_extension(f'commands.{category}.{filename[:-3]}')

@@ -28,16 +28,16 @@ logger = getlogger()
 
 def load_commands(bot : Bot, *, categories : list[str] = None, ignore_categories : list[str] = []):
     if not categories:
-        categories = [c for c in os.listdir('./src/commands') if c not in config['ignore_categories']]
+        categories = [c for c in os.listdir('./src/bot/commands') if c not in config['ignore_categories']]
 
     logger.info('Loading extensions...')
     for category in categories:
         if category in ignore_categories: continue
 
-        for filename in os.listdir(f'./src/commands/{category}'):
+        for filename in os.listdir(f'./src/bot/commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
-                    bot.load_extension(f'commands.{category}.{filename[:-3]}')
+                    bot.load_extension(f'bot.commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
@@ -95,10 +95,9 @@ def run(args : Namespace):
         logger.critical(f'Unhandled Exception occurred: {e}')
 
 def run_webserver_only(args : Namespace):
-    from commands.web.HTTPServer import HTTPServer
+    from web.HTTPServer import HTTPServer
 
     server = HTTPServer(
-        None, 
         address=args.address, 
         protocol=args.proto, 
         port=args.port,

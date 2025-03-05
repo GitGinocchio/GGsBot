@@ -24,14 +24,14 @@ from utils.db import Database
 
 logger = getlogger()
 
-WEB_DIR = abspath('./src/commands/web')
+WEB_DIR = abspath('./src/web')
 PUBLIC_DIR = join(WEB_DIR, 'public')
 TEMPLATES_DIR = join(PUBLIC_DIR, 'templates')
 STAITC_DIR = join(PUBLIC_DIR, 'static')
 
 web_config = config.get('web', {})
 
-class HTTPServer(Cog):
+class HTTPServer:
     def __init__(self, 
         bot : Bot = None, 
         *, 
@@ -40,7 +40,6 @@ class HTTPServer(Cog):
         port : int = web_config.get('port', 21662), 
         debug : bool = web_config.get('debug', False)
     ):
-        if bot: Cog.__init__(self)
         self.loop = bot.loop if bot else asyncio.get_event_loop()
         self.app = Application(logger=logger, loop=self.loop if bot else None, debug=debug)
         self.runner = AppRunner(self.app, handle_signals=False)
@@ -215,7 +214,6 @@ class HTTPServer(Cog):
             logger.erro("A fatal error occurred, shutting down")
             await self.shutdown()
 
-
     async def restart(self):
         logger.info("Restarting HTTP Server...")
         await self.shutdown()
@@ -228,12 +226,3 @@ class HTTPServer(Cog):
         logger.info("Server stopped")
         self.running = False
 
-    @Cog.listener()
-    async def on_ready(self):
-        if not self.running:
-            await self.run()
-
-
-
-def setup(bot : Bot):
-    bot.add_cog(HTTPServer(bot))
