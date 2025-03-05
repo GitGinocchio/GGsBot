@@ -30,7 +30,7 @@ import hashlib
 import random
 import json
 
-from utils.exceptions import ExtensionException
+from utils.exceptions import *
 from utils.commons import Extensions
 from utils.terminal import getlogger
 from utils.commons import asyncget
@@ -76,12 +76,17 @@ class StartVerificationUI(Embed, View):
 
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.VERIFY)
-            assert enabled, "Verification is not enabled for this server"
+            if not enabled: raise ExtensionException("Not Enabled")
 
             if not self.mode:
                 self.mode = random.choice(config['modes'])
             else:
-                assert self.mode in config['modes'], f"This server does not allow verification with this method!"
+                if self.mode not in config['modes']:
+                    raise GGsBotException(
+                        title="Verification method not allowed",
+                        description="It looks like this server does not allow verification with this method!",
+                        suggestions="You can choose a different verification method and try again or contact a moderator."
+                    )
 
             ui_type = self.uis.get(VerificationTypes(self.mode))
 
@@ -94,12 +99,16 @@ class StartVerificationUI(Embed, View):
                 await ui.async_init()
 
                 message = await interaction.followup.send(embed=ui, view=ui, wait=True, ephemeral=True)
-                assert not await ui.wait(), f'The verification process has expired'
+                timedout = await ui.wait()
 
-        except AssertionError as e:
-            if message: await message.delete()
-            await interaction.followup.send(e, ephemeral=True)
-        except ExtensionException as e:
+                if timedout: 
+                    raise GGsBotException(
+                        title="Verification process timed out",
+                        description="The verification process has expired",
+                        suggestions="Please try again or contact a moderator."
+                    )
+                
+        except (GGsBotException, ExtensionException) as e:
             if message: await message.delete()
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
@@ -180,15 +189,21 @@ class QuestionVerificationUi(VerificationUI):
     async def async_init(self):
         try:
             content_type, content, code, reason = await asyncget("https://api.textcaptcha.com/ggsbot.json")
-            assert content_type == 'application/json' and code == 200, f"Error while fetching captcha data (code: {code}): {reason}"
+
+            if content_type != 'application/json' and code != 200:
+                raise GGsBotException(
+                    title="Failed to fetch captcha data",
+                    description=f"Failed to fetch captcha data (code: {code}): {reason}"
+                )
+            
             response = json.loads(content)
 
             self.question = response['q']
             self.answers = response['a']
 
             self.set_field_at(0, name="Question", value=self.question)
-        except AssertionError as e:
-            logger.error(f"Error while fetching captcha data: {e}")
+        except GGsBotException as e:
+            logger.error(e)
 
     async def on_answer(self, interaction : Interaction, answer : str):
         encoded_answer = hashlib.md5(answer.strip().lower().encode()).hexdigest()
