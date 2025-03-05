@@ -52,7 +52,7 @@ class Database:
 
     @property
     def connection(self) -> aiosqlite.Connection:
-        if not self._connections or not self._connection.is_alive(): raise RuntimeError("Connection not initialized")
+        if not self._connection or not self._connection.is_alive(): raise RuntimeError("Connection not initialized")
         return self._connection
     
     @property

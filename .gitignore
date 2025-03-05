@@ -153,6 +153,7 @@ cython_debug/
 *.exe
 .git-credentials
 
+config/config.jsonc
 data/database.db
 data/cookies/*
 

@@ -40,11 +40,7 @@ from utils.exceptions import *
 logger = getlogger()
 
 txt2img_models = [
-    "@cf/black-forest-labs/flux-1-schnell",
-    "@cf/runwayml/stable-diffusion-v1-5-img2img",
-    "@cf/runwayml/stable-diffusion-v1-5-inpainting",
-    "@cf/bytedance/stable-diffusion-xl-lightning",
-    "@cf/stabilityai/stable-diffusion-xl-base-1.0"
+    "@cf/black-forest-labs/flux-1-schnell"
 ]
 
 img2img_models = [
@@ -94,6 +90,8 @@ class ImageGeneration(commands.Cog):
                     title="Failed to generate image",
                     description=f"Error code: {code}, Reason: {reason}"
                 )
+            
+            content = json.loads(content)
 
             if not content['success']: raise CloudFlareAIException(code=content['errors'][0]['code'])
 
