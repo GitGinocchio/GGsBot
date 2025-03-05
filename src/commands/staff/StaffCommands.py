@@ -7,6 +7,7 @@ import os
 
 from utils.db import Database, ExtensionException
 from utils.terminal import getlogger
+from utils.exceptions import *
 from utils.commons import \
     Extensions,           \
     GUILD_INTEGRATION,    \
@@ -81,8 +82,6 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="",value="")
             developer = await self.bot.fetch_user(int(os.environ['DEVELOPER_ID']))
             embed.set_footer(text=f'Developed by {developer.display_name}',icon_url=developer.display_avatar.url)
-        except AssertionError as e:
-            await interaction.followup.send(e)
         except ExtensionException as e:
             await interaction.followup.send(embed=e.asEmbed())
         else:
@@ -107,12 +106,26 @@ class StaffCommands(commands.Cog):
             staffer_role = nextcord.utils.get(interaction.guild.roles, id=config['staff_role'])
             inactive_role = nextcord.utils.get(interaction.guild.roles, id=config['inactive_role'])
 
-            assert staffer_role in interaction.user.roles, "You do not have the necessary permissions to use this command"
-
-            assert staffer_role in staffer.roles, "The specified member is not a staffer"
+            if not staffer_role in interaction.user.roles:
+                raise GGsBotException(
+                    title="Permission denied",
+                    description="You do not have the necessary permissions to use this command",
+                    suggestions="Please contact an administrator to grant you the necessary permissions",
+                )
+            elif staffer_role not in staffer.roles:
+                raise GGsBotException(
+                    title="Permission denied",
+                    description="The specified member is not a staffer",
+                    suggestions="Choose a valid staffer member and try again.",
+                )
 
             if status == 'inactive':
-                assert inactive_role not in staffer.roles, "The specified member is already set to inactive"
+                if inactive_role in staffer.roles:
+                    raise GGsBotException(
+                        title="Already Inactive",
+                        description="The specified member is already set to inactive",
+                        suggestions="Choose a different member and try again.",
+                    )
 
                 if fordays:
                     timestamp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=fordays)
@@ -127,10 +140,22 @@ class StaffCommands(commands.Cog):
                 await staffer.add_roles(inactive_role,reason=f"Staffer is inactive (Set by '{interaction.user.name}' <@{interaction.user.id}>)")
                 await interaction.followup.send(f"Staffer <@{staffer.id}> set to 'inactive' {f'for {fordays} day/s' if fordays else ''}",ephemeral=True)
             elif status == 'active':
-                assert inactive_role in staffer.roles, "The specified member is already set to active"
-                await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{interaction.user.name}' <@{interaction.user.id}>)")
+                if inactive_role not in staffer.roles:
+                    raise GGsBotException(
+                        title="Already Inactive",
+                        description="The specified member is already set to active",
+                        suggestions="Choose a different member and try again.",
+                    )
                 
-                assert str(staffer.id) in config['inactive'], "The specified member is already set to active"
+                await staffer.remove_roles(inactive_role,reason=f"Staffer is active (Set by '{interaction.user.name}' <@{interaction.user.id}>)")
+
+                if str(staffer.id) not in config['inactive']:
+                    raise GGsBotException(
+                        title="Already Active",
+                        description="The specified member is already set to active",
+                        suggestions="Choose a different member and try again.",
+                    )
+
                 config['inactive'].pop(str(staffer.id))
                 
                 await interaction.followup.send(f"Staffer <@{staffer.id}> set to 'active'",ephemeral=True)
@@ -138,10 +163,8 @@ class StaffCommands(commands.Cog):
             async with self.db:
                 await self.db.editExtensionConfig(interaction.guild, Extensions.STAFF, config)
         
-        except ExtensionException as e:
-            await interaction.followup.send(embed=e.asEmbed())
-        except AssertionError as e:
-            await interaction.followup.send(e)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
 
     async def schedule_periodic_task(self):
         now = datetime.datetime.now(datetime.timezone.utc)
