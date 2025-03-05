@@ -280,6 +280,7 @@ class ChatBot(commands.Cog):
                         "content": history_message.clean_content
                     }
                 )
+            data[0]['query']['messages'] = data[0]['query']['messages'][::-1]
 
             response = await message.reply("Sto formulando una risposta...")
 
