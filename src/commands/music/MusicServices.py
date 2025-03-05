@@ -4,6 +4,8 @@ import yt_dlp
 import spotipy
 import asyncio
 
+from utils.exceptions import *
+
 class YoutubeExtension(yt_dlp.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):
         super().__init__(params)
@@ -50,8 +52,6 @@ class SpotifyExtension(spotipy.Spotify):
         self.loop = loop
 
     def getPlaylist(self, url : str):
-        assert urltype(url) == UrlType.SpotifyPlaylist, 'Invalid url type!'
-
         total = self.playlist(url)['tracks']['total']
 
         for i in range(0,(total // 100)+1,1):
@@ -60,8 +60,6 @@ class SpotifyExtension(spotipy.Spotify):
                 yield song
 
     def getAlbum(self, url : str):
-        assert urltype(url) == UrlType.SpotifyAlbum, 'Invalid url type!'
-
         total = self.album(url)['tracks']['total']
         
         for i in range(0,(total // 50)+1,1):
@@ -70,9 +68,7 @@ class SpotifyExtension(spotipy.Spotify):
                 yield song
 
     def getSearch(self, query : str):
-        assert urltype(query) == UrlType.Query, 'Invalid url type!'
         return Song(self.search(query,1,type='track')['tracks']['items'][0])
 
     def getTrack(self, url : str) -> Song:
-        assert urltype(url) == UrlType.SpotifySong, 'Invalid url type!'
         return Song(self.track(url))
