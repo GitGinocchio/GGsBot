@@ -38,7 +38,7 @@ class GGsBotException(Exception):
         self.color = (color if type(color) is Colour else hex_to_colour(color)) if color is not None else \
                      hex_to_colour(data.get('color', "0xe74c3c"))
     
-    def __str__(self): return f"{self.data['title']} ({self.code}): {self.data['description']}"
+    def __str__(self): return f"{self.title} (code: {self.code}): {self.description}"
 
     def __repr__(self): return f'{self.type}(code:{self.code})'
 
