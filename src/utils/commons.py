@@ -63,9 +63,10 @@ def getbaseurl(url : str):
 def getsession(url : str, **kwargs):
     base_url = getbaseurl(url)
     if base_url not in sessions:
-        sessions[base_url] = aiohttp.ClientSession(base_url=base_url, **kwargs)
+        sessions[base_url] = aiohttp.ClientSession(**kwargs)
 
     return sessions[base_url]
+
 
 async def asyncget(
         url : str = "",
@@ -79,29 +80,73 @@ async def asyncget(
         **session_kwargs
     ) -> tuple[str, bytes, int, str | None]:
     """
-    Fetches the content from the given URL asynchronously.
+    Sends a GET request to the given URL asynchronously.
 
     Args:
-        url (:class:`str`): The URL to fetch the content from.
-        timeout (:class:`int`, optional): The maximum time to wait for the response in seconds. Defaults to 60.
-        max_redirects (:class:`int`, optional): The maximum number of redirects to follow. Defaults to 5.
+        url (str): The URL to send the request to.
+        data (dict | str | bytes, None): The payload to send in the body. Defaults to None.
+        json (dict, None): JSON data to send instead of 'data'. Defaults to None.
+        headers (dict, None): HTTP headers to include in the request. Defaults to None.
+        cookies (dict, None): Cookies to include in the request. Defaults to None.
+        timeout (int, None): The maximum time to wait for the response in seconds. Defaults to 60.
+        max_redirects (int, None): The maximum number of redirects to follow. Defaults to 5.
+        session (aiohttp.ClientSession, None): An existing session to reuse. Defaults to None.
 
     Returns:
-        :class:`tuple`: A tuple containing:\n
-            \t- str: The content type of the response.
-            \t- bytes: The raw content of the response.
-            \t- int: The HTTP status code of the response.
-            \t- str | None: The reason phrase returned by the server, or None if not provided.
+        tuple: A tuple containing:
+        \t- str: The content type of the response.
+        \t- bytes: The raw content of the response.
+        \t- int: The HTTP status code of the response.
+        \t- str | None: The reason phrase returned by the server, or None if not provided.
     """
     session = getsession(url, **session_kwargs) if not session else session
+
+    async with session.get(url, timeout=timeout, max_redirects=max_redirects, data=data, json=json, headers=headers, cookies=cookies) as response:
+        return response.content_type, await response.content.read(), response.status, response.reason
+
+async def asyncpost(
+        url : str = "",
+        data : str = None, 
+        json : dict = None,
+        headers : dict = None,
+        cookies : dict = None,
+        timeout : int = 60,
+        max_redirects : int = 5,
+        session : aiohttp.ClientSession = None,
+        **session_kwargs
+    ) -> tuple[str, bytes, int, str | None]:
+    """
+    Sends a POST request to the given URL asynchronously.
+
+    Args:
+        url (str): The URL to send the request to.
+        data (dict | str | bytes, None): The payload to send in the body. Defaults to None.
+        json (dict, None): JSON data to send instead of 'data'. Defaults to None.
+        headers (dict, None): HTTP headers to include in the request. Defaults to None.
+        cookies (dict, None): Cookies to include in the request. Defaults to None.
+        timeout (int, None): The maximum time to wait for the response in seconds. Defaults to 60.
+        max_redirects (int, None): The maximum number of redirects to follow. Defaults to 5.
+        session (aiohttp.ClientSession, None): An existing session to reuse. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing:
+        \t- str: The content type of the response.
+        \t- bytes: The raw content of the response.
+        \t- int: The HTTP status code of the response.
+        \t- str | None: The reason phrase returned by the server, or None if not provided.
+    """
+    session = getsession(url, **session_kwargs) if not session else session
+
+    async with session.post(url, timeout=timeout, max_redirects=max_redirects, data=data, json=json, headers=headers, cookies=cookies) as response:
+        return response.content_type, await response.content.read(), response.status, response.reason
+
+# TODO: Sostituire con un metodo generico per fare una richiesta HTTP get/post/ecc.
+async def asyncrequest(): pass
     
-    async with session:
-        async with session.get(url, timeout=timeout, max_redirects=max_redirects, data=data, json=json, headers=headers, cookies=cookies) as response:
-            return response.content_type, await response.content.read(), response.status, response.reason
 
 # Commons slash commands checks
 
-def is_developer(*, behavior : Callable = None):
+def isdeveloper(*, behavior : Callable = None):
     """
     Decorator that checks if the user who is calling a slash_command is the `developer` of the bot
     if the answer is yes than it will execute the `decorated function` otherwise it will execute the `behavior` function.\n
@@ -120,8 +165,8 @@ def is_developer(*, behavior : Callable = None):
         return wrapper
     return decorator
 
-async def is_developer_guild(func : Callable, *, behavior : Callable = None):
+async def isdeveloperguild(func : Callable, *, behavior : Callable = None):
     pass
 
-async def is_owner(func : Callable, *, behavior : Callable = None):
+async def isowner(func : Callable, *, behavior : Callable = None):
     pass

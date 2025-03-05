@@ -15,7 +15,7 @@ from nextcord import \
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from nextcord.ext import commands
-#from PIL import Image
+from PIL import Image
 import numpy as np
 import requests
 import nextcord
@@ -25,8 +25,11 @@ import json
 import os
 import io
 
+
 from utils.terminal import getlogger
-from utils.jsonfile import JsonFile, _JsonDict
+from utils.commons import \
+    asyncget,             \
+    asyncpost
 from utils.commons import \
     GLOBAL_INTEGRATION,   \
     GUILD_INTEGRATION,    \
@@ -38,11 +41,15 @@ logger = getlogger()
 
 txt2img_models = [
     "@cf/black-forest-labs/flux-1-schnell",
+    "@cf/runwayml/stable-diffusion-v1-5-img2img",
+    "@cf/runwayml/stable-diffusion-v1-5-inpainting",
+    "@cf/bytedance/stable-diffusion-xl-lightning",
+    "@cf/stabilityai/stable-diffusion-xl-base-1.0"
 ]
 
 img2img_models = [
-    "@cf/runwayml/stable-diffusion-v1-5-inpainting",
     "@cf/runwayml/stable-diffusion-v1-5-img2img",
+    "@cf/runwayml/stable-diffusion-v1-5-inpainting",
     "@cf/bytedance/stable-diffusion-xl-lightning",
     "@cf/stabilityai/stable-diffusion-xl-base-1.0"
 ]
@@ -59,7 +66,6 @@ permissions = Permissions(
 
 class ImageGeneration(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.dirfmt = './data/guilds/{guild_id}/commands.ai.ChatBot'
         self.bot = bot
 
     @slash_command('image', "Set of commands to manage and create Ai generated images", integration_types=GLOBAL_INTEGRATION)
@@ -112,29 +118,40 @@ class ImageGeneration(commands.Cog):
     """
     @image.subcommand('fromimage', "Generate an image from another image and/or from a prompt")
     async def fromimage(self,
-                       interaction : Interaction,
-                       image : Attachment = SlashOption("image",description="The image to be used as a base for the generated image",required=True),
-                       prompt : str =  SlashOption(description="A text description of the image you want to generate",required=True,min_length=1),
-                       negativeprompt : str = SlashOption(description="Text describing elements to avoid in the generated image",required=False),
-                       height : int = SlashOption(description="Height of the generated image. Default is 512",required=False,default=512, min_value=256, max_value=2048),
-                       width : int = SlashOption(description="Width of the generated image. Default is 512",required=False,default=512,min_value=256,max_value=2048),
-                       steps : int = SlashOption(description="The number of diffusion steps; higher values can improve quality but take longer",required=False,default=20, min_value=1, max_value=20),
-                       guidance : float = SlashOption(description="Controls how closely the generated image should adhere to the prompt",required=False,default=7.5, min_value=0.0,max_value=10),
-                       seed : int = SlashOption(description="Random seed for reproducibility of the image generation",required=False, default=None),
-                       model : str = SlashOption(description="The model to be used for generating the image",required=False,choices=img2img_models,default=img2img_models[0]),
-                       ephemeral : bool = SlashOption(description="Whether the response should be ephemeral or not",required=False,default=True),
-                       ):
+        interaction : Interaction,
+        image : Attachment = SlashOption("image",description="The image to be used as a base for the generated image",required=True),
+        prompt : str =  SlashOption(description="A text description of the image you want to generate",required=True,min_length=1),
+        negativeprompt : str = SlashOption(description="Text describing elements to avoid in the generated image",required=False),
+        height : int = SlashOption(description="Height of the generated image. Default is 512",required=False,default=512, min_value=256, max_value=2048),
+        width : int = SlashOption(description="Width of the generated image. Default is 512",required=False,default=512,min_value=256,max_value=2048),
+        steps : int = SlashOption(description="The number of diffusion steps; higher values can improve quality but take longer",required=False,default=20, min_value=1, max_value=20),
+        guidance : float = SlashOption(description="Controls how closely the generated image should adhere to the prompt",required=False,default=7.5, min_value=0.0,max_value=10),
+        seed : int = SlashOption(description="Random seed for reproducibility of the image generation",required=False, default=None),
+        model : str = SlashOption(description="The model to be used for generating the image",required=False,choices=img2img_models,default=img2img_models[0]),
+        ephemeral : bool = SlashOption(description="Whether the response should be ephemeral or not",required=False,default=True),
+    ):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
 
-            print(image.content_type)
-            assert image.content_type == 'image/png', "Image must be a png image"
+            if not image.content_type.startswith('image/'):
+                raise GGsBotException(
+                    title="Argument Error",
+                    description="You must provide an image file as the argument.",
+                    suggestions="Please try again with a valid image file.",
+                )
+
+            print(image.url)
 
             image_bytes = await image.read()
-            PIL_image = Image.open(io.BytesIO(image_bytes))
+            image_stream = io.BytesIO(image_bytes)
+            pillow_image = Image.open(image_stream)
+            pillow_image = pillow_image.convert('RGB')
 
-            mask_array = []
-            image_array = []
+            max_size = (32, 32)
+            pillow_image.thumbnail(max_size, Image.LANCZOS)
+
+            image_array = np.asarray(pillow_image)
+            image_array = image_array.ravel()
 
             url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
             headers = {
@@ -144,30 +161,33 @@ class ImageGeneration(commands.Cog):
 
             data = {
                 "prompt": prompt,
-                #"guidance": guidance,
-                #"num_steps": steps,
-                "mask" : mask_array,
-                "image" : image_array,
-                "image_b64": base64.b64encode(image_bytes).decode(),
-                "width": width,
-                "height": height
+                "image" : image_array.tolist()
             }
             if negativeprompt: data["negative_prompt"] = negativeprompt
             if seed: data['seed'] = seed
 
-            print(data.keys())
+            content_type, content, code, reason = await asyncpost(url, headers=headers, json=data)
 
-            content = requests.post(url, headers=headers, json=data).json()
-            assert content['success'], f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}"
+            content = json.loads(content)
+
+            if code != 200:
+                print(content)
+                raise GGsBotException(
+                    title="Cloudflare API error",
+                    description=f"An error occurred in cloudflare API (code:{code}): {reason}",
+                    suggestions="Please try again later. If the problem persists, contact support."
+                )
 
             b64image = content['result']['image']
 
-            await interaction.followup.send(content=f"{prompt}:",file=File(io.BytesIO(base64.b64decode(b64image)),'image.png',description=f"Image generated by GGsBot"))
+            file = File(io.BytesIO(base64.b64decode(b64image)), 'image.png',description=f"Image generated by GGsBot")
 
-        except AssertionError as e:
-            logger.error(e)
+            await interaction.followup.send(content=f"{prompt}:",file=file)
+
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed())
     """
-
+            
     """
     @image.subcommand('describe', "Describes an image")
     async def describe(self, 

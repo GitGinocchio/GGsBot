@@ -1,14 +1,15 @@
 from nextcord import \
-        Embed,\
-        Color,\
-        utils,\
-        Thread, \
-        Permissions,\
-        Interaction, \
-        SlashOption, \
-        slash_command, \
-        ChannelType, \
-        Message
+    Embed,           \
+    Color,           \
+    utils,           \
+    Thread,          \
+    Permissions,     \
+    Interaction,     \
+    SlashOption,     \
+    slash_command,   \
+    ChannelType,     \
+    TextChannel,     \
+    Message
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from nextcord.ext import commands
@@ -72,25 +73,27 @@ class ChatBot(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
             url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
-            headers = { 
-                "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
-                'Content-Type': 'application/json' 
-            }
+            headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json' }
             data = [
                 {
                     "provider": "workers-ai",
                     "endpoint": model,
+                    "headers" : headers,
                     "query": {
                         "messages": [
                             { "role" : "system", "content" : "The user will ask you a question, answer in the same language, give your opinion on the topic discussed, you must be concise" },
-                            { "role": "user", "content": prompt }
-                        ]
+                        ],
+                        "prompt" : { "role": "user", "content": prompt }
                     }
                 }
             ]
 
             content_type, content, status, reason = await asyncget(url, headers=headers, data=data)
-            if status != 200: raise CloudFlareAIException("default")
+            if status != 200: 
+                raise GGsBotException(
+                    title="Cloudflare API Exception", 
+                    description=f"An error occurred in cloudflare API (status: {status}): {reason}"
+                )
             content : dict = json.loads(content)
 
             if not content['success']: raise CloudFlareAIException(code=content['errors'][0]['code'])
@@ -123,26 +126,34 @@ class ChatBot(commands.Cog):
 
     @chat.subcommand('new',"Create a chat with GG'sBot Ai")
     async def newchat(self, 
-                      interaction : Interaction,
-                      public : bool = SlashOption('public','Whether the chat between you and the bot should be public or private',required=True,default=False),
-                      aimodel : str = SlashOption("aimodel","Choose the Artificial Intelligence model you want to use",required=True,choices=txt2txt_models,default=txt2txt_models[0]),
-                      template : str | None = SlashOption("template","Templates are used to get more specific answers for the type of context you want to get.",required=False,choices=templates,default=None),
-                      tags: str = SlashOption("tags","Write separated comma Tags used to get more specific answers",required=False,default=''),
-                    ):
+        interaction : Interaction,
+        public : bool = SlashOption('public','Whether the chat between you and the bot should be public or private',required=True,default=False),
+        aimodel : str = SlashOption("aimodel","Choose the Artificial Intelligence model you want to use",required=True,choices=txt2txt_models,default=txt2txt_models[0]),
+        template : str | None = SlashOption("template","Templates are used to get more specific answers for the type of context you want to get.",required=False,choices=templates,default=None),
+        tags: str = SlashOption("tags","Write separated comma Tags used to get more specific answers",required=False,default=''),
+        max_tokens : int = SlashOption("max_tokens", "The maximum number of tokens to generate in the response. (default: 256, min: 32, max: 2048)", required=False, default=256, max_value=2048, min_value=32),
+        temperature : float = SlashOption("temperature", "Controls the randomness of the output. (default: 0.6, min: 0, max: 5)", required=False, default=0.6, min_value=0.0, max_value=5.0),
+        top_p : float = SlashOption("top_p", "Adjusts the creativity of the AI's responses. (min: 0, max: 2)", required=False, default=None, min_value=0.0, max_value=2.0),
+        top_k : int = SlashOption("top_k", "Limits the AI to choose from the top 'k' most probable words. (min: 1, max: 50)", required=False, default=None, min_value=1, max_value=50),
+        r_penalty : float = SlashOption("repetition_penalty", "Penalty for repeated tokens; higher values discourage repetition. (min: 0, max: 2)", required=False, default=None, min_value=0.0, max_value=2.0),
+        f_penalty : float = SlashOption("frequency_penalty", "Decreases the likelihood of the model repeating the same lines verbatim. (min: 0, max: 2)", required=False, default=None, min_value=0.0, max_value=2.0),
+        p_penalty : float = SlashOption("presence_penalty", "Increases the likelihood of the model introducing new topics. (min: 0, max: 2)", required=False, default=None, min_value=0.0, max_value=2.)
+    ):
         await interaction.response.defer(ephemeral=True)
 
         try:
 
             async with self.db:
-                config = await self.db.getExtensionConfig(interaction.guild, Extensions.AICHATBOT)
+                config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.AICHATBOT)
+            if not enabled: raise ExtensionException("Not Enabled")
 
-            if not interaction.channel.id == int(config['text-channel']): raise SlashCommandException("Invalid Channel")
+            if interaction.channel.id not in config['allowed-channels']: raise SlashCommandException("Invalid Channel")
 
             thread : Thread = await interaction.channel.create_thread(
-                                                            name="New Chat",
-                                                            reason=f'<@{interaction.user.id}> creates a GG\'Bot AI chat',
-                                                            type=ChannelType.public_thread if public else ChannelType.private_thread
-                                                            )
+                name="New Chat",
+                reason=f'<@{interaction.user.id}> created a GG\'Bot AI chat',
+                type=ChannelType.public_thread if public else ChannelType.private_thread
+            )
             await thread.edit(slowmode_delay=config['chat-delay'])
             await thread.add_user(interaction.user)
 
@@ -151,6 +162,13 @@ class ChatBot(commands.Cog):
                 'aimodel' : aimodel,
                 'creator' : interaction.user.name,
                 'creator-mention' : interaction.user.mention,
+                'max-tokens' : max_tokens,
+                'temperature' : temperature,
+                'top-p' : top_p,
+                'top-k' : top_k,
+                'r-penalty' : r_penalty,
+                'f-penalty' : f_penalty,
+                'p-penalty' : p_penalty,
                 'tags' : tags
             }
 
@@ -169,7 +187,8 @@ class ChatBot(commands.Cog):
             await interaction.response.defer(ephemeral=True)
 
             async with self.db:
-                config = await self.db.getExtensionConfig(interaction.guild,Extensions.AICHATBOT)
+                config, enabled = await self.db.getExtensionConfig(interaction.guild,Extensions.AICHATBOT)
+            if not enabled: raise ExtensionException("Not Enabled")
 
             if not str(interaction.channel.id) in config['threads']: raise SlashCommandException("Invalid Channel")
 
@@ -186,33 +205,56 @@ class ChatBot(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message : Message):
         try:
-            assert message.author != self.bot.user
-            assert self.bot.user.mentioned_in(message) or any(role.name == self.bot.user.name for role in message.role_mentions)
+
+            if message.author ==  self.bot.user: return
+            if not self.bot.user.mentioned_in(message) and not any(role.name == self.bot.user.name for role in message.role_mentions): return
 
             async with self.db:
-                config = await self.db.getExtensionConfig(message.guild,Extensions.AICHATBOT)
+                config, enabled = await self.db.getExtensionConfig(message.guild,Extensions.AICHATBOT)
+            if not enabled: return
 
-            assert str(message.channel.id) in config['threads']
+            if not str(message.channel.id) in config['threads']: return
 
-            template_name = config['threads'][str(message.channel.id)]['template']
-            creator = config['threads'][str(message.channel.id)]['creator']
-            creator_mention = config['threads'][str(message.channel.id)]['creator-mention']
-            model = config['threads'][str(message.channel.id)]['aimodel']
-            tags = config['threads'][str(message.channel.id)]['tags']
+            thread_config = config['threads'][str(message.channel.id)]
 
-            response = await message.reply("Sto formulando una risposta...")
+            template_name = thread_config['template']
+            creator = thread_config['creator']
+            creator_mention = thread_config['creator-mention']
+            model = thread_config['aimodel']
+            max_tokens = thread_config['max-tokens']
+            temperature = thread_config['temperature']
+            top_p = thread_config['top-p']
+            top_k = thread_config['top-k']
+            r_penalty = thread_config['r-penalty']
+            f_penalty = thread_config['f-penalty']
+            p_penalty = thread_config['p-penalty']
+            tags = thread_config['tags']
 
             url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
-            data = [{ "provider": "workers-ai", "endpoint": model, "query": { "messages": [] } }]
-            headers = {
-                "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}",
-                "Content-Type": "application/json"
-            }
+            headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", "Content-Type": "application/json" }
+            data = [{
+                "provider": "workers-ai", 
+                "headers" : headers, 
+                "endpoint": model, 
+                "query": { 
+                    "messages": [],
+                    "prompt" : {
+                        "prompt": message.clean_content,
+                        "max_tokens" : max_tokens,
+                        "temperature" : temperature,
+                    }
+                }
+            }]
+            if top_p: data[0]['query']['prompt']['top_p'] = top_p
+            if top_k: data[0]['query']['prompt']['top_k'] = top_k
+            if r_penalty: data[0]['query']['prompt']['repetition_penalty'] = r_penalty
+            if f_penalty: data[0]['query']['prompt']['frequency_penalty'] = f_penalty
+            if p_penalty: data[0]['query']['prompt']['presence_penalty'] = p_penalty
 
             if template_name:
                 developer = await self.bot.fetch_user(os.environ['DEVELOPER_ID'])
 
-                jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'),variable_start_string='{',variable_end_string='}', autoescape=True)
+                jinjaenv = Environment(loader=FileSystemLoader('data/chatbot-templates'), autoescape=True)
                 template = jinjaenv.get_template(template_name)
                 template_content = template.render({
                     'name' : self.bot.user.name,
@@ -230,7 +272,6 @@ class ChatBot(commands.Cog):
                     }
                 )
 
-            
             async for history_message in message.channel.history(limit=25,oldest_first=False):
                 if history_message.clean_content == '': continue
                 data[0]['query']['messages'].append(
@@ -239,44 +280,60 @@ class ChatBot(commands.Cog):
                         "content": history_message.clean_content
                     }
                 )
-            data[0]['query']['messages'].pop()
 
-            content_type, content, status, reason = await asyncget(url, headers=headers, data=data)
-            if status != 200: raise CloudFlareAIException("default")
+            response = await message.reply("Sto formulando una risposta...")
+
+            print(data)
+        
+            content_type, content, status, reason = await asyncget(url, json=data)
+            if status != 200: 
+                raise GGsBotException(
+                    title="Cloudflare API Exception", 
+                    description=f"An error occurred in cloudflare API (status: {status}): {reason}"
+                )
+
             content : dict = json.loads(content)
 
-            assert content['success'], f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}"
+            if not content['success']:
+                raise GGsBotException(
+                    title="Cloudflare API Exception",
+                    description=f"An error occurred in cloudflare API (code:{content['errors'][0]['code']}): {content['errors'][0]['message']}",
+                    suggestions=f"Please try again later or contact support for further assistance"
+                )
 
             result : str = content['result']['response']
 
-            current_text = ''
-            sections = result.split('```')
-            for n, section in enumerate(sections,0):
-                for line in section.split('\n'):
-                    if len(current_text + line + '\n') < 2000:
-                        current_text += line + '\n'
-                    else:
-                        if n == 0: 
-                            await response.edit(content=current_text)
-                        elif n % 2 != 0:
-                            await message.channel.send(content=f'```{current_text}```')
-                        else:
-                            if current_text:
-                                await message.channel.send(content=current_text)
-                        current_text = line + '\n'
-                
-                if current_text: 
-                    if n == 0:
-                        await response.edit(content=current_text)
-                    elif n % 2 != 0:
-                        await message.channel.send(content=f'```{current_text}```')
-                    else:
-                        await message.channel.send(content=current_text)
-                    current_text = ''
-
-        except AssertionError as e: pass
+            await self.send_chunks(result, message.channel, response)
+        except TimeoutError as e:
+            await response.edit(content="Request took to long to execute. Please try again later.")
         except Exception as e:
             logger.error(e)
+
+    async def send_chunks(self, text : str, channel : TextChannel, first_message : Message):
+        current_text = ''
+        chunks = text.split('```')
+        for n, chunk in enumerate(chunks,0):
+            for line in chunk.split('\n'):
+                if len(current_text + line + '\n') < 2000:
+                    current_text += line + '\n'
+                else:
+                    if n == 0: 
+                        await first_message.edit(content=current_text)
+                    elif n % 2 != 0:
+                        await channel.send(content=f'```{current_text}```')
+                    else:
+                        if current_text:
+                            await channel.send(content=current_text)
+                    current_text = line + '\n'
+            
+            if current_text: 
+                if n == 0:
+                    await first_message.edit(content=current_text)
+                elif n % 2 != 0:
+                    await channel.send(content=f'```{current_text}```')
+                else:
+                    await channel.send(content=current_text)
+                current_text = ''
 
 def setup(bot: commands.Bot):
     bot.add_cog(ChatBot(bot))

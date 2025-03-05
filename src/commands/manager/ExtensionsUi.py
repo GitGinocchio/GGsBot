@@ -52,24 +52,48 @@ class SetupUI(UI):
 class AiChatBotSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):
         SetupUI.__init__(self, bot, guild, extension)
-        self.config = { 'chat-delay' : 5, 'threads' : {} }
+        self.config = { 'chat-delay' : 10, 'threads' : {}, 'allowed-channels' : []}
         self.add_pages(self.AiChatBotPage)
     
     class AiChatBotPage(UiPage):
-        delays = [SelectOption(label=f'{n} Seconds', value=str(n), default=(True if n == 5 else False)) for n in range(1, 26,1)]
+        delays = [SelectOption(label=f'{n} Seconds', value=str(n), default=(True if n == 10 else False)) for n in range(1, 26,1)]
         def __init__(self, ui : UI, extension : str):
             UiPage.__init__(self, ui)
             self.description = f"This extension allows you to have a chatbot Ai within your discord server"
             self.colour = Colour.green()
 
             self.add_field(
-                name="2. Chat Delay", 
-                value="Select the delay of the chat with GGsBot Ai. (no choice=5 Seconds)"
+                name="1. Allowed Channels",
+                value="Select the channels where GGsBot Ai should be active. (no choice=All Channels)",
+                inline=False
             )
 
-        @string_select(placeholder="2. Chat Delay", options=delays, min_values=1,row=1)
+            self.add_field(
+                name="2. Chat Delay", 
+                value="Select the delay of the chat with GGsBot Ai. (no choice=10 Seconds)",
+                inline=False
+            )
+
+        @channel_select(placeholder="1. Allowed Channels", channel_types=[ChannelType.text, ChannelType.news])
+        async def select_channels(self, select : ChannelSelect, interaction : Interaction):
+            self.config['allowed-channels'] = [channel.id for channel in select.values.channels]
+
+        @string_select(placeholder="2. Chat Delay", options=delays, min_values=1,row=1, disabled=True)
         async def select_delay(self, select: StringSelect, interaction : Interaction):
             self.config['chat-delay'] = (select.values[0] if len(select.values) != 0 else None)
+
+        async def on_next(self, interaction : Interaction):
+            try:
+                if len(self.config.get('allowed-channels')) == 0:
+                    raise GGsBotException(
+                        title="Missing Argument",
+                        description="You must choose at least one allowed channel!",
+                        suggestions="Choose an allowed channel and try again.",
+                    )
+            except GGsBotException as e:
+                await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            else:
+                await super().on_next(interaction)
 
 class GreetingsSetupUI(SetupUI):
     def __init__(self, bot : Bot, guild : Guild, extension : str):

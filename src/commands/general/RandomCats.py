@@ -15,7 +15,8 @@ from nextcord import \
     Embed,           \
     File,            \
     slash_command
-from nextcord.ui import View, Button
+from nextcord.ui import View, Button, button
+from datetime import datetime, timezone
 from enum import StrEnum
 from io import BytesIO
 import json
@@ -23,6 +24,7 @@ import re
 
 from utils.commons import asyncget
 from utils.terminal import getlogger
+from utils.abc import Page
 
 logger = getlogger()
 
@@ -69,6 +71,55 @@ class Position(StrEnum):
     RIGHT_TOP = "right top"
     RIGHT_BOTTOM = "right bottom"
 
+class TagsPage(Page):
+    def __init__(self, tags : list):
+        Page.__init__(self,
+            title="Random Cats | Tags",
+            colour=Colour.green(),
+            description="Here are all the tags available for random cats. You can use these tags to filter the results.",
+            timestamp=datetime.now(timezone.utc)
+        )
+        self.tags = tags
+        self.page = 0
+        self.max_page = (len(self.tags) // 25) + 1
+        
+        self.add_field(
+            name=f"Tags (Page {self.page+1}/{self.max_page})",
+            value="\n".join([f"{i+1}) {tags[i]}" for i in range(self.page*25, min(len(self.tags),(self.page+1)*25), 1)]),
+            inline=False
+        )
+
+    @button(label="Previous", style=ButtonStyle.secondary)
+    async def prev(self, button : Button, interaction : Interaction):
+        if self.page - 1 < 0:
+            await interaction.send("You are already on the first page", delete_after=5, ephemeral=True) 
+            return
+        self.page -= 1
+
+        self.set_field_at(0,
+            name=f"Tags (Page {self.page+1}/{self.max_page})",
+            value="\n".join([f"{i+1}) {self.tags[i]}" for i in range(self.page*25, min(len(self.tags),(self.page+1)*25), 1)]),
+            inline=False
+        )
+
+        await interaction.response.edit_message(embed=self, view=self)
+
+    @button(label="Next", style=ButtonStyle.primary)
+    async def next(self, button : Button, interaction : Interaction):
+        if self.page + 1 >= self.max_page: 
+            await interaction.send("You are already on the last page", delete_after=5, ephemeral=True) 
+            return
+        self.page += 1
+
+        self.set_field_at(0,
+            name=f"Tags (Page {self.page+1}/{self.max_page})",
+            value="\n".join([f"{i+1}) {self.tags[i]}" for i in range(self.page*25, min(len(self.tags),(self.page+1)*25), 1)]),
+            inline=False
+        )
+
+        await interaction.response.edit_message(embed=self, view=self)
+
+
 
 class RandomCats(commands.Cog):
     def __init__(self, bot : commands.Bot):
@@ -99,20 +150,12 @@ class RandomCats(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=True)
 
-            embed = Embed(
-                title="Available Tags",
-                description="You can see the available tags below",
-                color=Color.green()
-            )
-            
-            view =  View(timeout=0)
-            link = Button(style=ButtonStyle.url, label="All available tags", url=f"{self.baseurl}/api/tags")
-            view.add_item(link)
+            page = TagsPage(self.tags)
 
         except ValueError as e:
             await interaction.followup.send(e, ephemeral=True, delete_after=5)
         else:
-            await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+            await interaction.followup.send(embed=page, view=page, ephemeral=True)
 
     @cats.subcommand(name="randomcat",description="Get a random cat image")
     async def randomcat(self, 
@@ -173,12 +216,14 @@ class RandomCats(commands.Cog):
             if blur: params.append(f'blur={blur}')
             if fontbackground: params.append(f'fontBackground={fontbackground}')
 
-            url = f'{self.baseurl}/cat/{tags}/says/{text.replace(' ','%20')}?{'&'.join(params)}'
+            url = f'{self.baseurl}/cat{f"/{tags}/" if tags else "/"}says/{text.replace(' ','%20')}?{'&'.join(params)}'
             content_type, content, status, reason = await asyncget(url)
+
+            print(url)
 
             if status == 404: 
                 raise ValueError(f"Cat not found with tags {tags}")
-            elif status == 200 and content_type.startswith("image/"): 
+            elif status != 200 or not content_type.startswith("image/"): 
                 raise ValueError(f"An unexpected error occurred: {reason}")
             
             ext = content_type.split('/')[1]

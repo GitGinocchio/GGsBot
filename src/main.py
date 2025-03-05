@@ -90,6 +90,7 @@ def run(args : Namespace):
             case _:
                 logger.fatal(f"Unhandled HTTPException occurred (code: {e.code}): {e.text}")
                 input('press any key to continue...')
+
     except Exception as e:
         logger.critical(f'Unhandled Exception occurred: {e}')
 
