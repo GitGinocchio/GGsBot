@@ -211,7 +211,7 @@ class HTTPServer:
             await self.shutdown()
         except Exception as e:
             logger.error(e)
-            logger.erro("A fatal error occurred, shutting down")
+            logger.error("A fatal error occurred, shutting down")
             await self.shutdown()
 
     async def restart(self):
