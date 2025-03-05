@@ -157,8 +157,8 @@ config/config.jsonc
 data/database.db
 data/cookies/*
 
-/bin/**/ffmpeg
-/bin/**/ffmpeg.*
+bin/**/ffmpeg
+bin/**/ffmpeg.*
 
 !placeholder.txt
 /logs
