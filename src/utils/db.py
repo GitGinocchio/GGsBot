@@ -52,12 +52,12 @@ class Database:
 
     @property
     def connection(self) -> aiosqlite.Connection:
-        assert self._connection and self._connection.is_alive(), "Connection not initialized"
+        if not self._connections or not self._connection.is_alive(): raise RuntimeError("Connection not initialized")
         return self._connection
     
     @property
     def cursor(self) -> aiosqlite.Cursor:
-        assert self._cursor, "Cursor not initialized"
+        if not self._cursor: raise RuntimeError("Cursor not initialized")
         return self._cursor
 
     async def execute(self, query: str, params: tuple = ()):

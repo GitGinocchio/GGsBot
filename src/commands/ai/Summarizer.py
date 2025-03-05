@@ -3,13 +3,16 @@ from nextcord.ext import commands
 from nextcord.ui import Modal, TextInput, StringSelect
 from typing import Callable
 import nextcord
-import requests
+import json
 import os
 
+from utils.exceptions import GGsBotException
 from utils.commons import \
     GLOBAL_INTEGRATION,   \
     GUILD_INTEGRATION,    \
-    USER_INTEGRATION
+    USER_INTEGRATION,     \
+    asyncget,             \
+    asyncpost
 
 
 models = [
@@ -43,24 +46,22 @@ class SummarizerModel(Modal):
         self.add_item(self.model)
 
     async def on_submit(self, interaction: Interaction):
-        # Estrai i valori inseriti dall'utente
         max_length_value = self.max_length.value
         model_value = self.model.values[0]
 
         try:
-            # Verifica che il max_length sia un numero valido
             max_length_int = int(max_length_value)
-            assert max_length_int > 0, "Max Length must be a positive number."
 
-            # Invia un messaggio con i dati inseriti
+            if max_length_int < 0: 
+                raise GGsBotException(
+                    title="Argument Exception",
+                    description="Max Length must be a positive number.",
+                    suggestions="Please enter a positive number for Max Length and try again."
+                )
+
             await interaction.response.send_message(f"Max Length: {max_length_value}\nModel: {model_value}", ephemeral=True)
-
-        except ValueError:
-            # Errore nel caso in cui `max_length` non sia un numero
-            await interaction.response.send_message("Max Length must be a valid number.", ephemeral=True)
-        except AssertionError as e:
-            # Errori di validazione personalizzati
-            await interaction.response.send_message(str(e), ephemeral=True)
+        except GGsBotException as e:
+            await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
 
 class Summarizer(commands.Cog):
     def __init__(self, bot : commands.Bot):
@@ -73,11 +74,17 @@ class Summarizer(commands.Cog):
                     message  : nextcord.Message
                 ):
         try:
-            assert message.clean_content != '', 'You must provide a valid text message to translate'
+            if message.clean_content == '':
+                raise GGsBotException(
+                    title="Argument Exception",
+                    description="You must provide a valid text message to summarize",
+                    suggestions="Please choose a message with text content and try again.",
+                )
+
             view = SummarizerModel(self.summarize,message)
             await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
-        except AssertionError as e:
-            await interaction.response.send_message(e,ephemeral=True,delete_after=5)
+        except GGsBotException as e:
+            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True,delete_after=5)
 
     @nextcord.slash_command(name='summarize',description="Summarize text using AI", integration_types=GLOBAL_INTEGRATION)
     async def summarize_text(self, 
@@ -91,15 +98,25 @@ class Summarizer(commands.Cog):
             await interaction.response.defer(ephemeral=ephemeral)
             response = await self.summarize(text, max_length,model)
 
-            assert response["success"], f"Error occured while translating (code: {response['errors']['code']}): {response['errors']['message']}"
-        except AssertionError as e:
-            await interaction.followup.send(e)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
         else:
             await interaction.followup.send(response['result']['summary'])
 
     async def summarize(self, text : str, max_length : int, model : str):
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}
-        return requests.post(self.api + model, json={'input_text' : text, 'max_length' : max_length}, headers=headers).json()
+
+        content_type, content, code, reason = await asyncpost(self.api + model, json={'input_text' : text, 'max_length' : max_length}, headers=headers)
+
+        if code != 200 or content_type != "application/json":
+            raise GGsBotException(
+                title="Summarization failed",
+                description=f"Failed to summarize the text. Status code: {code} Reason: {reason}",
+                suggestions="Try again later or contact the support team.",
+            )
+
+        return json.loads(content)
+
 
 
 

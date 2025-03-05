@@ -117,7 +117,7 @@ class JsonFile(dict):
         :commented: Specify if there are comments in the json file
         :force_load: Force to load the file.
         """
-        assert fp.endswith('.json') or fp.endswith('.jsonc'),'fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)'
+        if not fp.endswith('.json') or not fp.endswith('.jsonc'): raise ValueError('fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)')
         self.commented = True if fp.endswith('.jsonc') else commented
         self.encoding = encoding
         self.autosave = autosave
