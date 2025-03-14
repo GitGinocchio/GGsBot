@@ -153,11 +153,12 @@ cython_debug/
 *.exe
 .git-credentials
 
+config/config.jsonc
 data/database.db
 data/cookies/*
 
-/bin/**/ffmpeg
-/bin/**/ffmpeg.*
+src/bin/**/ffmpeg
+src/bin/**/ffmpeg.*
 
 !placeholder.txt
 /logs

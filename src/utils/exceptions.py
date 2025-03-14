@@ -1,11 +1,9 @@
 from datetime import datetime, timezone
 from nextcord import Embed, Colour
 
+from utils.embeds import IconEmbed, ERROR_ICON_ID
 from utils.config import exceptions
 from utils.commons import hex_to_colour
-
-ERROR_ICON_ID = "82813"
-ALERT_ICON_ID = "12116"
 
 class GGsBotException(Exception):
     def __init__(self, 
@@ -38,7 +36,7 @@ class GGsBotException(Exception):
         self.color = (color if type(color) is Colour else hex_to_colour(color)) if color is not None else \
                      hex_to_colour(data.get('color', "0xe74c3c"))
     
-    def __str__(self): return f"{self.data['title']} ({self.code}): {self.data['description']}"
+    def __str__(self): return f"{self.title} (code: {self.code}): {self.description}"
 
     def __repr__(self): return f'{self.type}(code:{self.code})'
 
@@ -48,19 +46,18 @@ class GGsBotException(Exception):
         return GGsBotException(title=e.__class__.__name__,description=str(e), *e.args)
 
     def asEmbed(self) -> Embed:
-        embed = Embed(
+        embed = IconEmbed(
             title=self.title,
-            colour=self.color,
+            footer_text=f'contact a moderator for more help',
+            author_text=self.type,
             description=self.description.format(self.args, self.kwargs),
-            timestamp=datetime.now(timezone.utc),
+            icon_id=self.icon_id,
+            icon_color=self.color,
+            color=self.color
         )
-
-        icon_url = f"https://img.icons8.com/?size=100&id={self.icon_id}&format=png&color={str(self.color).replace('#', '')}"
 
         embed.add_field(name="Suggestions",value=self.suggestions.format(self.args, self.kwargs),inline=True)
         if self.code is not None: embed.add_field(name="Error code: ", value=str(self.code), inline=False)
-        embed.set_author(name=self.type,icon_url=icon_url)
-        embed.set_footer(text=f'contact a moderator for more help', icon_url=icon_url)
 
         return embed
 

@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,800;1,800&family=Syne:wght@800&display=swap');
+
+/* Header */
+
+body header {
+    /*  Stranamente questo sembra non modificare piu' nulla*/
+    height: 60vh; 
+}
+
+/* Hero Section */
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-background-color);
+    color: var(--heading-color);
+    padding: 0px 0px 0px 50px;
+    border-radius: var(--medium-border-radius);
+    margin: 32px var(--content-margin) 32px var(--content-margin);
+    height: 40vh;
+    border: 5px solid var(--secondary-background-color);
+    box-shadow: 5px 5px 5px var(--primary-shadow-color);
+}
+
+
+.hero .content {
+    max-width: 60%;
+}
+
+
+.hero .content h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: var(--h1-font-size);
+}
+
+.hero .content p {
+    font-size: var(--p-font-size);
+}
+
+.hero .image {
+    /* Gradient / Mask */
+    mask-image: url("/static/images/left-gradient.svg");
+    mask-size: cover;
+    mask-repeat: no-repeat;
+    mask-position: 10% center;
+
+    /* Image */
+    inset: 0px;
+    overflow: hidden;
+    border-radius: var(--small-border-radius);
+    background-image: url("/static/images/banner.png");
+    width: 40%;
+    height: inherit;
+    background-size: auto;
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* Features */
+
+.features {
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+    height: 25vh;
+}
+
+.features h2 {
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+}
+
+.features-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 10vh;
+}
+
+.feature {
+    max-width: 30%;
+    text-align: left;
+}
+
+.feature p {
+    font-size: var(--p-font-size);
+}
+
+.feature h3 {
+    font-family: 'Nunito', sans-serif;
+    font-size: var(--h3-font-size);
+}
+
+/* Arrow */
+
+.arrow {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2.5vh;
+    padding-bottom: 2.5vh;
+    height: 8vh;
+}
+
+.shadow {
+    position: relative;
+    top: 2.5vh;
+    width: 100vw;
+    height: 0px;
+    box-shadow: 0px 1vh 20px 2.5vh var(--secondary-shadow-color);
+    z-index: -1;
+}
+
+.arrow img {
+    height: 100%;
+}
+
+
+/* Custom Built Ui */
+
+.ui {
+    background-color: var(--primary-background-color);
+    min-height: 80vh;
+    align-content: center;
+    border-bottom: 1px solid var(--secondary-background-color);
+}
+
+.ui .content {
+    display:flex;
+    flex-direction:column;
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+    column-gap: 5%;
+}
+
+.ui .content h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}
+
+.ui .content .alignment {
+    display: flex;
+    flex-direction:row;
+    justify-content: space-around;
+    align-items: center;
+    height: inherit;
+    width: inherit;
+    gap: 5%;
+}
+
+.ui .content .alignment .description p {
+    color: var(--primary-color);
+}
+
+.ui .content .alignment .description h3 {
+    color: var(--heading-color);
+    font-size: var(--h3-font-size);
+}
+
+.ui .content .alignment img {
+    box-shadow: 0px 0px 10px 10px var(--third-shadow-color);
+    border-radius: var(--large-border-radius);
+}
+
+/* Highly Customizable */
+
+.customizable {
+    background-color: var(--primary-background-color);
+    min-height: 80vh;
+    border-bottom: 1px solid var(--secondary-background-color);
+}
+
+.customizable .content {
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.customizable .content h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}
+
+/* Multipurpuse */
+
+.multipurpuse {
+    background-color: var(--primary-background-color);
+    min-height: 80vh;
+    border-bottom: 1px solid var(--secondary-background-color);
+}
+
+.multipurpuse .content {
+    padding: 40px 10px;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.multipurpuse .content h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--heading-color);
+    text-align: left;
+}

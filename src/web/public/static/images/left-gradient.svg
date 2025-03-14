@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" preserveAspectRatio="none">
+    <defs>
+        <linearGradient id="gradient" x1="1" x2="0" y1="0" y2="0">
+            <stop offset="60%" stop-color="rgba(255, 255, 255, 1)" />
+            <stop offset="62.3529%" stop-color="rgba(255, 255, 255, 0.9932899933991818)" />
+            <stop offset="64.7059%" stop-color="rgba(255, 255, 255, 0.9725150158822203)" />
+            <stop offset="67.05879999999999%" stop-color="rgba(255, 255, 255, 0.9368720509418088)" />
+            <stop offset="69.4118%" stop-color="rgba(255, 255, 255, 0.8859470355610154)" />
+            <stop offset="71.7647%" stop-color="rgba(255, 255, 255, 0.819989399376484)" />
+            <stop offset="74.1176%" stop-color="rgba(255, 255, 255, 0.740231658322563)" />
+            <stop offset="76.4706%" stop-color="rgba(255, 255, 255, 0.6491625216248583)" />
+            <stop offset="78.8235%" stop-color="rgba(255, 255, 255, 0.5505982532634482)" />
+            <stop offset="81.17649999999999%" stop-color="rgba(255, 255, 255, 0.44940174673655164)" />
+            <stop offset="83.5294%" stop-color="rgba(255, 255, 255, 0.35083747837514156)" />
+            <stop offset="85.8824%" stop-color="rgba(255, 255, 255, 0.25976834167743645)" />
+            <stop offset="88.23530000000001%" stop-color="rgba(255, 255, 255, 0.18001060062351582)" />
+            <stop offset="90.5882%" stop-color="rgba(255, 255, 255, 0.1140529644389846)" />
+            <stop offset="92.9412%" stop-color="rgba(255, 255, 255, 0.06312794905819119)" />
+            <stop offset="95.2941%" stop-color="rgba(255, 255, 255, 0.027484984117779665)" />
+            <stop offset="97.6471%" stop-color="rgba(255, 255, 255, 0.006710006600818219)" />
+            <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+        </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="1" height="1" fill="url(#gradient)" />
+</svg>
