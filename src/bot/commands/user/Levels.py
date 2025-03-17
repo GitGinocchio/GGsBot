@@ -13,6 +13,7 @@ from nextcord import \
     Interaction,     \
     slash_command    \
     
+from utils.exceptions import *
 from utils.commons import \
     GUILD_INTEGRATION,    \
     USER_INTEGRATION,     \
@@ -61,7 +62,12 @@ class Levels(commands.Cog):
             await interaction.response.defer(ephemeral=True)
             if not user: user = interaction.user
 
-            assert user, "No valid user passed."
+            if not user:
+                raise GGsBotException(
+                    title="Argument Exception",
+                    description="No valid user passed.",
+                    suggestions="Provide a user to check their level."
+                )
 
             totalxp = 0
 
@@ -83,8 +89,8 @@ class Levels(commands.Cog):
                 async for message in channel.history(limit=None,after=(after.edited_at if after.edited_at else after.created_at) if after else None,oldest_first=True):
                     self.messages_cache[interaction.guild][channel].add(message)
                     totalxp += await self.calculate_xp(message,user)
-        except AssertionError as e:
-            await interaction.followup.send(e,ephemeral=True)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(),ephemeral=True, delete_after=5)
         else:
             await interaction.followup.send(content=f'{user.mention} is level {totalxp // 1000:.0f} ({totalxp} XP)!')
 

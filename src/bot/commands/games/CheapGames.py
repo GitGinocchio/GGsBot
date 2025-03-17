@@ -41,7 +41,7 @@ from utils.commons import \
     GLOBAL_INTEGRATION,   \
     GUILD_INTEGRATION,    \
     USER_INTEGRATION,     \
-    is_developer,         \
+    isdeveloper,         \
     asyncget
 
 logger = getlogger()
@@ -625,7 +625,7 @@ class CheapGames(Cog):
             await interaction.followup.send(embed=page, ephemeral=True)
 
     @cheapgames.subcommand(name="trigger-update", description="Command that triggers an update manually")
-    @is_developer()
+    @isdeveloper()
     async def trigger_update(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)

@@ -8,7 +8,7 @@
 
     // Command settings
     "ignore_files" : ["__pycache__","placeholder.txt","AutoMod.py"],                         // Do not load the specified commands
-    "ignore_categories" : ["ai"],                                                            // Do not load the specified categories of commands
+    "ignore_categories" : [],                                                                // Do not load the specified categories of commands
     "max_guilds" : -1,                                                                       // Maximum number of guilds
     // Proxies
     "proxies" : [
@@ -29,7 +29,7 @@
 
     // Paths
     "paths" : {
-        "bin" : "/bin/{os}/{arch}/",
+        "bin" : "./src/bin/{os}/{arch}/",
         
         "db" : "./data/database.db",
         "db_script" : "./config/database.sql",
