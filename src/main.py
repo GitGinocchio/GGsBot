@@ -13,7 +13,7 @@ load_dotenv('./config/.env', verbose=True)
 from utils.db import Database
 from utils.terminal import clear, erase, getlogger,F
 from utils.intents import getintents
-from utils.system import getsysteminfo
+from utils.system import printsysteminfo, get_top_stats
 from utils.config import \
     APPLICATION_ID,      \
     DEV_APPLICATION_ID,  \
@@ -23,7 +23,7 @@ from utils.config import \
     config
 
 clear()
-getsysteminfo()
+printsysteminfo()
 logger = getlogger()
 
 def load_commands(bot : Bot, *, categories : list[str] = None, ignore_categories : list[str] = []):

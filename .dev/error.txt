@@ -100,3 +100,8 @@ Traceback (most recent call last):
                                                             ^^^^^^^^^^^^
 
 AttributeError: 'MapQuizSession' object has no attribute 'baseurl'
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/threading.py", line 1540, in _shutdown
+    _thread_shutdown()
+KeyboardInterrupt:

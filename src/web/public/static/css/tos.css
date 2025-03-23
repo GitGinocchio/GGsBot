@@ -14,10 +14,10 @@ body {
 .tos-content h1, h2 {
     color: #2c3e50;
 }
-.tos-content h3 {
+.tos-content h3, h4 {
     color: #34495e;
 }
-.tos-content p {
+.tos-content p, li {
     color: #555;
 }
 .tos-content ul {
