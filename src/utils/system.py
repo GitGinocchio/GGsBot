@@ -8,7 +8,7 @@ OS = platform.system()
 
 ARCH = 'x64' if '64' in platform.architecture()[0] else 'x32'
 
-def getsysteminfo():
+def printsysteminfo():
     logger.debug(f'Current Working Directory: {os.getcwd()}')
     logger.debug(f'Architecture: {platform.architecture()}')
     logger.debug(f'Platform: {platform.platform()}')

@@ -1,10 +1,13 @@
+import traceback
 from nextcord.ext import commands, tasks
+import traceback
 import nextcord
 import random
 import time
 import os
 
 from utils.terminal import getlogger
+from utils.config import config
 
 logger = getlogger()
 
@@ -33,15 +36,7 @@ activity = nextcord.Activity(
 
 class Activity(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.states = {
-            '/help' : "Use /help  to see all available commands.",
-            '/ask' : "Use /ask to ask a question and get an answer from GGsBot AI.",
-            '/chat' : "Use /chat to chat with GGsBot AI.",
-            '/image' : "Use /image to generate images with GGsBot AI.",
-            '/level' : "Use /level to check your level and experience.",
-            '/translate' : "Use /translate to translate a text from one language to another.",
-            '/summarize' : "Use /summarize to summarize a text with GGsBot AI."
-        }
+        self.states = config['activity']['states']
         self.commands = list(self.states.keys())
         self.command : str = None
         self.bot = bot
@@ -51,7 +46,7 @@ class Activity(commands.Cog):
         if not self.update_activity.is_running():
             self.update_activity.start()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=config['activity']['interval'])
     async def update_activity(self):
         try:
             activity = nextcord.Activity(
@@ -60,12 +55,13 @@ class Activity(commands.Cog):
                 state=self.states[name]
             )
 
+            logger.debug(f"Changing bot activity from: '{self.command}' to: '{name}'")
+            
             self.command = name
-
-            #logger.info(f"Changing bot activity to: {name}")
             await self.bot.change_presence(activity=activity)
         except Exception as e:
-            logger.exception(e)
+            logger.error(f"An error occurred while changing bot activity: {traceback.format_exc()}")
+
 
 
 def setup(bot: commands.Bot) -> None:
