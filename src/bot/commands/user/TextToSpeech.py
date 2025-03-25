@@ -113,7 +113,7 @@ accents = {
     "Burkina Faso": "bf",
     "Bulgaria": "bg",
     "Benin": "bj",
-    "Brazil": "br",
+    "Brazil": "com.br",
     "Bahamas": "bs",
     "Bhutan": "bt",
     "Botswana": "co.bw",
@@ -284,14 +284,19 @@ class TextToSpeech(commands.Cog):
     @slash_command('tts', 'Write your message and the bot will convert it to speech.')
     async def tts(self, interaction : Interaction): pass
 
-    @tts.subcommand('autojoin', 'Automatically join the voice channel you joined.')
+    # Set methods
+
+    @tts.subcommand('set', "Set of commands to configure the tts extension for each user.")
+    async def set(self, interaction : Interaction): pass
+
+    @set.subcommand('autojoin', 'Automatically join the voice channel you joined.')
     async def autojoin(self, interaction : Interaction):
         try:
             pass
         except Exception as e:
             pass
 
-    @tts.subcommand('setlanguage', 'Set the language for speech generation.')
+    @set.subcommand('language', 'Set the language for speech generation.')
     async def setlanguage(self, 
             interaction : Interaction,
             language : str = SlashOption('language', 'The language to use for speech generation.', required=True)
@@ -301,7 +306,7 @@ class TextToSpeech(commands.Cog):
         except Exception as e:
             pass
 
-    @tts.subcommand('setaccent', 'Set the accent for speech generation.')
+    @set.subcommand('accent', 'Set the accent for speech generation.')
     async def setaccent(self,
             interaction : Interaction,
             accent : str = SlashOption('accent', 'The accent to use for speech generation.', required=True)
@@ -311,6 +316,8 @@ class TextToSpeech(commands.Cog):
             pass
         except Exception as e:
             pass
+
+    # Get methods
 
     @tts.subcommand('languages', 'List all available languages for speech generation.')
     async def languages(self, interaction : Interaction):
@@ -364,6 +371,8 @@ class TextToSpeech(commands.Cog):
             await interaction.followup.send(embed=page)
         except Exception as e:
             logger.error(traceback.format_exc())
+
+    # Say method
 
     @tts.subcommand('say', 'Write your message and the bot will convert it to speech in your voice channel or a file.')
     async def say(self, 
