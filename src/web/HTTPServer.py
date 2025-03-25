@@ -21,13 +21,17 @@ import os
 from utils.terminal import getlogger
 from utils.config import config
 from utils.db import Database
+from utils.system import \
+    OS,                  \
+    get_psutil_stats,    \
+    get_top_stats        \
 
 logger = getlogger()
 
 WEB_DIR = abspath('./src/web')
 PUBLIC_DIR = join(WEB_DIR, 'public')
 TEMPLATES_DIR = join(PUBLIC_DIR, 'templates')
-STAITC_DIR = join(PUBLIC_DIR, 'static')
+STATIC_DIR = join(PUBLIC_DIR, 'static')
 
 web_config = config.get('web', {})
 
@@ -51,7 +55,9 @@ class HTTPServer:
         self.port = port
         self.running = False
 
-        self.app.router.add_static('/static/', STAITC_DIR, show_index=True)
+        self.start_time = datetime.now(timezone.utc)
+
+        self.app.router.add_static('/static/', STATIC_DIR, show_index=True)
         aiojinja.setup(self.app, loader=jinja2.FileSystemLoader(TEMPLATES_DIR))
         self.app.middlewares.append(self.logger)
 
@@ -148,41 +154,28 @@ class HTTPServer:
         return Response(text="Interactions", status=200)
 
     async def status(self, request : Request):
-        uptime = datetime.now(timezone.utc) - datetime.fromtimestamp(psutil.boot_time(), timezone.utc)
+        # Per ottenere le info del sistema, utilizzare:
+        # Su linux: os.system("top")
+        # Su Windows: psutil
 
-        # Cpu
-        cpu_count = {'physical': psutil.cpu_count(False), 'logical': psutil.cpu_count()}
-        cpu_freqs = [{'current': freq.current, 'min': freq.min, 'max': freq.max} for freq in psutil.cpu_freq(True)]
-        cpu_usage = { 'percpu' : psutil.cpu_percent(percpu=True), 'total' : psutil.cpu_percent()} 
+        uptime = datetime.now(timezone.utc) - self.start_time
 
-        # Memory
-        ram_usage = {'available': (memory:=psutil.virtual_memory()).available,'free' : memory.free,'percent' : memory.percent,'total' : memory.total,'used' : memory.used}
+        status = {}
 
-        # Disk
-        disk_usage = { 'total' : (disk:=psutil.disk_usage('/')).total, 'used' : disk.used, 'free' : disk.free, 'percent' : disk.percent }
+        if OS == 'Windows':
+            stats = get_psutil_stats()
 
-        # Swap
-        swap_usage = { 'total' : (swap:=psutil.swap_memory()).total, 'used' : swap.used, 'free' : swap.free, 'percent' : swap.percent, 'sin' : swap.sin, 'sout' : swap.sout }
+            status['machine'] = stats
+        else:
+            stats = get_top_stats()
+            status['machine'] = stats
 
-        status = {
-            'uptime' : str(uptime),
-            'cpu' : {
-                'count' : cpu_count,
-                'freqs' : cpu_freqs,
-                'usage' : cpu_usage
-            },
-            'memory' : ram_usage,
-            'disk' : disk_usage,
-            'swap' : swap_usage,
-
-            'discord' : {
-                'latency' : self.bot.latency if self.bot else None
-            }
-        }
+        status['machine']['os'] = OS
+        status['uptime'] = uptime.total_seconds()
+        status['discord'] = { 'latency' : self.bot.latency if self.bot else None }
+        status['database'] = { 'num_queries' : self.db.num_queries }
 
         return Response(text=json.dumps(status), content_type="application/json")
-
-
 
     async def run(self):
         try:

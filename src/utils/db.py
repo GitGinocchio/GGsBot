@@ -40,6 +40,7 @@ class Database:
             cls._instance._start_time = 0
             cls._instance._lock = asyncio.Lock()
             cls._instance._loop = loop
+            cls._num_queries = 0
             cls._instance._initialize_db()
             logger.info("Database initialized")
         return cls._instance
@@ -60,10 +61,19 @@ class Database:
         if not self._cursor: raise RuntimeError("Cursor not initialized")
         return self._cursor
 
+    @property
+    def num_queries(self) -> int: return self._num_queries
+
     async def execute(self, query: str, params: tuple = ()):
-        logger.debug(f'executing query: {query} with params: {params}')
-        cursor = await self.cursor.execute(query, params)
-        return cursor
+        try:
+            logger.debug(f'executing query: {query} with params: {params}')
+            cursor = await self.cursor.execute(query, params)
+        except Exception as e:
+            raise e
+        else:
+            return cursor
+        finally:
+            self._num_queries += 1
     
     async def executeScript(self, script : str, autocommit : bool = False):
         logger.debug(f'executing script: {script}')
