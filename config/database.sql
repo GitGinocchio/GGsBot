@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS guilds (
 CREATE TABLE IF NOT EXISTS users (
     guild_id INTEGER,
     user_id INTEGER,
-    user_level INTEGER,
-    -- user_data JSON,
+    level INTEGER,
+    config JSON,
     PRIMARY KEY (user_id, guild_id),                                -- Garantiamo che ci sia una sola combinazione di user_id + guild_id
     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)             -- Assicuriamo che il guild_id esista nella tabella guilds
 );

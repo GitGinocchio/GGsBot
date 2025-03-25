@@ -8,7 +8,7 @@ import json
 import time
 import os
 
-from nextcord import Guild
+from nextcord import Guild, Member
 from datetime import datetime, timezone
 
 from .config import config
@@ -64,6 +64,12 @@ class Database:
         logger.debug(f'executing query: {query} with params: {params}')
         cursor = await self.cursor.execute(query, params)
         return cursor
+    
+    async def executeScript(self, script : str, autocommit : bool = False):
+        logger.debug(f'executing script: {script}')
+        cursor = await self.cursor.executescript(script)
+        if autocommit: await self.connection.commit()
+        return cursor
 
     async def __aenter__(self):
         await self._lock.acquire()
@@ -105,6 +111,7 @@ class Database:
             await self._connection.close()
 
     # Guilds
+
     async def getAllGuildIds(self) -> set[int]:
         cursor = await self.execute("SELECT guild_id FROM guilds")
         rows = await cursor.fetchall()
@@ -192,6 +199,72 @@ class Database:
             logger.error(e)
             raise e
 
+    # Users
+
+    async def hasUser(self, user : Member) -> None:
+        cursor = await self.execute("SELECT 1 FROM users WHERE user_id = ? AND guild_id = ?", (user.id, user.guild.id))
+        result = await cursor.fetchone()
+        return result is not None
+
+    async def newUser(self, user : Member, config : dict = {}) -> None:
+        query = """
+        INSERT INTO users (guild_id, user_id, level, config)
+        VALUES (?, ?, ?, ?)
+        """
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id, 0, config))
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            raise DatabaseException("DuplicateRecordError")
+        else:
+            await self.connection.commit()
+
+    async def getUserConfig(self, user : Member) -> dict:
+        query = """SELECT config FROM users WHERE guild_id = ? AND user_id = ?"""
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id))
+            result = await cursor.fetchone()
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
+        else:
+            return json.loads(result[0])
+
+    async def editUserConfig(self, user : Member, config : dict) -> None:
+        query = """
+        UPDATE extensions
+        SET config = ?
+        WHERE guild_id = ? AND user_id = ?
+        """
+
+        try:
+            cursor = await self.execute(query, (config, user.guild.id, user.id))
+
+            # Da aggiungere questa logica
+            # if cursor.rowcount == 0: raise ExtensionException("Not Configured")
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            raise DatabaseException("DuplicateRecordError")
+        else:
+            await self.connection.commit()
+
+    async def delUser(self, user : Member) -> None:
+        query = """DELETE FROM users WHERE guild_id = ? AND user_id = ?"""
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id))
+
+            # Da aggiungere questa logica
+            # if cursor.rowcount == 0: raise ExtensionException("Not Configured")
+        except aiosqlite.Error as e:
+            await self.connection.rollback()
+            raise e
+        else:
+            await self.connection.commit()
+
     # Extensions
     async def setupExtension(self, guild : Guild, extension : Extensions, config : dict) -> None:
         query = """
@@ -210,7 +283,7 @@ class Database:
             await self.connection.rollback()
             logger.error(e)
             raise e
-        
+
     async def teardownExtension(self, guild : Guild, extension : Extensions) -> None:
         query = """DELETE FROM extensions WHERE guild_id = ? AND extension_id = ?"""
 
@@ -319,7 +392,7 @@ class Database:
             logger.error(e)
             await self.connection.rollback()
             raise e
-        
+
     async def editAllExtensionConfig(self, updated_values: list[tuple[int, str, bool, dict]]) -> None:
         update_query = """
         UPDATE extensions

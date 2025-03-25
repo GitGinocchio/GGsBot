@@ -31,7 +31,6 @@
     },
 
     "music": {
-        "ffmpeg_path" : "./bin/{os}/{arch}/ffmpeg",
         "defaultvolume" : 100.0,
         "attempts" : 5, // Maximum number of attempts (for song) that can be made before give up
         "spotify": {

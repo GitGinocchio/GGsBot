@@ -174,7 +174,7 @@ class Session:
         source = nextcord.FFmpegPCMAudio(
             source=song.url,
             stderr=sys.stderr,
-            executable=str(config['music']['ffmpeg_path']).format(os=OS,arch=ARCH),
+            executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}/ffmpeg",
             before_options=f'-ss {st[0]}:{st[1]}:{st[2]}.{st[3]}',
             )
         

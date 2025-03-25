@@ -1,6 +1,6 @@
 from nextcord import Embed,Color,utils,channel,Permissions,Interaction,User, Member
 from nextcord.ext import commands, tasks
-import datetime
+from datetime import datetime, timezone, timedelta, time
 import nextcord
 import asyncio
 import os
@@ -167,8 +167,8 @@ class StaffCommands(commands.Cog):
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
 
     async def schedule_periodic_task(self):
-        now = datetime.datetime.now(datetime.timezone.utc)
-        midnight = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.timezone.utc)
+        now = datetime.now(timezone.utc)
+        midnight = datetime.combine(now.date() + timedelta(days=1), time.min, tzinfo=timezone.utc)
         
         # Calcola il tempo rimanente fino alla prossima mezzanotte
         delay = (midnight - now).total_seconds()
