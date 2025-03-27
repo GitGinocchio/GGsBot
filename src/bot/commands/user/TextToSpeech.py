@@ -14,6 +14,7 @@ from gtts import gTTS
 #import pyttsx3
 import io
 
+from utils.db import Database
 from utils.config import config
 from utils.system import OS, ARCH
 from utils.terminal import getlogger
@@ -279,6 +280,7 @@ accents = {
 class TextToSpeech(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
+        self.db = Database()
         self.bot = bot
 
     @slash_command('tts', 'Write your message and the bot will convert it to speech.')
@@ -290,32 +292,103 @@ class TextToSpeech(commands.Cog):
     async def set(self, interaction : Interaction): pass
 
     @set.subcommand('autojoin', 'Automatically join the voice channel you joined.')
-    async def autojoin(self, interaction : Interaction):
-        try:
-            pass
-        except Exception as e:
-            pass
+    async def autojoin(self, 
+            interaction : Interaction,
+            active : bool = SlashOption('active', 'Whether to enable or disable automatic joining.', required=True)
+        ):
+        try: 
+            await interaction.response.defer(ephemeral=True)
+            
+            async with self.db:
+                user_config = await self.db.getUserConfig(interaction.user)
+
+                previous_autojoin = user_config.get('tts', {}).get('autojoin', None)
+
+                if previous_autojoin and previous_autojoin == active:
+                    raise GGsBotException(
+                        title="Error",
+                        description=f"You have already set the autojoin option to **{previous_autojoin}**.",
+                    )
+
+                user_config['tts']['autojoin'] = active
+
+                await self.db.editUserConfig(interaction.user, user_config)
+
+            page = Page(
+                colour=Colour.green(),
+                title="Autojoin Set Successfully",
+                description=f"Autojoin feature has been set from **{'enabled' if previous_autojoin else 'disabled'}**  to **{'enabled' if active else 'disabled'}**.",
+            )
+
+            await interaction.followup.send(embed=page, ephemeral=True)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
 
     @set.subcommand('language', 'Set the language for speech generation.')
-    async def setlanguage(self, 
+    async def language(self, 
             interaction : Interaction,
             language : str = SlashOption('language', 'The language to use for speech generation.', required=True)
         ):
         try: 
-            pass
-        except Exception as e:
-            pass
+            await interaction.response.defer(ephemeral=True)
+
+            if not (lang_code:=languages.get(language)):
+                raise GGsBotException(
+                    title="Invalid language.",
+                    description="Please select a valid language from the list of available languages.",
+                )
+            
+            async with self.db:
+                user_config = await self.db.getUserConfig(interaction.user)
+
+                previous_lang = user_config.get('tts', {}).get('language', None)
+
+                user_config['tts']['language'] = language
+
+                await self.db.editUserConfig(interaction.user, user_config)
+
+            page = Page(
+                colour=Colour.green(),
+                title="Language Set Successfully",
+                description=f"Your language has been set from **{str(previous_lang)}**  to **{language}**.",
+            )
+
+            await interaction.followup.send(embed=page, ephemeral=True)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
 
     @set.subcommand('accent', 'Set the accent for speech generation.')
-    async def setaccent(self,
+    async def accent(self,
             interaction : Interaction,
             accent : str = SlashOption('accent', 'The accent to use for speech generation.', required=True)
-
         ):
         try: 
-            pass
-        except Exception as e:
-            pass
+            await interaction.response.defer(ephemeral=True)
+
+            if not (accent_code:=accents.get(accent)):
+                raise GGsBotException(
+                    title="Invalid accent.",
+                    description="Please select a valid accent from the list of available accents.",
+                )
+            
+            async with self.db:
+                user_config = await self.db.getUserConfig(interaction.user)
+
+                previous_accent = user_config.get('tts', {}).get('accent', None)
+
+                user_config['tts']['accent'] = accent
+
+                await self.db.editUserConfig(interaction.user, user_config)
+
+            page = Page(
+                colour=Colour.green(),
+                title="Accent Set Successfully",
+                description=f"Your accent has been set from **{str(previous_accent)}**  to **{accent}**.",
+            )
+
+            await interaction.followup.send(embed=page, ephemeral=True)
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
 
     # Get methods
 

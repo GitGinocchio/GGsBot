@@ -1,5 +1,6 @@
 from cachetools import TTLCache
 #from redis import Redis            # Piu' avanti potro' usare un client Redis per ora una semplice cache in memoria
+import traceback
 import aiosqlite
 import sqlite3
 import asyncio
@@ -21,18 +22,19 @@ logger = getlogger("Database")
 class Database:
     _instance = None
 
-    def __init__(self, db_path : str = config["paths"]["db"], script_path : str = config["paths"]["db_script"], cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
+    def __init__(self, cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
         self._connection : aiosqlite.Connection
         self._cursor : aiosqlite.Cursor
         self._caller_line = None
         self._caller = None
 
-    def __new__(cls, db_path = config["paths"]["db"], script_path = config["paths"]["db_script"], cache_size = 1000, cache_ttl = 3600, loop = None):
+    def __new__(cls, cache_size = 1000, cache_ttl = 3600, loop = None):
         """Initialize database one time"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.db_path = db_path
-            cls._instance.script_path = script_path
+            cls._instance.db_path = config["paths"]["db"]
+            cls._instance.script_path = config["paths"]["db_script"]
+            cls._instance.migrations_path = config['paths']['db_migrations']
             cls._instance._connection = None
             cls._instance._cursor = None
             cls._instance._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
@@ -42,13 +44,36 @@ class Database:
             cls._instance._loop = loop
             cls._num_queries = 0
             cls._instance._initialize_db()
-            logger.info("Database initialized")
         return cls._instance
     
     def _initialize_db(self):
         conn = sqlite3.connect(self.db_path)
         with open(self.script_path, 'r') as f:
-            conn.executescript(f.read())
+            cursor = conn.executescript(f.read())
+
+            if cursor.rowcount > 0: logger.info("Database created successfully.")
+
+        logger.info("Database initialized.")
+
+        try:
+            placeholder_line = '-- This file is used to update the database structure to the latest version before using it.\n-- EDIT ONLY IF YOU KNOW WHAT YOU ARE DOING!'
+            with open(self.migrations_path, 'r+') as f:
+                content = f.read()
+
+                if content != placeholder_line:
+                    conn.executescript(content)
+                    
+                    f.seek(0)
+                    f.truncate()
+                    
+                    f.write(placeholder_line)
+                    logger.warning("Database migrations completed successfully.")
+                else:
+                    logger.info("No database migrations were needed.")
+
+        except sqlite3.Error as e:
+            logger.warning(f"An error occurred while executing migrations:\n{traceback.format_exc()}")
+
         conn.close()
 
     @property

@@ -1,0 +1,2 @@
+-- This file is used to update the database structure to the latest version before using it.
+-- EDIT ONLY IF YOU KNOW WHAT YOU ARE DOING!
