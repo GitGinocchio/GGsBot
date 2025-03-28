@@ -6,6 +6,7 @@
     "INVITE_URL": "https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions={PERMISSIONS}&scope=bot",
     "COMMAND_PREFIX": "/",
     "INTENTS" : "all",
+    "DEBUG_MODE" : false,
 
     // =============================================================
     // Extensions Settings

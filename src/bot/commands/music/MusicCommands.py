@@ -36,7 +36,7 @@ class MusicCommands(commands.Cog):
     @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8, integration_types=GUILD_INTEGRATION)
     async def music(self, interaction : nextcord.Interaction): pass
 
-    @music.subcommand("join","Bring the bot on your current voice channel")
+    @music.subcommand("join","Bring the bot on your current voice channel to play music (not the same as `/tts join`)")
     async def join(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)

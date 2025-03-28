@@ -44,6 +44,8 @@ class UpdateMetadata(commands.Cog):
             async with self.db:
                 await self.db.adjustGuildMemberCount(member.guild, 1)
 
+                await self.db.newUser(member, {})
+
             logger.debug(f"User \'{member.name}\'({member.id}) joined guild \'{member.guild.name}\'({member.guild.id})")
         except DatabaseException as e:
             logger.debug(e)
@@ -53,6 +55,8 @@ class UpdateMetadata(commands.Cog):
         try:
             async with self.db:
                 await self.db.adjustGuildMemberCount(member.guild, -1)
+
+                await self.db.delUser(member)
 
             logger.debug(f"User \'{member.name}\'({member.id}) leaved guild \'{member.guild.name}\'({member.guild.id})")
         except DatabaseException as e:

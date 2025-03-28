@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER,
     level INTEGER,
     config JSON,
-    PRIMARY KEY (user_id, guild_id),                                -- Garantiamo che ci sia una sola combinazione di user_id + guild_id
-    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)             -- Assicuriamo che il guild_id esista nella tabella guilds
+    PRIMARY KEY (user_id, guild_id),                                                  -- Garantiamo che ci sia una sola combinazione di user_id + guild_id
+    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE             -- Assicuriamo che il guild_id esista nella tabella guilds
 );
 
 CREATE TABLE IF NOT EXISTS extensions (
@@ -29,10 +29,10 @@ CREATE TABLE IF NOT EXISTS extensions (
     extension_id TEXT,
     enabled BOOLEAN,
 
-    PRIMARY KEY (guild_id, extension_id),                           -- Garantiamo che ci sia una sola combinazione di guild_id + extension_id
-    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id)             -- Garantiamo che stiamo inserendo una estensione per una guild esistente
+    PRIMARY KEY (guild_id, extension_id),                                             -- Garantiamo che ci sia una sola combinazione di guild_id + extension_id
+    FOREIGN KEY (guild_id) REFERENCES guilds (guild_id) ON DELETE CASCADE             -- Garantiamo che stiamo inserendo una estensione per una guild esistente
 );
 
 COMMIT; 
 
--- ROLLBACK;                                                           -- Se qualcosa va storto, annulla tutto
+-- ROLLBACK;                                                                          -- Se qualcosa va storto, annulla tutto

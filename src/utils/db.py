@@ -1,3 +1,4 @@
+from re import L
 from cachetools import TTLCache
 #from redis import Redis            # Piu' avanti potro' usare un client Redis per ora una semplice cache in memoria
 import traceback
@@ -9,6 +10,7 @@ import json
 import time
 import os
 
+from os.path import join, dirname
 from nextcord import Guild, Member
 from datetime import datetime, timezone
 
@@ -47,34 +49,59 @@ class Database:
         return cls._instance
     
     def _initialize_db(self):
-        conn = sqlite3.connect(self.db_path)
-        with open(self.script_path, 'r') as f:
-            cursor = conn.executescript(f.read())
-
-            if cursor.rowcount > 0: logger.info("Database created successfully.")
-
-        logger.info("Database initialized.")
-
         try:
+            conn = sqlite3.connect(self.db_path)
+            with open(self.script_path, 'r') as f:
+                cursor = conn.executescript(f.read())
+
+                if cursor.rowcount > 0: logger.info("Database created successfully.")
+
+            logger.info("Database initialized.")
+
+            self._apply_migrations(conn)
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(traceback.format_exc())
+        finally:
+            conn.close()
+
+    def _apply_migrations(self, conn : sqlite3.Connection):
+        try:
+            db_backup_path = str(dirname(config['paths']['db'])) + '/database_backup.db'
+
+            with open(config['paths']['db'], 'rb') as dbf:
+                content = dbf.read()
+                with open(db_backup_path, 'wb') as new_dbf:
+                    new_dbf.write(content)
+
             placeholder_line = '-- This file is used to update the database structure to the latest version before using it.\n-- EDIT ONLY IF YOU KNOW WHAT YOU ARE DOING!'
             with open(self.migrations_path, 'r+') as f:
                 content = f.read()
 
                 if content != placeholder_line:
                     conn.executescript(content)
-                    
-                    f.seek(0)
-                    f.truncate()
-                    
-                    f.write(placeholder_line)
+
                     logger.warning("Database migrations completed successfully.")
+
+                    if not config['DEBUG_MODE']:
+                        f.seek(0)
+                        f.truncate()
+                    
+                        f.write(placeholder_line)
+                    else:
+                        logger.debug("Database migrations file not deleted because of DEBUG_MODE.")
                 else:
                     logger.info("No database migrations were needed.")
 
+            os.remove(db_backup_path)
         except sqlite3.Error as e:
+            conn.rollback()
+            os.remove(config['paths']['db'])
+            os.rename(db_backup_path, config['paths']['db'])
             logger.warning(f"An error occurred while executing migrations:\n{traceback.format_exc()}")
-
-        conn.close()
+        else:
+            conn.commit()
 
     @property
     def connection(self) -> aiosqlite.Connection:
@@ -248,7 +275,7 @@ class Database:
         """
 
         try:
-            cursor = await self.execute(query, (user.guild.id, user.id, 0, config))
+            cursor = await self.execute(query, (user.guild.id, user.id, 0, json.dumps(config)))
         except aiosqlite.IntegrityError as e:
             await self.connection.rollback()
             raise DatabaseException("DuplicateRecordError")
@@ -261,6 +288,9 @@ class Database:
         try:
             cursor = await self.execute(query, (user.guild.id, user.id))
             result = await cursor.fetchone()
+            if result is None: 
+                await self.newUser(user, {})
+                return {}
         except aiosqlite.IntegrityError as e:
             await self.connection.rollback()
             logger.error(e)
@@ -270,13 +300,15 @@ class Database:
 
     async def editUserConfig(self, user : Member, config : dict) -> None:
         query = """
-        UPDATE extensions
+        UPDATE users
         SET config = ?
         WHERE guild_id = ? AND user_id = ?
         """
 
         try:
-            cursor = await self.execute(query, (config, user.guild.id, user.id))
+            cursor = await self.execute(query, (json.dumps(config), user.guild.id, user.id))
+
+            if cursor.rowcount == 0: await self.newUser(user, config)
 
             # Da aggiungere questa logica
             # if cursor.rowcount == 0: raise ExtensionException("Not Configured")
