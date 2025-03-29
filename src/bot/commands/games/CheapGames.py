@@ -28,6 +28,7 @@ from nextcord.ui import \
     role_select
 
 from enum import StrEnum, Enum
+import traceback
 import datetime
 import asyncio
 import json
@@ -552,6 +553,8 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
 
+            if not enabled: raise ExtensionException("Not Enabled")
+
             if update_name in config['updates']: raise ValueError(f'Update  with name \'{update_name}\' already exists')
 
             if Api(update_type) == Api.DEALS:
@@ -594,6 +597,8 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
 
+            if not enabled: raise ExtensionException("Not Enabled")
+
             if update_name not in config['updates']:
                 raise ValueError(f"CheapGames update with name \'{update_name}\' does not exist.")
 
@@ -617,10 +622,12 @@ class CheapGames(Cog):
             async with self.db:
                 config, enabled = await self.db.getExtensionConfig(interaction.guild, Extensions.CHEAPGAMES)
 
+            if not enabled: raise ExtensionException("Not Enabled")
+
             page = ViewUpdatesPage(self.bot, config)
 
         except (HTTPException,ExtensionException) as e:
-            logger.exception(e)
+            logger.exception(traceback.format_exc())
         else:
             await interaction.followup.send(embed=page, ephemeral=True)
 
@@ -644,7 +651,6 @@ class CheapGames(Cog):
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
             await interaction.followup.send("Update triggered successfully", ephemeral=True)
-
 
     async def retrive_giveaways_data(self):
         try:
@@ -787,7 +793,7 @@ class CheapGames(Cog):
         saved : dict = update_config.get('saved', {})
         role_id = update_config.get("role", None)
 
-        storeids = ','.join(update_config.get("storeIDs1", []) + update_config.get("storeIDs2", []))
+        storeids = ','.join(str(val) for val in update_config.get("storeIDs1", []) + update_config.get("storeIDs2", []))
         tripleA = update_config.get('AAA', True)
         steamworks = update_config.get('steamworks', False)
         upper_price = update_config.get("upperPrice", 50)

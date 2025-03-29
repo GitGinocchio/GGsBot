@@ -1,5 +1,7 @@
+from re import L
 from cachetools import TTLCache
 #from redis import Redis            # Piu' avanti potro' usare un client Redis per ora una semplice cache in memoria
+import traceback
 import aiosqlite
 import sqlite3
 import asyncio
@@ -8,7 +10,8 @@ import json
 import time
 import os
 
-from nextcord import Guild
+from os.path import join, dirname
+from nextcord import Guild, Member
 from datetime import datetime, timezone
 
 from .config import config
@@ -21,18 +24,19 @@ logger = getlogger("Database")
 class Database:
     _instance = None
 
-    def __init__(self, db_path : str = config["paths"]["db"], script_path : str = config["paths"]["db_script"], cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
+    def __init__(self, cache_size : int = 1000, cache_ttl : float = 3600, loop : asyncio.AbstractEventLoop = None):
         self._connection : aiosqlite.Connection
         self._cursor : aiosqlite.Cursor
         self._caller_line = None
         self._caller = None
 
-    def __new__(cls, db_path = config["paths"]["db"], script_path = config["paths"]["db_script"], cache_size = 1000, cache_ttl = 3600, loop = None):
+    def __new__(cls, cache_size = 1000, cache_ttl = 3600, loop = None):
         """Initialize database one time"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.db_path = db_path
-            cls._instance.script_path = script_path
+            cls._instance.db_path = config["paths"]["db"]
+            cls._instance.script_path = config["paths"]["db_script"]
+            cls._instance.migrations_path = config['paths']['db_migrations']
             cls._instance._connection = None
             cls._instance._cursor = None
             cls._instance._cache = TTLCache(maxsize=cache_size, ttl=cache_ttl)
@@ -42,14 +46,62 @@ class Database:
             cls._instance._loop = loop
             cls._num_queries = 0
             cls._instance._initialize_db()
-            logger.info("Database initialized")
         return cls._instance
     
     def _initialize_db(self):
-        conn = sqlite3.connect(self.db_path)
-        with open(self.script_path, 'r') as f:
-            conn.executescript(f.read())
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            with open(self.script_path, 'r') as f:
+                cursor = conn.executescript(f.read())
+
+                if cursor.rowcount > 0: logger.info("Database created successfully.")
+
+            logger.info("Database initialized.")
+
+            self._apply_migrations(conn)
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(traceback.format_exc())
+        finally:
+            conn.close()
+
+    def _apply_migrations(self, conn : sqlite3.Connection):
+        try:
+            db_backup_path = str(dirname(config['paths']['db'])) + '/database_backup.db'
+
+            with open(config['paths']['db'], 'rb') as dbf:
+                content = dbf.read()
+                with open(db_backup_path, 'wb') as new_dbf:
+                    new_dbf.write(content)
+
+            placeholder_line = '-- This file is used to update the database structure to the latest version before using it.\n-- EDIT ONLY IF YOU KNOW WHAT YOU ARE DOING!'
+            with open(self.migrations_path, 'r+') as f:
+                content = f.read()
+
+                if content != placeholder_line:
+                    conn.executescript(content)
+
+                    logger.warning("Database migrations completed successfully.")
+
+                    if not config['DEBUG_MODE']:
+                        f.seek(0)
+                        f.truncate()
+                    
+                        f.write(placeholder_line)
+                    else:
+                        logger.debug("Database migrations file not deleted because of DEBUG_MODE.")
+                else:
+                    logger.info("No database migrations were needed.")
+
+            os.remove(db_backup_path)
+        except sqlite3.Error as e:
+            conn.rollback()
+            os.remove(config['paths']['db'])
+            os.rename(db_backup_path, config['paths']['db'])
+            logger.warning(f"An error occurred while executing migrations:\n{traceback.format_exc()}")
+        else:
+            conn.commit()
 
     @property
     def connection(self) -> aiosqlite.Connection:
@@ -74,6 +126,12 @@ class Database:
             return cursor
         finally:
             self._num_queries += 1
+    
+    async def executeScript(self, script : str, autocommit : bool = False):
+        logger.debug(f'executing script: {script}')
+        cursor = await self.cursor.executescript(script)
+        if autocommit: await self.connection.commit()
+        return cursor
 
     async def __aenter__(self):
         await self._lock.acquire()
@@ -115,6 +173,7 @@ class Database:
             await self._connection.close()
 
     # Guilds
+
     async def getAllGuildIds(self) -> set[int]:
         cursor = await self.execute("SELECT guild_id FROM guilds")
         rows = await cursor.fetchall()
@@ -202,6 +261,77 @@ class Database:
             logger.error(e)
             raise e
 
+    # Users
+
+    async def hasUser(self, user : Member) -> None:
+        cursor = await self.execute("SELECT 1 FROM users WHERE user_id = ? AND guild_id = ?", (user.id, user.guild.id))
+        result = await cursor.fetchone()
+        return result is not None
+
+    async def newUser(self, user : Member, config : dict = {}) -> None:
+        query = """
+        INSERT INTO users (guild_id, user_id, level, config)
+        VALUES (?, ?, ?, ?)
+        """
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id, 0, json.dumps(config)))
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            raise DatabaseException("DuplicateRecordError")
+        else:
+            await self.connection.commit()
+
+    async def getUserConfig(self, user : Member) -> dict:
+        query = """SELECT config FROM users WHERE guild_id = ? AND user_id = ?"""
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id))
+            result = await cursor.fetchone()
+            if result is None: 
+                await self.newUser(user, {})
+                return {}
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            logger.error(e)
+            raise e
+        else:
+            return json.loads(result[0])
+
+    async def editUserConfig(self, user : Member, config : dict) -> None:
+        query = """
+        UPDATE users
+        SET config = ?
+        WHERE guild_id = ? AND user_id = ?
+        """
+
+        try:
+            cursor = await self.execute(query, (json.dumps(config), user.guild.id, user.id))
+
+            if cursor.rowcount == 0: await self.newUser(user, config)
+
+            # Da aggiungere questa logica
+            # if cursor.rowcount == 0: raise ExtensionException("Not Configured")
+        except aiosqlite.IntegrityError as e:
+            await self.connection.rollback()
+            raise DatabaseException("DuplicateRecordError")
+        else:
+            await self.connection.commit()
+
+    async def delUser(self, user : Member) -> None:
+        query = """DELETE FROM users WHERE guild_id = ? AND user_id = ?"""
+
+        try:
+            cursor = await self.execute(query, (user.guild.id, user.id))
+
+            # Da aggiungere questa logica
+            # if cursor.rowcount == 0: raise ExtensionException("Not Configured")
+        except aiosqlite.Error as e:
+            await self.connection.rollback()
+            raise e
+        else:
+            await self.connection.commit()
+
     # Extensions
     async def setupExtension(self, guild : Guild, extension : Extensions, config : dict) -> None:
         query = """
@@ -220,7 +350,7 @@ class Database:
             await self.connection.rollback()
             logger.error(e)
             raise e
-        
+
     async def teardownExtension(self, guild : Guild, extension : Extensions) -> None:
         query = """DELETE FROM extensions WHERE guild_id = ? AND extension_id = ?"""
 
@@ -329,7 +459,7 @@ class Database:
             logger.error(e)
             await self.connection.rollback()
             raise e
-        
+
     async def editAllExtensionConfig(self, updated_values: list[tuple[int, str, bool, dict]]) -> None:
         update_query = """
         UPDATE extensions

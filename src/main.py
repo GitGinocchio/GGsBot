@@ -1,19 +1,18 @@
 from argparse import ArgumentParser, Namespace
-from nextcord.ext.commands import Bot, Cog
 from nextcord.ext import commands
 from dotenv import load_dotenv
 import traceback
 import nextcord
 import asyncio
 import time
-import os
 
 load_dotenv('./config/.env', verbose=True)
 
 from utils.db import Database
-from utils.terminal import clear, erase, getlogger,F
+from utils.terminal import clear, erase, getlogger
 from utils.intents import getintents
-from utils.system import printsysteminfo, get_top_stats
+from utils.system import printsysteminfo
+from utils.commons import load_commands
 from utils.config import \
     APPLICATION_ID,      \
     DEV_APPLICATION_ID,  \
@@ -25,34 +24,6 @@ from utils.config import \
 clear()
 printsysteminfo()
 logger = getlogger()
-
-def load_commands(bot : Bot, *, categories : list[str] = None, ignore_categories : list[str] = []):
-    if not categories:
-        categories = [c for c in os.listdir('./src/bot/commands') if c not in config['ignore_categories']]
-
-    logger.info('Loading extensions...')
-    for category in categories:
-        if category in ignore_categories: continue
-
-        for filename in os.listdir(f'./src/bot/commands/{category}'):
-            if filename.endswith('.py') and filename not in config['ignore_files']:
-                try:
-                    bot.load_extension(f'bot.commands.{category}.{filename[:-3]}')
-                except (commands.ExtensionAlreadyLoaded,
-                        commands.ExtensionNotFound,
-                        commands.InvalidSetupArguments) as e:
-                    logger.critical(f'Loading command error: Cog {e.name} message: \n{traceback.format_exc()}')
-                except commands.NoEntryPointError as e:
-                    continue  # if no entry point found maybe is a file used by the main command file.
-                except commands.ExtensionFailed as e:
-                    logger.warning(f"Extension {e.name} failed to load: \n{traceback.format_exc()}")
-                else:
-                    logger.info(f'Imported extension {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
-
-            elif filename in config['ignore_files']:
-                continue
-            else:
-                logger.warning(f'Skipping non-py file: \'{filename}\'')
 
 def run(args : Namespace):
     intents = getintents()
@@ -70,7 +41,7 @@ def run(args : Namespace):
 
     logger.info("Starting bot...")
 
-    load_commands(bot, ignore_categories=['web'] if args.bot else [])
+    load_commands(bot, logger, ignore_categories=['web'] if args.bot else [])
 
     try:
         logger.info("Loggin in...")
@@ -88,11 +59,11 @@ def run(args : Namespace):
                 logger.warning(f"Re-starting bot after {retry_after} seconds...")
                 run()
             case _:
-                logger.fatal(f"Unhandled HTTPException occurred (code: {e.code}): {e.text}")
+                logger.fatal(f"Unhandled HTTPException occurred (code: {e.code}): {traceback.format_exc()}")
                 input('press any key to continue...')
 
     except Exception as e:
-        logger.critical(f'Unhandled Exception occurred: {e}')
+        logger.critical(f'Unhandled Exception occurred: {traceback.format_exc()}')
 
 def run_webserver_only(args : Namespace):
     from web.HTTPServer import HTTPServer

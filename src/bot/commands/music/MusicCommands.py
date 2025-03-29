@@ -36,7 +36,7 @@ class MusicCommands(commands.Cog):
     @nextcord.slash_command("music","Listen music in discord voice channels", default_member_permissions=8, integration_types=GUILD_INTEGRATION)
     async def music(self, interaction : nextcord.Interaction): pass
 
-    @music.subcommand("join","Bring the bot on your current voice channel")
+    @music.subcommand("join","Bring the bot on your current voice channel to play music (not the same as `/tts join`)")
     async def join(self, interaction : nextcord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
@@ -204,7 +204,7 @@ class MusicCommands(commands.Cog):
             logger.fatal(e)
 
 def setup(bot : commands.Bot):
-    if not os.path.exists(ffmpeg_path:=f"{config['music']['ffmpeg_path'].format(os=OS,arch=ARCH)}{'.exe' if OS == 'Windows' else ''}"):
+    if not os.path.exists(ffmpeg_path:=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}/ffmpeg{'.exe' if OS == 'Windows' else ''}"):
         raise FileNotFoundError(f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' is missing")
     if not os.path.isfile(ffmpeg_path):
         raise FileNotFoundError(f"The extension cannot start, the ffmpeg executable at \'{ffmpeg_path}\' must be an executable")

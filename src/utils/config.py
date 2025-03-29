@@ -12,6 +12,8 @@ def reload_config_files():
     config = JsonFile(CONFIG_PATH, force_load=True)
     exceptions = JsonFile(config["paths"]["exceptions"], force_load=True)
 
+DEBUG_MODE =            bool(config.get('DEBUG_MODE', False))
+
 TOKEN =                 os.environ.get('TOKEN',              None)
 PUBLIC_KEY =            os.environ.get('PUBLIC_KEY',         None)
 CLIENT_SECRET =         os.environ.get('CLIENT_SECRET',      None)
