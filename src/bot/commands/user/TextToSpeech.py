@@ -11,6 +11,7 @@ from nextcord import        \
     PCMVolumeTransformer,   \
     File,                   \
     slash_command
+from cachetools import TTLCache
 from os import path
 import traceback
 from gtts import gTTS
@@ -284,8 +285,26 @@ class TextToSpeech(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
         self.db = Database()
-        self.sessions : set[int] = set()
+        self.sessions : dict[int, dict] = TTLCache(maxsize=1000, ttl=3600)
         self.bot = bot
+
+        self.tts_enabled_page : Page = None
+        
+        self.tts_disabled_page : Page = None
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.tts_enabled_page = Page(
+            colour=Colour.green(),
+            title="TTS Enabled for this Voice Channel",
+            description="Send a message in this channel and the bot will convert it to speech."
+        )
+        
+        self.tts_disabled_page = Page(
+            colour=Colour.red(),
+            title="TTS Disabled for this Voice Channel",
+            description="If you want to re-enable the TTS use the `/tts join`, you can also set the `/tts set autojoin` feature if you want the bot to automatically join the voice channel you joined.",
+        )
 
     @slash_command('tts', 'Write your message and the bot will convert it to speech.')
     async def tts(self, interaction : Interaction): pass
@@ -317,6 +336,8 @@ class TextToSpeech(commands.Cog):
                 if 'tts' not in user_config: user_config["tts"] = {}
 
                 user_config['tts']['autojoin'] = active
+
+                self.sessions[interaction.user.id] = user_config['tts']
 
                 await self.db.editUserConfig(interaction.user, user_config)
 
@@ -353,6 +374,8 @@ class TextToSpeech(commands.Cog):
 
                 user_config['tts']['language'] = language
 
+                self.sessions[interaction.user.id] = user_config['tts']
+
                 await self.db.editUserConfig(interaction.user, user_config)
 
             page = Page(
@@ -387,6 +410,8 @@ class TextToSpeech(commands.Cog):
                 if 'tts' not in user_config: user_config["tts"] = {}
 
                 user_config['tts']['accent'] = accent
+
+                self.sessions[interaction.user.id] = user_config['tts']
 
                 await self.db.editUserConfig(interaction.user, user_config)
 
@@ -462,27 +487,58 @@ class TextToSpeech(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=True)
 
-            self.sessions.add(interaction.user.id)
+            if not interaction.user.voice:
+                raise GGsBotException(
+                    title="Not Connected",
+                    description="You are not connected to a voice channel."
+                )
+            elif interaction.user.guild.voice_client and interaction.user.guild.voice_client.is_connected():
+                raise GGsBotException(
+                    title="Already Connected",
+                    description="GGsBot is already connected to a voice channel. ",
+                )
+            
+            if interaction.user.id not in self.sessions:
+                async with self.db:
+                    user_config = await self.db.getUserConfig(interaction.user)
+
+                self.sessions[interaction.user.id] = user_config.get('tts', {})
+
+            await interaction.user.voice.channel.connect()
+            await interaction.guild.voice_client.channel.send(embed=self.tts_enabled_page)
+
+            page = Page(
+                colour=Colour.green(),
+                title="Successfully joined your voice channel",
+                description="GGsBot is now connected to the voice channel and can start speaking."
+            )
 
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
         except Exception as e:
             logger.error(traceback.format_exc())
+        else:
+            await interaction.followup.send(embed=page)
 
     @tts.subcommand('leave', 'Leave your voice channel to stop speech generation. (not the same as `/music leave`)')
     async def leave(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            self.sessions.discard(interaction.user.id)
 
+            if not interaction.guild.voice_client or not interaction.guild.voice_client.is_connected():
+                raise GGsBotException(title="Not Connected", description="GGsBot is not connected to a voice channel.")
+
+            await interaction.guild.voice_client.channel.send(embed=self.tts_disabled_page)
             await interaction.guild.voice_client.disconnect()
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
         except Exception as e:
             logger.error(traceback.format_exc())
 
     @tts.subcommand('say', 'Write your message and the bot will convert it to speech in your voice channel or a file.')
     async def say(self, 
             interaction : Interaction,
-            message : str,
+            message : str = SlashOption(description="Write your message and the bot will convert it to speech in your voice channel or a file.", required=True),
             language : str = SlashOption(description="Set the language for the speech. es. English", required=False, default="English"),
             accent : str = SlashOption(description="Set the accent for the speech. es. Standard", required=False, default="Standard"),
             slow : bool = SlashOption(description="Use a slower speaking rate.", required=False, default=False),
@@ -519,8 +575,6 @@ class TextToSpeech(commands.Cog):
                 await interaction.followup.send(content="Here is your TTS audio file. Click the link below to download it.", file=ttsaudiofile, ephemeral=True)
                 return
             
-            self.sessions.add(interaction.user.id)
-            
             voice_client = interaction.guild.voice_client if interaction.guild.voice_client else await interaction.user.voice.channel.connect()
 
             ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
@@ -550,8 +604,11 @@ class TextToSpeech(commands.Cog):
                 # Evento in cui l'utente ha abbandonato un canale vocale qualsiasi
                 if voice_client and voice_client.channel.id == before.channel.id and len(before.channel.members) == 0:
                     # Evento in cui l'utente ha abbandonato il canale vocale e non c'e' nessun'altro
+                    await before.channel.send(embed=self.tts_disabled_page)
+                
                     voice_client.disconnect()
-                self.sessions.discard(member.id)
+
+                if member.id in self.sessions: del self.sessions[member.id]
                 return
             
             if after.channel and before.channel and after.channel.id == before.channel.id: return
@@ -563,13 +620,16 @@ class TextToSpeech(commands.Cog):
             # Evento in cui il bot non e' connesso ad un canale vocale
             async with self.db:
                 user_config = await self.db.getUserConfig(member)
-                autojoin = bool(user_config.get('tts', {}).get('autojoin', False))
+                tts_config = user_config.get('tts', {})
+                autojoin = bool(tts_config.get('autojoin', False))
 
             if not autojoin: return
 
             if not voice_client or not voice_client.is_connected():
                 await after.channel.connect()
-            self.sessions.add(member.id)
+                await after.channel.send(embed=self.tts_enabled_page)
+
+            self.sessions[member.id] = tts_config
         except Exception as e:
             logger.error(traceback.format_exc())
 
@@ -579,11 +639,14 @@ class TextToSpeech(commands.Cog):
             if not message.guild: return
             if not message.guild.voice_client: return
             if message.author.id not in self.sessions: return
+            if message.author.voice.channel.id != message.channel.id: return
 
-            async with self.db:
-                user_config = await self.db.getUserConfig(message.author)
+            if not message.author.id in self.sessions:
+                async with self.db:
+                    tts_config = await self.db.getUserConfig(message.author).get('tts', {})
+            else:
+                tts_config = self.sessions[message.author.id]
 
-            tts_config = user_config.get('tts', {})
             language = str(tts_config.get('language', 'English'))
             accent = str(tts_config.get('accent', 'Standard'))
             slow = bool(tts_config.get('slow', False))
