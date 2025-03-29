@@ -32,7 +32,7 @@
     },
 
     "music": {
-        "defaultvolume" : 100.0,
+        "defaultvolume" : 80.0,
         "attempts" : 5, // Maximum number of attempts (for song) that can be made before give up
         "spotify": {
             "params" : {

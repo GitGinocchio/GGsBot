@@ -12,6 +12,8 @@ import random
 import time
 import sys
 
+from utils.classes import BytesIOFFmpegPCMAudio
+
 logger = getlogger()
 
 class UrlType(Enum):
@@ -93,10 +95,10 @@ class Song:
             if field_info.init: continue  # Skip 'data' and other fields that should not be initialized from raw
             setattr(self, field_info.name, self.data.get(field_info.name))
 
-        self.album_name = self.data['album']['name']
-        self.album_type = self.data['album']['album_type']
-        self.album_url = self.data['album']['external_urls']['spotify']
-        self.album_release = self.data['album']['release_date']
+        self.album_name = self.data.get('album', {}).get('name', None)
+        self.album_type = self.data.get('album', {}).get('album_type', None)
+        self.album_url = self.data.get('album', {}).get('external_urls', {}).get('spotify', None)
+        self.album_release = self.data.get('album', {}).get('release_date', None)
 
 class Playlist:
     pass
@@ -159,11 +161,9 @@ class Session:
             self.history.append(lastsong)
             if len(self.queue) > 0: self.queue.popleft()
 
-        coro = self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
-        self.task = self.bot.loop.create_task(coro)
-        self.task.add_done_callback(lambda: print("ciao"))
+        self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
 
-    async def play(self, song : Song = None, *, st : tuple = (0,0,0,0), attempts : int = 1):
+    def play(self, song : Song = None, *, st : tuple = (0,0,0,0), attempts : int = 1):
         self.guild.voice_client.stop() # Assicuriamo che non ci sia altro in riproduzione
 
         if not song and len(self.queue) > 0:
@@ -171,10 +171,10 @@ class Session:
         elif not song and len(self.queue) == 0: 
             return  # Se non e' stata specificata una canzone e la coda e vuota allora non c'e' nulla da riprodurre
         
-        source = nextcord.FFmpegPCMAudio(
+        source = BytesIOFFmpegPCMAudio(
             source=song.url,
             stderr=sys.stderr,
-            executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}/ffmpeg",
+            executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}ffmpeg",
             before_options=f'-ss {st[0]}:{st[1]}:{st[2]}.{st[3]}',
             )
         
@@ -187,14 +187,15 @@ class Session:
 
         self.currentsong = song
 
-    async def skip(self):
+    def skip(self):
         self.guild.voice_client.stop()
         if len(self.queue) > 0: self.queue.popleft()
         #await self.play()
 
-    async def replay(self):
+    def replay(self):
         self.guild.voice_client.stop()
 
-        coro = self.play() if self.guild.voice_client.is_playing() else self.play(self.history[-1])
-        
-        self.task = self.bot.loop.create_task(coro)
+        if self.guild.voice_client.is_playing():
+            self.play()
+        else:
+            self.play(self.history[-1])

@@ -76,18 +76,18 @@ class MusicCommands(commands.Cog):
             if interaction.guild.voice_client.is_playing() and not queryurl:
                 await interaction.send(f"{interaction.user.mention} The bot is already playing music",ephemeral=True,delete_after=5.0)
             else:
-                await session.play()
+                session.play()
         except AssertionError as e:
             await interaction.send(e,ephemeral=True,delete_after=5.0)
 
     @music.subcommand('add',"Add a song to the end of the queue")
-    async def add(self, interaction : nextcord.Interaction, queryurl : str):
+    async def add(self, interaction : nextcord.Interaction, queryurl : str, searchengine : Literal['Spotify','Youtube'] = 'Spotify'):
         try:
             await interaction.response.defer(ephemeral=True,with_message=True)
             assert interaction.user.voice.channel, f'{interaction.user.mention} You have to join a voice channel first!'
             assert interaction.guild.voice_client, f'{interaction.user.mention} You have to call */join* command first!'
 
-            tracks = await self.yt.get_info(queryurl)
+            tracks = await self.musicapi.get(queryurl, searchengine)
 
             session : Session = self.sessions[interaction.guild.id]
 
@@ -96,7 +96,7 @@ class MusicCommands(commands.Cog):
                     await interaction.send(f"{interaction.user.mention} added {len(tracks)} songs to the queue...",ephemeral=True,delete_after=5.0)
                     session.queue.extend(tracks)
                 elif isinstance(tracks,Song):
-                    await interaction.send(f"{interaction.user.mention} {tracks.title} added to the queue...",ephemeral=True,delete_after=5.0)
+                    await interaction.send(f"{interaction.user.mention} {tracks.name} added to the queue...",ephemeral=True,delete_after=5.0)
                     session.queue.append(tracks)
             else:
                 pass # error getting song or songs (tracks = None)

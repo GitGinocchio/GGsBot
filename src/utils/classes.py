@@ -5,15 +5,15 @@ import shlex
 import io
 
 class BytesIOFFmpegPCMAudio(AudioSource):
-    def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
+    def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr = None, before_options : str = '', options : str = ''):
         stdin = None if not pipe else source
         args = [
             executable, 
-            shlex.split(before_options) if before_options else '', 
+            before_options, 
             '-i', 
             '-' if pipe else source, 
             '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
-            shlex.split(options) if options else ''
+            options,
             'pipe:1'
         ]
         self._process = None
