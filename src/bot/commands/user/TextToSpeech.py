@@ -658,7 +658,7 @@ class TextToSpeech(commands.Cog):
             engine.write_to_fp(filelike)
             filelike.seek(0)
 
-            ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
+            ffmpeg_path = path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else ''
             source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=ffmpeg_path)
 
             voice_client = message.guild.voice_client
