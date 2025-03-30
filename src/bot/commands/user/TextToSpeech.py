@@ -577,7 +577,7 @@ class TextToSpeech(commands.Cog):
             
             voice_client = interaction.guild.voice_client if interaction.guild.voice_client else await interaction.user.voice.channel.connect()
 
-            ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
+            ffmpeg_path = path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else ''
 
             source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=ffmpeg_path)
 
