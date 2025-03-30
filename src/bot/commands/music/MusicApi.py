@@ -28,8 +28,6 @@ class MusicApi:
             case UrlType.SpotifyAlbum:
                 album = self.sp.getAlbum(queryurl)
                 await self.yt.assignDownloadUrl(album)
-                for song in album:
-                    print(song)
                 return album
 
             case UrlType.YoutubeSong | UrlType.YoutubePlaylist:
@@ -45,4 +43,4 @@ class MusicApi:
                 return song
 
             case UrlType.Unknown:
-                pass
+                return None

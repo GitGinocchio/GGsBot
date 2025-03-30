@@ -82,7 +82,7 @@ class Database:
                 if content != placeholder_line:
                     conn.executescript(content)
 
-                    logger.warning("Database migrations completed successfully.")
+                    logger.debug("Database migrations completed successfully.")
 
                     if not config['DEBUG_MODE']:
                         f.seek(0)
@@ -90,7 +90,7 @@ class Database:
                     
                         f.write(placeholder_line)
                     else:
-                        logger.debug("Database migrations file not deleted because of DEBUG_MODE.")
+                        logger.warning("Database migrations file not deleted because of DEBUG_MODE.")
                 else:
                     logger.info("No database migrations were needed.")
 

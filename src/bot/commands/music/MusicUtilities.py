@@ -1,18 +1,21 @@
 from typing import Iterable
 from nextcord.ext import commands
-from utils.system import OS, ARCH
-from utils.config import config
-from utils.terminal import getlogger
+from nextcord import Colour
 from dataclasses import dataclass, field, fields
 from urllib.parse import urlparse
 from collections import deque
 from enum import Enum
 import nextcord
+import asyncio
 import random
 import time
 import sys
 
+from utils.terminal import getlogger, stream as logger_stream
 from utils.classes import BytesIOFFmpegPCMAudio
+from utils.system import OS, ARCH
+from utils.config import config
+from utils.abc import Page
 
 logger = getlogger()
 
@@ -136,13 +139,14 @@ class Session:
         self.currentsong : Song
         self.totaltime = 0.0
         self.guild = guild
+        self.channel : nextcord.VoiceChannel = guild.voice_client.channel
         self.owner = owner
         self.bot = bot
         self.loop = False
         self.cycle = False
-        self.task = None
+        self.task : asyncio.Task | None = None
     
-    def _next(self, error : Exception, lastsong : Song, stime : float, attempts : int = 1):
+    async def _next(self, error : Exception, lastsong : Song, stime : float, attempts : int = 1):
         """Invoked after a song is finished. Plays the next song if there is one."""
 
         if error: logger.error(f'Discord Stream audio Error: {error}')
@@ -161,41 +165,67 @@ class Session:
             self.history.append(lastsong)
             if len(self.queue) > 0: self.queue.popleft()
 
-        self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
+            page = Page(
+                colour=Colour.green(),
+                title=f"Finished playing {lastsong.name}",
+                description=f"Finished playing {lastsong.name} by {','.join(lastsong.artists)}"
+            )
 
-    def play(self, song : Song = None, *, st : tuple = (0,0,0,0), attempts : int = 1):
+            await self.channel.send(embed=page)
+
+        coro = self.play(lastsong if self.loop else None,st=ftime, attempts=attempts+1)
+
+        self.task = await asyncio.create_task(coro)
+
+
+    async def play(self, song : Song = None, *, st : tuple = (0,0,0,0), attempts : int = 1):
         self.guild.voice_client.stop() # Assicuriamo che non ci sia altro in riproduzione
 
         if not song and len(self.queue) > 0:
             song = self.queue[0] # Se non e' stata specificata una canzone prende la successiva nella coda
         elif not song and len(self.queue) == 0: 
+            page = Page(
+                title="Nothing to play",
+                description="There is nothing in the queue to play",
+                colour=Colour.green()
+            )
+            await self.channel.send(embed=page)
             return  # Se non e' stata specificata una canzone e la coda e vuota allora non c'e' nulla da riprodurre
-        
+
         source = BytesIOFFmpegPCMAudio(
             source=song.url,
-            stderr=sys.stderr,
+            stderr=sys.stdout,
             executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}ffmpeg",
             before_options=f'-ss {st[0]}:{st[1]}:{st[2]}.{st[3]}',
-            )
+        )
         
         stime = time.time() if sum(st) == 0 else fromformat(st)
+
+        source = nextcord.PCMVolumeTransformer(source, self.volume / 100.0)
         
-        self.guild.voice_client.play(source,after=lambda e: self._next(e,lastsong=song,stime=stime,attempts=attempts))
-        
-        self.guild.voice_client.source = nextcord.PCMVolumeTransformer(source)
-        self.guild.voice_client.source.volume = float(self.volume) / 100.0
+        self.guild.voice_client.play(source,after=lambda e: self.bot.loop.run_in_executor(None, self._next(e,lastsong=song,stime=stime,attempts=attempts)))
+
+        page = Page(
+            title="Now Playing",
+            description=f"Now playing {song.name} by {', '.join(song.artists)}",
+            colour=Colour.green()
+        )
+
+        await self.channel.send(embed=page)
 
         self.currentsong = song
 
-    def skip(self):
+    async def skip(self):
         self.guild.voice_client.stop()
         if len(self.queue) > 0: self.queue.popleft()
         #await self.play()
 
-    def replay(self):
+    async def replay(self):
         self.guild.voice_client.stop()
 
         if self.guild.voice_client.is_playing():
-            self.play()
+            coro = self.play()
         else:
-            self.play(self.history[-1])
+            coro = self.play(self.history[-1])
+
+        self.task = await asyncio.create_task(coro)

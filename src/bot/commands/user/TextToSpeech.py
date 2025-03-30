@@ -289,7 +289,6 @@ class TextToSpeech(commands.Cog):
         self.bot = bot
 
         self.tts_enabled_page : Page = None
-        
         self.tts_disabled_page : Page = None
 
     @commands.Cog.listener()
@@ -303,7 +302,7 @@ class TextToSpeech(commands.Cog):
         self.tts_disabled_page = Page(
             colour=Colour.red(),
             title="TTS Disabled for this Voice Channel",
-            description="If you want to re-enable the TTS use the `/tts join`, you can also set the `/tts set autojoin` feature if you want the bot to automatically join the voice channel you joined.",
+            description="If you want to re-enable the TTS use the `/tts join` command, you can also set the `/tts set autojoin` feature if you want the bot to automatically join the voice channel you joined.",
         )
 
     @slash_command('tts', 'Write your message and the bot will convert it to speech.')
@@ -530,8 +529,16 @@ class TextToSpeech(commands.Cog):
 
             await interaction.guild.voice_client.channel.send(embed=self.tts_disabled_page)
             await interaction.guild.voice_client.disconnect()
+
+            page = Page(
+                title="GGsBot is now disconnected from the voice channel.",
+                description="GGsBot has left the voice channel and will no longer generate speech."
+            )
+
+            await interaction.followup.send(embed=page, ephemeral=True)
+
         except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         except Exception as e:
             logger.error(traceback.format_exc())
 
