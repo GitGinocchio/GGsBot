@@ -507,6 +507,7 @@ class TextToSpeech(commands.Cog):
             self.sessions.add(interaction.channel.id)
 
             await interaction.user.voice.channel.send(embed=self.tts_enabled_page)
+            await interaction.delete_original_message()
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
 
