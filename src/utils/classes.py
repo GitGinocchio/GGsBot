@@ -9,11 +9,11 @@ class BytesIOFFmpegPCMAudio(AudioSource):
         stdin = None if not pipe else source
         args = [
             executable, 
-            shlex.split(before_options) if before_options else '', 
+            before_options if before_options else '', 
             '-i', 
             '-' if pipe else source, 
             '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
-            shlex.split(options) if options else ''
+            options if options else ''
             'pipe:1'
         ]
         self._process = None
