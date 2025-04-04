@@ -299,7 +299,7 @@ class TextToSpeech(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
         self.db = Database()
-        self.ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
+        self.ffmpeg_path = path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else ''
         logger.warning(self.ffmpeg_path)
         self.cache : dict[int, dict] = TTLCache(maxsize=1000, ttl=3600)
         self.queue : deque[tuple[Guild, VoiceChannel, io.BytesIO, float]] = deque()
