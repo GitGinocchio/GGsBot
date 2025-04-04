@@ -512,8 +512,8 @@ class TextToSpeech(commands.Cog):
             if not voice_client or not voice_client.is_connected():
                 await interaction.user.voice.channel.connect()
 
-            await interaction.user.voice.channel.send(embed=self.tts_enabled_page)
             await interaction.delete_original_message()
+            await interaction.user.voice.channel.send(embed=self.tts_enabled_page)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
 
@@ -551,6 +551,7 @@ class TextToSpeech(commands.Cog):
             voice_client.stop()
             await voice_client.disconnect()
 
+            await interaction.delete_original_message()
             await interaction.user.voice.channel.send(embed=self.tts_disabled_page)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
