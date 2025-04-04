@@ -13,7 +13,7 @@ class BytesIOFFmpegPCMAudio(AudioSource):
         command = [
             '-i',
             '-' if pipe else source, 
-            #'-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
+            '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
         ]
         if before_options is not None: command.insert(0, before_options)
         command.insert(0, executable)
