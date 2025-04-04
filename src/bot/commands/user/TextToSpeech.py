@@ -1,6 +1,7 @@
 from nextcord.ext import commands
 from nextcord import        \
     Member,                 \
+    VoiceClient,            \
     VoiceState,             \
     VoiceChannel,           \
     Colour,                 \
@@ -12,9 +13,11 @@ from nextcord import        \
     File,                   \
     slash_command
 from cachetools import TTLCache
+from collections import deque
+from gtts import gTTS
 from os import path
 import traceback
-from gtts import gTTS
+import asyncio
 #import pyttsx3
 import io
 
@@ -280,15 +283,32 @@ accents = {
 }
 
 
+"""
+Dovrei fare una nuova implementazione
+Siccome il bot e' uno solo:
+- autojoin non ha senso
+- neanche il join
+Avrebbe senso un comando /tts enable 
+Una volta chiamato, se il bot e' disponibile entra nel tuo canale vocale
+e per ogni messaggio riproduce il testo
+Se il tts viene attivato anche in un altro canale, il bot si sposta tra i due canali
+in modo automatico per garantire il tts a tutti
+"""
 
 class TextToSpeech(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
         self.db = Database()
-        self.sessions : dict[int, dict] = TTLCache(maxsize=1000, ttl=3600)
+        self.ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
+        logger.warning(self.ffmpeg_path)
+        self.cache : dict[int, dict] = TTLCache(maxsize=1000, ttl=3600)
+        self.queue : deque[tuple[Guild, VoiceChannel, io.BytesIO, float]] = deque()
+        self.sessions : set[int] = set()
+        self.lock = asyncio.Lock()
         self.bot = bot
 
         self.tts_enabled_page : Page = None
+        
         self.tts_disabled_page : Page = None
 
     @commands.Cog.listener()
@@ -296,13 +316,15 @@ class TextToSpeech(commands.Cog):
         self.tts_enabled_page = Page(
             colour=Colour.green(),
             title="TTS Enabled for this Voice Channel",
-            description="Send a message in this channel and the bot will convert it to speech."
+            description="Send a message in this channel and the bot will convert it to speech.",
+            timeout=0
         )
         
         self.tts_disabled_page = Page(
             colour=Colour.red(),
             title="TTS Disabled for this Voice Channel",
-            description="If you want to re-enable the TTS use the `/tts join` command, you can also set the `/tts set autojoin` feature if you want the bot to automatically join the voice channel you joined.",
+            description="If you want to re-enable the TTS use the `/tts enable` command, you can also set the `/tts set autoenable` feature if you want the text to speech enabled for every voice channel you join.",
+            timeout=0
         )
 
     @slash_command('tts', 'Write your message and the bot will convert it to speech.')
@@ -312,43 +334,6 @@ class TextToSpeech(commands.Cog):
 
     @tts.subcommand('set', "Set of commands to configure the tts extension for each user.")
     async def set(self, interaction : Interaction): pass
-
-    @set.subcommand('autojoin', 'Automatically join the voice channel you joined.')
-    async def autojoin(self, 
-            interaction : Interaction,
-            active : bool = SlashOption('active', 'Whether to enable or disable automatic joining.', required=True)
-        ):
-        try: 
-            await interaction.response.defer(ephemeral=True)
-            
-            async with self.db:
-                user_config = await self.db.getUserConfig(interaction.user)
-
-                previous_autojoin = user_config.get('tts', {}).get('autojoin', None)
-
-                if previous_autojoin and previous_autojoin == active:
-                    raise GGsBotException(
-                        title="Error",
-                        description=f"You have already set the autojoin option to **{previous_autojoin}**.",
-                    )
-                
-                if 'tts' not in user_config: user_config["tts"] = {}
-
-                user_config['tts']['autojoin'] = active
-
-                self.sessions[interaction.user.id] = user_config['tts']
-
-                await self.db.editUserConfig(interaction.user, user_config)
-
-            page = Page(
-                colour=Colour.green(),
-                title="Autojoin Set Successfully",
-                description=f"Autojoin feature has been set from **{'enabled' if previous_autojoin else 'disabled'}**  to **{'enabled' if active else 'disabled'}**.",
-            )
-
-            await interaction.followup.send(embed=page, ephemeral=True)
-        except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
 
     @set.subcommand('language', 'Set the language for speech generation.')
     async def language(self, 
@@ -373,7 +358,7 @@ class TextToSpeech(commands.Cog):
 
                 user_config['tts']['language'] = language
 
-                self.sessions[interaction.user.id] = user_config['tts']
+                self.cache[interaction.user.id] = user_config['tts']
 
                 await self.db.editUserConfig(interaction.user, user_config)
 
@@ -410,7 +395,7 @@ class TextToSpeech(commands.Cog):
 
                 user_config['tts']['accent'] = accent
 
-                self.sessions[interaction.user.id] = user_config['tts']
+                self.cache[interaction.user.id] = user_config['tts']
 
                 await self.db.editUserConfig(interaction.user, user_config)
 
@@ -423,6 +408,27 @@ class TextToSpeech(commands.Cog):
             await interaction.followup.send(embed=page, ephemeral=True)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
+
+    @set.subcommand('autoenable', 'Set autoenable feature to enable text to speech when you join a voice channel.')
+    async def autoenable(self,
+            interaction : Interaction,
+            autoenable : bool = SlashOption(description= "Set autoenable feature", required=True)
+        ):
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+            async with self.db:
+                config = await self.db.getUserConfig(interaction.user)
+
+                if not 'tts' in config: config['tts'] = {}
+                config['tts']['autoenable'] = autoenable
+
+                self.cache[interaction.user.id] = config['tts']
+
+                await self.db.editUserConfig(interaction.user, config)
+
+        except GGsBotException as e:
+            await interaction.followup.send(embed=e.asEmbed())
 
     # Get commands
 
@@ -481,66 +487,59 @@ class TextToSpeech(commands.Cog):
 
     # Speech commands
 
-    @tts.subcommand('join', 'Join your voice channel to start speech generation. (not the same as `/music join`)')
-    async def join(self, interaction : Interaction):
+    @tts.subcommand('enable', "Enable text to speech for the channel you are in.")
+    async def enable(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
 
             if not interaction.user.voice:
                 raise GGsBotException(
-                    title="Not Connected",
-                    description="You are not connected to a voice channel."
+                    title="Not connected",
+                    description="You are not connected in a voice channel.",
+                    suggestions="Please connect to a voice channel before using this command."
                 )
-            elif interaction.user.guild.voice_client and interaction.user.guild.voice_client.is_connected():
+            elif interaction.user.voice.channel.id != interaction.channel.id:
                 raise GGsBotException(
-                    title="Already Connected",
-                    description="GGsBot is already connected to a voice channel. ",
+                    title="Channel mismatch",
+                    description="The text channel of your voice channel does not match the text channel used to send this command.",
+                    suggestions="Please use this command in the text channel of your voice channel."
                 )
-            
-            if interaction.user.id not in self.sessions:
-                async with self.db:
-                    user_config = await self.db.getUserConfig(interaction.user)
 
-                self.sessions[interaction.user.id] = user_config.get('tts', {})
+            self.sessions.add(interaction.channel.id)
 
-            await interaction.user.voice.channel.connect()
-            await interaction.guild.voice_client.channel.send(embed=self.tts_enabled_page)
-
-            page = Page(
-                colour=Colour.green(),
-                title="Successfully joined your voice channel",
-                description="GGsBot is now connected to the voice channel and can start speaking."
-            )
-
+            await interaction.user.voice.channel.send(embed=self.tts_enabled_page)
         except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True, delete_after=5)
-        except Exception as e:
-            logger.error(traceback.format_exc())
-        else:
-            await interaction.followup.send(embed=page)
+            await interaction.followup.send(embed=e.asEmbed())
 
-    @tts.subcommand('leave', 'Leave your voice channel to stop speech generation. (not the same as `/music leave`)')
-    async def leave(self, interaction : Interaction):
+    @tts.subcommand('disable', "Disable text to speech for the channel you are in.")
+    async def disable(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
 
-            if not interaction.guild.voice_client or not interaction.guild.voice_client.is_connected():
-                raise GGsBotException(title="Not Connected", description="GGsBot is not connected to a voice channel.")
+            if not interaction.user.voice:
+                raise GGsBotException(
+                    title="Not connected",
+                    description="You are not connected in a voice channel.",
+                    suggestions="Please connect to a voice channel before using this command."
+                )
+            elif interaction.user.voice.channel.id != interaction.channel.id:
+                raise GGsBotException(
+                    title="Channel mismatch",
+                    description="The text channel of your voice channel does not match the text channel used to send this command.",
+                    suggestions="Please use this command in the text channel of your voice channel."
+                )
+            elif interaction.channel.id not in self.sessions:
+                raise GGsBotException(
+                    title="TTS not enabled",
+                    description="Text to speech is not enabled in this channel.",
+                    suggestions="Text to speech needs to be enable for this channel before using this command."
+                )
 
-            await interaction.guild.voice_client.channel.send(embed=self.tts_disabled_page)
-            await interaction.guild.voice_client.disconnect()
+            self.sessions.discard(interaction.channel.id)
 
-            page = Page(
-                title="GGsBot is now disconnected from the voice channel.",
-                description="GGsBot has left the voice channel and will no longer generate speech."
-            )
-
-            await interaction.followup.send(embed=page, ephemeral=True)
-
+            await interaction.user.voice.channel.send(embed=self.tts_disabled_page)
         except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
-        except Exception as e:
-            logger.error(traceback.format_exc())
+            await interaction.followup.send(embed=e.asEmbed())
 
     @tts.subcommand('say', 'Write your message and the bot will convert it to speech in your voice channel or a file.')
     async def say(self, 
@@ -571,111 +570,126 @@ class TextToSpeech(commands.Cog):
                     description="Please select a valid accent from the list of available accents.",
                 )
 
-            engine = gTTS(message, lang=lang_code, tld=accent_code, slow=slow)
-
-            filelike = io.BytesIO()
-            engine.write_to_fp(filelike)
-            filelike.seek(0)
+            filelike = await self._generate_audio(message, lang_code, accent_code, slow)
 
             if file:
                 ttsaudiofile = File(filelike, filename="ggsbotTTS.mp3", description="TTS Audio")
                 await interaction.followup.send(content="Here is your TTS audio file. Click the link below to download it.", file=ttsaudiofile, ephemeral=True)
                 return
             
-            voice_client = interaction.guild.voice_client if interaction.guild.voice_client else await interaction.user.voice.channel.connect()
+            voice_client = interaction.guild.voice_client
+            
+            if voice_client and voice_client.is_playing(): 
+                self.queue.append((interaction.guild, interaction.user.voice.channel, filelike, volume))
+                return
+            
+            if not voice_client:
+                voice_client = await interaction.user.voice.channel.connect()
+            elif voice_client and interaction.channel.id != voice_client.channel.id:
+                await voice_client.move_to(interaction.user.voice.channel.id)
+                voice_client.stop()
 
-            ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
-
-            source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=ffmpeg_path)
-
-            if voice_client.is_playing(): voice_client.stop()
+            source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=self.ffmpeg_path)
             scaled_source = PCMVolumeTransformer(source, volume=volume)
-
-            voice_client.play(scaled_source, after=lambda e: logger.error(traceback.format_exc()) if e else None)
-            voice_client.source = scaled_source
-            voice_client.source.volume = volume
-        
+            voice_client.play(scaled_source, after=lambda e: asyncio.run_coroutine_threadsafe(self._next(e), self.bot.loop))
         except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), delete_after=5)
+            await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
             logger.error(traceback.format_exc())
 
     # Events
 
+    async def _generate_audio(self, text : str, language : str, accent : str, slow : bool) -> io.BytesIO:
+        engine = gTTS(text, lang=language, tld=accent, slow=slow)
+
+        filelike = io.BytesIO()
+        await self.bot.loop.run_in_executor(None, engine.write_to_fp, filelike)
+        filelike.seek(0)
+
+        return filelike
+
+    async def _next(self, exception : Exception | None, lastguild : Guild | None = None):
+        async with self.lock:
+            try:
+                if exception: raise exception
+
+                if len(self.queue) == 0:
+                    if lastguild:
+                        await lastguild.voice_client.disconnect()
+                    return
+
+                guild, channel, filelike, volume = self.queue.popleft()
+
+                voice_client : VoiceClient | None = guild.voice_client
+
+                if not voice_client:
+                    voice_client = await channel.connect()
+
+                if voice_client.is_playing(): return
+
+                if voice_client.channel.id != channel.id:
+                    voice_client.stop()
+                    await voice_client.move_to(channel)
+                    await asyncio.sleep(1)
+                    voice_client = guild.voice_client
+                
+                source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=self.ffmpeg_path)
+                scaled_source = PCMVolumeTransformer(source, volume=volume)
+                voice_client.play(scaled_source, after=lambda e: asyncio.run_coroutine_threadsafe(self._next(e, lastguild=None), self.bot.loop))
+
+            except Exception as e:
+                logger.error(traceback.format_exc())
+
+    """
+    Implementare autoenable
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : Member, before : VoiceState, after : VoiceState):
         try:
-            voice_client = member.guild.voice_client
-
-            if not after.channel and before.channel is not None:
-                # Evento in cui l'utente ha abbandonato un canale vocale qualsiasi
-                if voice_client and voice_client.channel.id == before.channel.id and len(before.channel.members) == 0:
-                    # Evento in cui l'utente ha abbandonato il canale vocale e non c'e' nessun'altro
-                    await before.channel.send(embed=self.tts_disabled_page)
-                
-                    voice_client.disconnect()
-
-                if member.id in self.sessions: del self.sessions[member.id]
-                return
-            
-            if after.channel and before.channel and after.channel.id == before.channel.id: return
-            
-            # Evento in cui il bot e' gia' connesso ad un canale oppure l'utente ha abbandonato un canale vocale
-            if voice_client and voice_client.is_connected() and after.channel is None:
-                return
-            
-            # Evento in cui il bot non e' connesso ad un canale vocale
-            async with self.db:
-                user_config = await self.db.getUserConfig(member)
-                tts_config = user_config.get('tts', {})
-                autojoin = bool(tts_config.get('autojoin', False))
-
-            if not autojoin: return
-
-            if not voice_client or not voice_client.is_connected():
-                await after.channel.connect()
-                await after.channel.send(embed=self.tts_enabled_page)
-
-            self.sessions[member.id] = tts_config
+            pass
         except Exception as e:
             logger.error(traceback.format_exc())
+    """
 
     @commands.Cog.listener()
     async def on_message(self, message: Message):
         try:
+            if message.clean_content == '': return
             if not message.guild: return
-            if not message.guild.voice_client: return
-            if message.author.id not in self.sessions: return
-            if message.author.voice.channel.id != message.channel.id: return
+            if message.channel.id not in self.sessions: return      # Il messaggio deve essere inviato dal canale testuale del canale vocale
 
-            if not message.author.id in self.sessions:
+            if message.author.id not in self.cache:
                 async with self.db:
-                    tts_config = await self.db.getUserConfig(message.author).get('tts', {})
+                    tts_config = dict((await self.db.getUserConfig(message.author)).get('tts', {}))
+                self.cache[message.author.id] = tts_config
             else:
-                tts_config = self.sessions[message.author.id]
+                tts_config = self.cache[message.author.id]
 
             language = str(tts_config.get('language', 'English'))
             accent = str(tts_config.get('accent', 'Standard'))
             slow = bool(tts_config.get('slow', False))
             volume = float(tts_config.get('volume', 0.8))
 
-            engine = gTTS(message.clean_content, lang=languages.get(language), tld=accents.get(accent), slow=slow)
+            filelike = await self._generate_audio(message.clean_content, language=languages.get(language), accent=accents.get(accent), slow=slow)
+            
+            async with self.lock:
+                voice_client : VoiceClient = message.guild.voice_client
 
-            filelike = io.BytesIO()
-            engine.write_to_fp(filelike)
-            filelike.seek(0)
-
-            ffmpeg_path = path.abspath(path.join(str(config['paths']['bin']).format(os=OS, arch=ARCH), 'ffmpeg') + '.exe' if OS == 'Windows' else '')
-            source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=ffmpeg_path)
-
-            voice_client = message.guild.voice_client
-
-            if voice_client.is_playing(): voice_client.stop()
-            scaled_source = PCMVolumeTransformer(source, volume=volume)
-
-            voice_client.play(scaled_source, after=lambda e: logger.error(traceback.format_exc()) if e else None)
-            voice_client.source = scaled_source
-            voice_client.source.volume = volume
+                if voice_client and voice_client.is_playing(): 
+                    self.queue.append((message.guild, message.channel, filelike, volume))
+                    return
+                
+                if not voice_client:
+                    voice_client = await message.channel.connect()
+                elif voice_client and message.channel.id != voice_client.channel.id:
+                    voice_client.stop()
+                    await voice_client.move_to(message.channel)
+                    await asyncio.sleep(1)
+                    voice_client = message.guild.voice_client
+                
+                source = BytesIOFFmpegPCMAudio(filelike.read(),pipe=True,executable=self.ffmpeg_path)
+                scaled_source = PCMVolumeTransformer(source, volume=volume)
+                voice_client.play(scaled_source, after=lambda e: asyncio.run_coroutine_threadsafe(self._next(e, lastguild=None), self.bot.loop))
         except Exception as e:
             logger.error(traceback.format_exc())
 

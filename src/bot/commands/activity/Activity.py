@@ -2,12 +2,9 @@ import traceback
 from nextcord.ext import commands, tasks
 import traceback
 import nextcord
-import asyncio
 import random
 import time
 import os
-
-from aiohttp.client_exceptions import ClientConnectionResetError
 
 from utils.terminal import getlogger
 from utils.config import config
@@ -58,15 +55,13 @@ class Activity(commands.Cog):
                 state=self.states[name]
             )
 
-            #logger.debug(f"Changing bot activity from: '{self.command}' to: '{name}'")
+            logger.debug(f"Changing bot activity from: '{self.command}' to: '{name}'")
             
             self.command = name
             await self.bot.change_presence(activity=activity)
-        except ClientConnectionResetError as e:
-            logger.error("Cient connection reset. Retrying in 5 seconds")
-            asyncio.sleep(5)
         except Exception as e:
-            logger.error(traceback.format_exc())
+            logger.error(f"An error occurred while changing bot activity: {traceback.format_exc()}")
+
 
 
 def setup(bot: commands.Bot) -> None:
