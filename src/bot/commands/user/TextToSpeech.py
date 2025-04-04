@@ -1,3 +1,4 @@
+from itsdangerous import NoneAlgorithm
 from nextcord.ext import commands
 from nextcord import        \
     Member,                 \
@@ -536,6 +537,14 @@ class TextToSpeech(commands.Cog):
                 )
 
             self.sessions.discard(interaction.channel.id)
+
+            voice_client : VoiceClient = interaction.guild.voice_client
+
+            if not voice_client or not voice_client.is_connected():
+                return
+
+            voice_client.stop()
+            await voice_client.disconnect()
 
             await interaction.user.voice.channel.send(embed=self.tts_disabled_page)
         except GGsBotException as e:
