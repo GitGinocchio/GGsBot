@@ -1,3 +1,4 @@
+from calendar import c
 from nextcord import AudioSource, ClientException
 from nextcord.opus import Encoder
 import subprocess
@@ -13,12 +14,11 @@ class BytesIOFFmpegPCMAudio(AudioSource):
             '-i',
             '-' if pipe else source, 
             '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
-            options if options else ''
-            'pipe:1'
         ]
-        if before_options is not None:
-            command.insert(0, before_options)
+        if before_options is not None: command.insert(0, before_options)
         command.insert(0, executable)
+        if options is not None: command.append(options)
+        command.append('pipe:1')
 
         logger.debug(f"FFmpeg command: {command}")
 
