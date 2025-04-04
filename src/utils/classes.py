@@ -9,7 +9,7 @@ from utils.system import logger
 class BytesIOFFmpegPCMAudio(AudioSource):
     def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
         stdin = None if not pipe else source
-        args = [
+        command = [
             executable, 
             before_options if before_options else '', 
             '-i', 
@@ -19,9 +19,9 @@ class BytesIOFFmpegPCMAudio(AudioSource):
             'pipe:1'
         ]
 
-        logger.debug(f"FFmpeg command: {' '.join(args)}")
+        logger.debug(f"FFmpeg command: {command}")
 
-        self._process = subprocess.Popen(' '.join(args), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr)
+        self._process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr)
         self._stdout = io.BytesIO(self._process.communicate(input=stdin)[0])
     
     def read(self):
