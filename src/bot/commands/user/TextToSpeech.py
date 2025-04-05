@@ -1,4 +1,3 @@
-from itsdangerous import NoneAlgorithm
 from nextcord.ext import commands
 from nextcord import        \
     Member,                 \
