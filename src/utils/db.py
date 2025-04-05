@@ -1,4 +1,3 @@
-from re import L
 from cachetools import TTLCache
 #from redis import Redis            # Piu' avanti potro' usare un client Redis per ora una semplice cache in memoria
 import traceback
