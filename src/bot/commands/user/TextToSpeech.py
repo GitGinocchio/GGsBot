@@ -15,7 +15,6 @@ from nextcord import        \
 from cachetools import TTLCache
 from collections import deque
 from gtts import gTTS
-from os import path
 import traceback
 import asyncio
 #import pyttsx3
