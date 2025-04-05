@@ -283,19 +283,6 @@ accents = {
     "Catalan Language & Culture": "cat"
 }
 
-
-"""
-Dovrei fare una nuova implementazione
-Siccome il bot e' uno solo:
-- autojoin non ha senso
-- neanche il join
-Avrebbe senso un comando /tts enable 
-Una volta chiamato, se il bot e' disponibile entra nel tuo canale vocale
-e per ogni messaggio riproduce il testo
-Se il tts viene attivato anche in un altro canale, il bot si sposta tra i due canali
-in modo automatico per garantire il tts a tutti
-"""
-
 class TextToSpeech(commands.Cog):
     def __init__(self, bot : commands.Bot):
         commands.Cog.__init__(self)
@@ -409,6 +396,7 @@ class TextToSpeech(commands.Cog):
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
 
+    """
     @set.subcommand('autoenable', 'Set autoenable feature to enable text to speech when you join a voice channel.')
     async def autoenable(self,
             interaction : Interaction,
@@ -426,10 +414,19 @@ class TextToSpeech(commands.Cog):
                 self.cache[interaction.user.id] = config['tts']
 
                 await self.db.editUserConfig(interaction.user, config)
+            
+            
+            page = Page(
+                colour=Colour.green(),
+                title="Autoenable Set Successfully",
+                description=f"Autoenable has been set to **{autoenable}**.",
+            )
 
+            await interaction.followup.send(embed=page, ephemeral=True)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
-
+    """
+    
     # Get commands
 
     @tts.subcommand('languages', 'List all available languages for speech generation.')
@@ -486,7 +483,6 @@ class TextToSpeech(commands.Cog):
             logger.error(traceback.format_exc())
 
     # Speech commands
-
     @tts.subcommand('enable', "Enable text to speech for the channel you are in.")
     async def enable(self, interaction : Interaction):
         try:
@@ -656,8 +652,6 @@ class TextToSpeech(commands.Cog):
                 logger.error(traceback.format_exc())
 
     """
-    Implementare autoenable
-
     @commands.Cog.listener()
     async def on_voice_state_update(self, member : Member, before : VoiceState, after : VoiceState):
         try:
