@@ -255,8 +255,8 @@ class Session:
 
         source = BytesIOFFmpegPCMAudio(
             source=song.url,
-            stderr=sys.stdout,
-            executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}ffmpeg",
+            stderr=sys.stderr,
+            executable=f"{config['paths']['bin'].format(os=OS,arch=ARCH)}ffmpeg{'.exe' if OS == 'windows' else ''}",
             before_options=f'-ss {st[0]}:{st[1]}:{st[2]}.{st[3]}',
         )
         

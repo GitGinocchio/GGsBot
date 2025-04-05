@@ -19,11 +19,14 @@ from utils.config import \
     DEVELOPER_ID,        \
     DEV_TOKEN,           \
     TOKEN,               \
-    config
+    config,              \
+    show_paths
+
+logger = getlogger()
 
 clear()
 printsysteminfo()
-logger = getlogger()
+show_paths(logger)
 
 def run(args : Namespace):
     intents = getintents()

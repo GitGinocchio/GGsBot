@@ -1,30 +1,29 @@
+from calendar import c
 from nextcord import AudioSource, ClientException
 from nextcord.opus import Encoder
 import subprocess
 import shlex
 import io
 
+from utils.system import logger
+
 class BytesIOFFmpegPCMAudio(AudioSource):
     def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
         stdin = None if not pipe else source
-        args = [
-            executable, 
-            shlex.split(before_options) if before_options else '', 
-            '-i', 
+        command = [
+            '-i',
             '-' if pipe else source, 
             '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
-            shlex.split(options) if options else ''
-            'pipe:1'
         ]
-        self._process = None
-        
-        try:
-            self._process = subprocess.Popen(' '.join(args), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr)
-            self._stdout = io.BytesIO(self._process.communicate(input=stdin)[0])
-        except FileNotFoundError:
-            raise ClientException(executable + ' was not found.') from None
-        except subprocess.SubprocessError as exc:
-            raise ClientException('Popen failed: {0.__class__.__name__}: {0}'.format(exc)) from exc
+        if before_options is not None: command.insert(0, before_options)
+        command.insert(0, executable)
+        if options is not None: command.append(options)
+        command.append('pipe:1')
+
+        logger.debug(f"FFmpeg command: {command}")
+
+        self._process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr)
+        self._stdout = io.BytesIO(self._process.communicate(input=stdin)[0])
     
     def read(self):
         ret = self._stdout.read(Encoder.FRAME_SIZE)

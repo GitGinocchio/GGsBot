@@ -1,3 +1,4 @@
+from logging import Logger
 import os
 
 from .jsonfile import JsonFile
@@ -11,6 +12,12 @@ def reload_config_files():
     global config, exceptions
     config = JsonFile(CONFIG_PATH, force_load=True)
     exceptions = JsonFile(config["paths"]["exceptions"], force_load=True)
+
+def show_paths(logger : Logger):
+    message = 'Config paths:'
+    for type, path in config['paths'].items():
+        message += f'\n{type:<20}: {path}'
+    logger.debug(message)
 
 DEBUG_MODE =            bool(config.get('DEBUG_MODE', False))
 
