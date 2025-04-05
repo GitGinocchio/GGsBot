@@ -113,7 +113,8 @@ class Database:
         return self._cursor
 
     @property
-    def num_queries(self) -> int: return self._num_queries
+    def num_queries(self) -> int: 
+        return self._num_queries
 
     async def execute(self, query: str, params: tuple = ()):
         try:
