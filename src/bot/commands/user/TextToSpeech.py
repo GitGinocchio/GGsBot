@@ -649,15 +649,6 @@ class TextToSpeech(commands.Cog):
             except Exception as e:
                 logger.error(traceback.format_exc())
 
-    """
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, member : Member, before : VoiceState, after : VoiceState):
-        try:
-            pass
-        except Exception as e:
-            logger.error(traceback.format_exc())
-    """
-
     @commands.Cog.listener()
     async def on_message(self, message: Message):
         try:
