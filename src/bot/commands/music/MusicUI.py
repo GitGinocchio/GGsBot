@@ -124,5 +124,5 @@ class MiniPlayer(Page):
         pass
 
     @button(label="Next", emoji=":track_next:", style=ButtonStyle.primary)
-    async def on_back(self, button : Button, interaction : Interaction):
+    async def on_next(self, button : Button, interaction : Interaction):
         pass
