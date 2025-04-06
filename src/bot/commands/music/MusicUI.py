@@ -1,11 +1,16 @@
 from nextcord import Colour, Member
 from nextcord.ui import Button, button
-from nextcord import ButtonStyle, Interaction
-from wavelink import Playlist, Search, Playable
+from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji
+from wavelink import Playlist, Search, Playable, Player
 from datetime import datetime, timedelta
+import traceback
 
 from utils.abc import Page
+from utils.system import getlogger
 from .MusicUtils import fromseconds
+
+
+logger = getlogger()
 
 class NowPlayingPage(Page):
     def __init__(self, track : Playable):
@@ -112,17 +117,27 @@ class UserPaused(Page):
 
 
 class MiniPlayer(Page):
-    def __init__(self):
+    def __init__(self, player : Player):
         Page.__init__(self, timeout=None)
+        self.description = "test"
+        self.player = player
 
-    @button(label="Play/Pause", emoji=":play_pause:", style=ButtonStyle.primary)
+    @button(label="Back", emoji='⏮️', row=0, style=ButtonStyle.gray)
+    async def on_back(self, button : Button, interaction : Interaction):
+        try:
+            pass
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+
+    @button(label="Play/Pause", emoji='⏭️', row=0, style=ButtonStyle.green)
     async def on_play(self, button : Button, interaction : Interaction):
         pass
 
-    @button(label="Back", emoji=":track_previous:", style=ButtonStyle.primary)
-    async def on_back(self, button : Button, interaction : Interaction):
+    @button(label="Next", emoji='⏯️', row=0, style=ButtonStyle.gray)
+    async def on_next(self, button : Button, interaction : Interaction):
         pass
 
-    @button(label="Next", emoji=":track_next:", style=ButtonStyle.primary)
-    async def on_next(self, button : Button, interaction : Interaction):
+    @button(label="Shuffle", emoji='🔀', row=1, style=ButtonStyle.gray)
+    async def on_shuffle(self, button : Button, interaction : Interaction):
         pass

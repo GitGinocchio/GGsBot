@@ -52,7 +52,8 @@ from .MusicUI import      \
     UserShuffled,         \
     UserSkipped,          \
     UserPaused,           \
-    NoTracksFound
+    NoTracksFound,        \
+    MiniPlayer
 
 logger = getlogger()
 
@@ -187,7 +188,10 @@ class MusicCommands(commands.Cog):
             player : NextcordWavelinkVoiceProtocol = await interaction.user.voice.channel.connect(cls=NextcordWavelinkVoiceProtocol)
             player.autoplay = AutoPlayMode(value=int(autoplay))
             
-            await interaction.delete_original_message()
+            #await interaction.delete_original_message()
+
+            page = MiniPlayer(player)
+            await interaction.followup.send(embed=page, view=page)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
