@@ -246,16 +246,12 @@ class MusicCommands(commands.Cog):
                     description=f'{interaction.user.mention} I am not playing anything at the moment!',
                     suggestions="Call `/music play` command first and try again."
                 )
-            
-            interaction.guild.voice_client.pause()
-            session : Session = self.sessions[interaction.guild.id]
+            await interaction.response.defer(ephemeral=True)
 
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
             logger.error(traceback.format_exc())
-        else:
-            await interaction.send(f"Paused song \'{session.currentsong.name}\'",ephemeral=True,delete_after=5.0)
 
     @music.subcommand('resume',"Resume the current playing session")
     async def resume(self, interaction : nextcord.Interaction):
@@ -283,7 +279,6 @@ class MusicCommands(commands.Cog):
             
             interaction.guild.voice_client.resume()
             session : Session = self.sessions[interaction.guild.id]
-
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
