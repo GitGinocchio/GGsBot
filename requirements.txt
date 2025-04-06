@@ -49,7 +49,6 @@ pypresence==4.3.0
 python-dotenv==1.1.0
 pyttsx3==2.98
 pytube==15.0.0
-pywin32==310
 redis==5.2.1
 requests==2.32.3
 setuptools==78.1.0
