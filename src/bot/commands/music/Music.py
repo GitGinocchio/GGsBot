@@ -104,7 +104,7 @@ class Music(commands.Cog):
                     uri=f"{'wss' if secure else 'ws'}://{uri}:{port}" if port else uri, 
                     identifier=id, 
                     password=password, 
-                    retries=None,
+                    retries=3,
                     inactive_player_timeout=500
                 )
                 nodes.append(node)
