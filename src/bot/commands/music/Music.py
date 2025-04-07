@@ -1,5 +1,7 @@
 from nextcord.ext import commands
+from nextcord.ext.tasks import loop
 from nextcord import \
+    Message,         \
     Permissions,     \
     Colour,          \
     Interaction,     \
@@ -27,6 +29,7 @@ from wavelink import            \
     TrackStartEventPayload,     \
     TrackEndEventPayload,       \
     TrackSource
+import wavelink
 import traceback
 import asyncio
 import stat
@@ -68,10 +71,11 @@ class NextcordWavelinkVoiceProtocol(Player, VoiceClient):
         VoiceProtocol.__init__(self, client=client, channel=channel)
         Player.__init__(self, client=client, channel=channel, nodes=nodes)
 
-class MusicCommands(commands.Cog):
+class Music(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.bot = bot
+        self.mini_players : dict[int, MiniPlayer] = {}
         self.setup = False
+        self.bot = bot
 
     # Events
 
@@ -94,10 +98,18 @@ class MusicCommands(commands.Cog):
                 password = node.get('password', None)
                 secure = node.get('secure', False)
 
-                node = Node(uri=f"{'wss' if secure else 'ws'}://{uri}:{port}" if port else uri, identifier=id, password=password, retries=0)
+                node = Node(
+                    uri=f"{'wss' if secure else 'ws'}://{uri}:{port}" if port else uri, 
+                    identifier=id, 
+                    password=password, 
+                    retries=None,
+                    inactive_player_timeout=500
+                )
                 nodes.append(node)
 
             await Pool.connect(nodes=nodes, client=self.bot, cache_capacity=100)
+
+            self.update_mini_players.start()
         except Exception as e:
             logger.error(traceback.format_exc())
         
@@ -109,30 +121,32 @@ class MusicCommands(commands.Cog):
     async def on_wavelink_track_start(self, payload: TrackStartEventPayload):
         logger.debug(f"Track {payload.track} ({payload.original}) started in player {payload.player}")
         if not payload.player: return
-
-        next_track = payload.original if payload.original else payload.track
+        if not hasattr(payload.player, 'ui'): return
 
         await payload.player.channel.edit(status=f'Listening music with GGsBot')
 
-        page = NowPlayingPage(next_track)
-        await payload.player.channel.send(embed=page)
+        ui : MiniPlayer = payload.player.ui
+        await ui.update_track()
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, payload: TrackEndEventPayload):
         logger.debug(f"Track {payload.track} ({payload.original}) ended in player {payload.player} with reason {payload.reason}")
         if not payload.player: return
+        if not hasattr(payload.player, 'ui'): return
 
         try:
             next_song = payload.player.queue.get()
-        except QueueEmpty as e:
-            await payload.player.channel.send(embed=NothingToPlayPage())
+        except QueueEmpty as e: pass
         else:
             await payload.player.play(next_song, volume=30)
+
+        ui : MiniPlayer = payload.player.ui
+        await ui.update_track()
 
     @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player : NextcordWavelinkVoiceProtocol) -> None:
         logger.debug(f"player {player} is inactive")
-        
+
         try:
             await player.stop()
         except Exception as e:
@@ -154,6 +168,19 @@ class MusicCommands(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_stuck(self, payload: TrackStuckEventPayload) -> None:
         logger.debug(f"Track {payload.track} is stuck for {payload.threshold}ms in player {payload.player}")
+
+    @loop(seconds=10)
+    async def update_mini_players(self):
+        try:
+            mini_players = self.mini_players.items()
+
+            logger.debug(f"Updating {len(mini_players)} mini player/s")
+
+            for guild_id, player in mini_players:
+                await player.update_track()
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
 
     # Playback Commands
 
@@ -188,10 +215,16 @@ class MusicCommands(commands.Cog):
             player : NextcordWavelinkVoiceProtocol = await interaction.user.voice.channel.connect(cls=NextcordWavelinkVoiceProtocol)
             player.autoplay = AutoPlayMode(value=int(autoplay))
             
-            #await interaction.delete_original_message()
+            await interaction.delete_original_message()
 
-            page = MiniPlayer(player)
-            await interaction.followup.send(embed=page, view=page)
+            message = await player.channel.send(content="Mini player is loading...")
+
+            ui = MiniPlayer(player, message)
+            player.ui = ui
+
+            self.mini_players[interaction.guild.id] = ui
+
+            await message.edit(content=None, embed=ui, view=ui)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
@@ -220,13 +253,14 @@ class MusicCommands(commands.Cog):
                     description=f'You have to join a voice channel first!',
                     suggestions="Join a voice channel and try again."
                 )
+            elif not interaction.guild.voice_client:
+                raise GGsBotException(
+                    title="I am not in a voice channel!",
+                    description=f'I am not in a voice channel!',
+                    suggestions="Call `/music join` command first and try again."
+                )
 
-            if not interaction.guild.voice_client:
-                player : NextcordWavelinkVoiceProtocol = await interaction.user.voice.channel.connect(cls=NextcordWavelinkVoiceProtocol)
-                player.autoplay = AutoPlayMode.disabled
-                await player.connect(reconnect=True)
-            else:
-                player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
 
             tracks: Search = await Playable.search(queryurl, source=searchengine)
 
@@ -504,4 +538,4 @@ def setup(bot : commands.Bot):
     if not (permissions:=os.stat(ffmpeg_path).st_mode) & stat.S_IXUSR:
         os.chmod(ffmpeg_path, permissions | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
     
-    bot.add_cog(MusicCommands(bot))
+    bot.add_cog(Music(bot))

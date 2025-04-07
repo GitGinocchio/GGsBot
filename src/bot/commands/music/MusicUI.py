@@ -1,4 +1,4 @@
-from nextcord import Colour, Member
+from nextcord import Colour, Member, Message
 from nextcord.ui import Button, button
 from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji
 from wavelink import Playlist, Search, Playable, Player
@@ -115,28 +115,73 @@ class UserPaused(Page):
         self.color = Colour.yellow()
 
 
+#<:progress_bar_black:1358794186480156729>
+#<:progrees_bar_green:1358794140028113089>
+progress_bar_black = PartialEmoji(name="progress_bar_black",id=1358794186480156729)
+progress_bar_green = PartialEmoji(name="progress_bar_green", id=1358794140028113089)
 
 class MiniPlayer(Page):
-    def __init__(self, player : Player):
+    def __init__(self, player : Player, message : Message):
         Page.__init__(self, timeout=None)
-        self.description = "test"
+        self.message = message
+        self.set_author(name="Now Playing")
+        self.title = "No track playing"
+        self.description = "Add a track to the queue to see it here."
+        self.color = Colour.green()
         self.player = player
+
+    def _get_progress_bar(self, position: int, length: int, size: int = 10) -> str:
+        progress_ratio = position / length
+        filled_blocks = round(progress_ratio * size)
+        empty_blocks = size - filled_blocks
+        return str(progress_bar_green) * filled_blocks + str(progress_bar_black) * empty_blocks
+
+    async def update_track(self):
+        track = self.player.current
+
+        if not track:
+            self.title = "No track playing"
+            self.description = "Add a track to the queue to see it here."
+            return
+        
+        end_h, end_m, end_s, end_ms = fromseconds(track.length / 1000)
+        pos_h, pos_m, pos_s, pos_ms = fromseconds(self.player.position / 1000)
+
+        end_str = f'`{end_h:02d}:{end_m:02d}:{end_s:02d}`' if end_h > 0 else f'`{end_m:02d}:{end_s:02d}`'
+        pos_str = f'`{pos_h:02d}:{pos_m:02d}:{pos_s:02d}`' if pos_h > 0 else f'`{pos_m:02d}:{pos_s:02d}`'
+
+        self.title = f"**{track.title}**"
+        self.description =  f"in `{track.album.name}`\nby *{track.author}*" if track.album.name else f'by {track.author}'
+        self.description += "\n\n" + f'{pos_str}' + self._get_progress_bar(self.player.position,track.length, 15) + f'{end_str}'
+        if track.artwork: self.set_thumbnail(url=track.artwork)
+
+        await self.message.edit(embed=self, view=self)
 
     @button(label="Back", emoji='⏮️', row=0, style=ButtonStyle.gray)
     async def on_back(self, button : Button, interaction : Interaction):
         try:
-            pass
+            if not self.player.queue.history: return
+            if len(self.player.queue.history) == 0: return
+
+            next_song = self.player.queue.history.get()
+            await self.player.queue.put_at(0, next_song)
+            await self.player.skip()
         except Exception as e:
             logger.error(traceback.format_exc())
 
-
-    @button(label="Play/Pause", emoji='⏭️', row=0, style=ButtonStyle.green)
+    @button(label="Play/Pause", emoji='⏯️', row=0, style=ButtonStyle.green)
     async def on_play(self, button : Button, interaction : Interaction):
-        pass
+        try:
+            await self.player.pause(not self.player.paused)
+        except Exception as e:
+            logger.error(traceback.format_exc())
 
-    @button(label="Next", emoji='⏯️', row=0, style=ButtonStyle.gray)
+    @button(label="Next", emoji='⏭️', row=0, style=ButtonStyle.gray)
     async def on_next(self, button : Button, interaction : Interaction):
-        pass
+        try:
+            await self.player.skip()
+        except Exception as e:
+            logger.error(traceback.format_exc())
 
     @button(label="Shuffle", emoji='🔀', row=1, style=ButtonStyle.gray)
     async def on_shuffle(self, button : Button, interaction : Interaction):
