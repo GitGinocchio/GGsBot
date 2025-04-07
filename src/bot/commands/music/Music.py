@@ -23,12 +23,14 @@ from wavelink import            \
     QueueEmpty,                 \
     Search,                     \
     NodeReadyEventPayload,      \
+    PlayerUpdateEventPayload,   \
     StatsEventPayload,          \
     TrackStuckEventPayload,     \
     TrackExceptionEventPayload, \
     TrackStartEventPayload,     \
     TrackEndEventPayload,       \
     TrackSource
+from datetime import datetime, timezone, timedelta
 import wavelink
 import traceback
 import asyncio
@@ -66,25 +68,25 @@ permissions = Permissions(
     speak=True,
 )
 
-class NextcordWavelinkVoiceProtocol(Player, VoiceClient):
+class NextcordWavelinkPlayer(Player, VoiceClient):
     def __init__(self, client : Client, channel : VoiceChannel, nodes : list | None = None):
-        VoiceProtocol.__init__(self, client=client, channel=channel)
         Player.__init__(self, client=client, channel=channel, nodes=nodes)
+        VoiceClient.__init__(self, client=client, channel=channel)
+        self.ui : MiniPlayer | None = None
+
+    def __repr__(self) -> str:
+        return f"NextcordWavelinkPlayer(channel={self.channel})"
+
 
 class Music(commands.Cog):
     def __init__(self, bot : commands.Bot):
         self.mini_players : dict[int, MiniPlayer] = {}
-        self.setup = False
         self.bot = bot
 
     # Events
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        if self.setup: return
-        
-        self.setup = True
-
         await self.bot.wait_until_ready()
         
         try:
@@ -106,10 +108,9 @@ class Music(commands.Cog):
                     inactive_player_timeout=500
                 )
                 nodes.append(node)
+                break
 
             await Pool.connect(nodes=nodes, client=self.bot, cache_capacity=100)
-
-            self.update_mini_players.start()
         except Exception as e:
             logger.error(traceback.format_exc())
         
@@ -117,6 +118,10 @@ class Music(commands.Cog):
     async def on_wavelink_node_ready(self, payload: NodeReadyEventPayload) -> None:
         logger.debug(f"Wavelink Node connected: {payload.node} | Resumed: {payload.resumed}")
     
+    @commands.Cog.listener()
+    async def on_wavelink_node_disconnected(self, payload) -> None:
+        logger.debug(f"Node disconnected {payload}")
+
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload: TrackStartEventPayload):
         logger.debug(f"Track {payload.track} ({payload.original}) started in player {payload.player}")
@@ -131,20 +136,22 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, payload: TrackEndEventPayload):
         logger.debug(f"Track {payload.track} ({payload.original}) ended in player {payload.player} with reason {payload.reason}")
-        if not payload.player: return
-        if not hasattr(payload.player, 'ui'): return
+        player : NextcordWavelinkPlayer = cast(NextcordWavelinkPlayer, payload.player)
+
+        if not player or not player.ui: return
 
         try:
-            next_song = payload.player.queue.get()
-        except QueueEmpty as e: pass
+            next_song = player.queue.get()
+        except QueueEmpty as e: 
+            await player.ui.update_track(finished=True)
+            return
         else:
-            await payload.player.play(next_song, volume=30)
+            await player.play(next_song, volume=30)
 
-        ui : MiniPlayer = payload.player.ui
-        await ui.update_track()
+        await player.ui.update_track()
 
     @commands.Cog.listener()
-    async def on_wavelink_inactive_player(self, player : NextcordWavelinkVoiceProtocol) -> None:
+    async def on_wavelink_inactive_player(self, player : NextcordWavelinkPlayer) -> None:
         logger.debug(f"player {player} is inactive")
 
         try:
@@ -162,25 +169,31 @@ class Music(commands.Cog):
         logger.debug(f"{payload.cpu.cores} cores, {payload.cpu.lavalink_load}% lavalink load, {payload.cpu.system_load}% system load")
 
     @commands.Cog.listener()
+    async def on_wavelink_player_update(self, payload: PlayerUpdateEventPayload) -> None:
+        logger.debug(f"Player {payload.player} updated (ping: {payload.ping}, time: {payload.time}, position: {payload.position}, connected: {payload.connected})")
+        player : NextcordWavelinkPlayer = cast(NextcordWavelinkPlayer, payload.player)
+        
+        if not player.playing: return
+        
+        if not player.ui: 
+            logger.debug(f'Player {payload.player} has no attribute ui, maybe it was not initialized yet?')
+            return
+        
+        now = datetime.now(timezone.utc)
+        
+        if player.ui.last_update > now - timedelta(seconds=10):
+            logger.debug(f'Cannot update track because it was updated within the last 10 seconds.')
+            return
+
+        await player.ui.update_track()
+
+    @commands.Cog.listener()
     async def on_wavelink_track_exception(self, payload: TrackExceptionEventPayload) -> None:
         logger.debug(f"Track {payload.track} failed to play in player {payload.player} with error:\n{payload.exception}")
 
     @commands.Cog.listener()
     async def on_wavelink_track_stuck(self, payload: TrackStuckEventPayload) -> None:
         logger.debug(f"Track {payload.track} is stuck for {payload.threshold}ms in player {payload.player}")
-
-    @loop(seconds=10)
-    async def update_mini_players(self):
-        try:
-            mini_players = self.mini_players.items()
-
-            logger.debug(f"Updating {len(mini_players)} mini player/s")
-
-            for guild_id, player in mini_players:
-                await player.update_track()
-
-        except Exception as e:
-            logger.error(traceback.format_exc())
 
     # Playback Commands
 
@@ -212,7 +225,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music leave` command first and try again."
                 )
             
-            player : NextcordWavelinkVoiceProtocol = await interaction.user.voice.channel.connect(cls=NextcordWavelinkVoiceProtocol)
+            player : NextcordWavelinkPlayer = await interaction.user.voice.channel.connect(cls=NextcordWavelinkPlayer)
             player.autoplay = AutoPlayMode(value=int(autoplay))
             
             await interaction.delete_original_message()
@@ -260,7 +273,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
 
-            player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
 
             tracks: Search = await Playable.search(queryurl, source=searchengine)
 
@@ -318,7 +331,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
 
-            player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             tracks : Search = await Playable.search(queryurl, source=searchengine)
             await player.queue.put_wait(tracks)
             if shuffle: player.queue.shuffle()
@@ -364,7 +377,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
 
-            player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
 
             current = player.current
 
@@ -407,7 +420,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
 
-            player : Player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             player.queue.shuffle()
 
             await interaction.delete_original_message()
@@ -442,7 +455,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music play` or `/music resume` command first and try again."
                 )
             
-            player : Player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             
             await player.pause(True)
 
@@ -471,7 +484,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
         
-            player : Player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             
             if not player.paused:
                 raise GGsBotException(
@@ -480,7 +493,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music pause` command first and try again."
                 )
             
-            player : Player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             await player.pause(False)
 
             await interaction.delete_original_message()
@@ -508,7 +521,7 @@ class Music(commands.Cog):
                     suggestions="Call `/music join` command first and try again."
                 )
 
-            player : Player = cast(NextcordWavelinkVoiceProtocol, interaction.guild.voice_client)
+            player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             await player.disconnect()
 
             await interaction.delete_original_message()

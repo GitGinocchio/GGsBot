@@ -1,8 +1,8 @@
-from nextcord import Colour, Member, Message
+from nextcord import Colour, HTTPException, Member, Message
 from nextcord.ui import Button, button
 from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji
 from wavelink import Playlist, Search, Playable, Player
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import traceback
 
 from utils.abc import Page
@@ -129,6 +129,7 @@ class MiniPlayer(Page):
         self.description = "Add a track to the queue to see it here."
         self.color = Colour.green()
         self.player = player
+        self.last_update : datetime = datetime.now(timezone.utc)
 
     def _get_progress_bar(self, position: int, length: int, size: int = 10) -> str:
         progress_ratio = position / length
@@ -136,26 +137,42 @@ class MiniPlayer(Page):
         empty_blocks = size - filled_blocks
         return str(progress_bar_green) * filled_blocks + str(progress_bar_black) * empty_blocks
 
-    async def update_track(self):
-        track = self.player.current
+    async def update_track(self, finished : bool = False):
+        try:
+            #now = datetime.now(timezone.utc)
+            
+            #if self.last_update > now - timedelta(seconds=10):
+                #logger.debug(f'Cannot update track because it was updated within the last 10 seconds.')
+                #return
 
-        if not track:
-            self.title = "No track playing"
-            self.description = "Add a track to the queue to see it here."
-            return
-        
-        end_h, end_m, end_s, end_ms = fromseconds(track.length / 1000)
-        pos_h, pos_m, pos_s, pos_ms = fromseconds(self.player.position / 1000)
+            self.last_update = datetime.now(timezone.utc)
 
-        end_str = f'`{end_h:02d}:{end_m:02d}:{end_s:02d}`' if end_h > 0 else f'`{end_m:02d}:{end_s:02d}`'
-        pos_str = f'`{pos_h:02d}:{pos_m:02d}:{pos_s:02d}`' if pos_h > 0 else f'`{pos_m:02d}:{pos_s:02d}`'
+            track = self.player.current
 
-        self.title = f"**{track.title}**"
-        self.description =  f"in `{track.album.name}`\nby *{track.author}*" if track.album.name else f'by {track.author}'
-        self.description += "\n\n" + f'{pos_str}' + self._get_progress_bar(self.player.position,track.length, 15) + f'{end_str}'
-        if track.artwork: self.set_thumbnail(url=track.artwork)
+            if not track or finished:
+                self.title = "No track playing"
+                self.description = "Add a track to the queue to see it here."
+                return
+            
+            end_h, end_m, end_s, end_ms = fromseconds(track.length / 1000)
+            pos_h, pos_m, pos_s, pos_ms = fromseconds(self.player.position / 1000)
 
-        await self.message.edit(embed=self, view=self)
+            end_str = f'`{end_h:02d}:{end_m:02d}:{end_s:02d}`' if end_h > 0 else f'`{end_m:02d}:{end_s:02d}`'
+            pos_str = f'`{pos_h:02d}:{pos_m:02d}:{pos_s:02d}`' if pos_h > 0 else f'`{pos_m:02d}:{pos_s:02d}`'
+
+            self.title = f"**{track.title}**"
+            self.description =  f"in `{track.album.name}`\nby *{track.author}*" if track.album.name else f'by {track.author}'
+            self.description += "\n\n" + f'{pos_str}' + self._get_progress_bar(self.player.position,track.length, 15) + f'{end_str}'
+            if track.artwork: self.set_thumbnail(url=track.artwork)
+
+            await self.message.edit(embed=self, view=self)
+        except HTTPException as e:
+            if e.code == 30046:
+                await self.message.delete()
+                self.message = await self.message.channel.send(embed=self, view=self)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
 
     @button(label="Back", emoji='⏮️', row=0, style=ButtonStyle.gray)
     async def on_back(self, button : Button, interaction : Interaction):
@@ -163,8 +180,8 @@ class MiniPlayer(Page):
             if not self.player.queue.history: return
             if len(self.player.queue.history) == 0: return
 
-            next_song = self.player.queue.history.get()
-            await self.player.queue.put_at(0, next_song)
+            next_song = self.player.queue.history.get_at(-1)
+            self.player.queue.put_at(0, next_song)
             await self.player.skip()
         except Exception as e:
             logger.error(traceback.format_exc())
