@@ -68,14 +68,21 @@ permissions = Permissions(
     speak=True,
 )
 
-class NextcordWavelinkPlayer(Player, VoiceClient):
+class NextcordWavelinkPlayer(Player, VoiceProtocol):
     def __init__(self, client : Client, channel : VoiceChannel, nodes : list | None = None):
         Player.__init__(self, client=client, channel=channel, nodes=nodes)
-        VoiceClient.__init__(self, client=client, channel=channel)
+        VoiceProtocol.__init__(self, client=client, channel=channel)
         self.ui : MiniPlayer | None = None
 
     def __repr__(self) -> str:
         return f"NextcordWavelinkPlayer(channel={self.channel})"
+    
+    async def disconnect(self, **kwargs):
+        await Player.disconnect(self, **kwargs)
+        await self.cleanup()
+    
+    async def cleanup(self):
+        await VoiceProtocol.cleanup(self)
 
 
 class Music(commands.Cog):
@@ -101,7 +108,7 @@ class Music(commands.Cog):
                 secure = node.get('secure', False)
 
                 node = Node(
-                    uri=f"{'wss' if secure else 'ws'}://{uri}:{port}" if port else uri, 
+                    uri=f"{'https' if secure else 'http'}://{uri}:{port}" if port else uri, 
                     identifier=id, 
                     password=password, 
                     retries=3
@@ -171,7 +178,8 @@ class Music(commands.Cog):
     async def on_wavelink_player_update(self, payload: PlayerUpdateEventPayload) -> None:
         logger.debug(f"Player {payload.player} updated (ping: {payload.ping}, time: {payload.time}, position: {payload.position}, connected: {payload.connected})")
         player : NextcordWavelinkPlayer = cast(NextcordWavelinkPlayer, payload.player)
-        
+        if not player: return
+
         if not player.playing: return
         
         if not player.ui: 

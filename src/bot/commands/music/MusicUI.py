@@ -116,9 +116,21 @@ class UserPaused(Page):
 
 
 #<:progress_bar_black:1358794186480156729>
-#<:progrees_bar_green:1358794140028113089>
 progress_bar_black = PartialEmoji(name="progress_bar_black",id=1358794186480156729)
+#<:progrees_bar_green:1358794140028113089>
 progress_bar_green = PartialEmoji(name="progress_bar_green", id=1358794140028113089)
+#<:skip_forward:1360005491182407921>
+skip_forward = PartialEmoji(name="skip_forward", id=1360005491182407921)
+#<:skip_back:1360005482533621980>
+skip_back = PartialEmoji(name="skip_back", id=1360005482533621980)
+#<:shuffle:1360005473671184434>
+shuffle = PartialEmoji(name="shuffle", id=1360005473671184434)
+#<:play:1360005439378685992>
+play = PartialEmoji(name="play", id=1360005439378685992)
+#<:pause:1360005404054261772>
+pause = PartialEmoji(name="pause", id=1360005404054261772)
+
+
 
 class MiniPlayer(Page):
     def __init__(self, player : Player, message : Message):
@@ -130,6 +142,21 @@ class MiniPlayer(Page):
         self.color = Colour.green()
         self.player = player
         self.last_update : datetime = datetime.now(timezone.utc)
+
+        self.back_button = Button(style=ButtonStyle.grey, label="Back", emoji=skip_back, row=0, disabled=True)
+        self.back_button.callback = self.on_back
+        self.playpause_button = Button(style=ButtonStyle.grey, label="Play", emoji=play, row=0, disabled=True)
+        self.playpause_button.callback = self.on_play
+        self.next_button = Button(style=ButtonStyle.grey, label="Next", emoji=skip_forward, row=0, disabled=True)
+        self.next_button.callback = self.on_next
+        self.shuffle_button = Button(style=ButtonStyle.grey, label="Shuffle", emoji=shuffle, row=0, disabled=True)
+        self.shuffle_button.callback = self.on_shuffle
+
+        self.add_item(self.back_button)
+        self.add_item(self.playpause_button)
+        self.add_item(self.next_button)
+        self.add_item(self.shuffle_button)
+
 
     def _get_progress_bar(self, position: int, length: int, size: int = 10) -> str:
         progress_ratio = position / length
@@ -149,9 +176,20 @@ class MiniPlayer(Page):
 
             track = self.player.current
 
+            self.back_button.disabled = not track
+            self.playpause_button.disabled = not track
+            self.next_button.disabled = not track
+            self.shuffle_button.disabled = not track
+            
+            self.playpause_button.label = "Pause" if track and self.player.playing else "Play"
+            self.playpause_button.emoji = pause if track and self.player.playing else play
+
             if not track or finished:
+                self.url = None
                 self.title = "No track playing"
                 self.description = "Add a track to the queue to see it here."
+                self.set_thumbnail(None)
+                await self.message.edit(embed=self, view=self)
                 return
             
             end_h, end_m, end_s, end_ms = fromseconds(track.length / 1000)
@@ -160,6 +198,7 @@ class MiniPlayer(Page):
             end_str = f'`{end_h:02d}:{end_m:02d}:{end_s:02d}`' if end_h > 0 else f'`{end_m:02d}:{end_s:02d}`'
             pos_str = f'`{pos_h:02d}:{pos_m:02d}:{pos_s:02d}`' if pos_h > 0 else f'`{pos_m:02d}:{pos_s:02d}`'
 
+            self.url = track.uri
             self.title = f"**{track.title}**"
             self.description =  f"in `{track.album.name}`\nby *{track.author}*" if track.album.name else f'by {track.author}'
             self.description += "\n\n" + f'{pos_str}' + self._get_progress_bar(self.player.position,track.length, 15) + f'{end_str}'
@@ -173,33 +212,37 @@ class MiniPlayer(Page):
         except Exception as e:
             logger.error(traceback.format_exc())
 
-
-    @button(label="Back", emoji='⏮️', row=0, style=ButtonStyle.gray)
-    async def on_back(self, button : Button, interaction : Interaction):
+    async def on_back(self, interaction : Interaction):
         try:
             if not self.player.queue.history: return
-            if len(self.player.queue.history) == 0: return
+            if (len_history:=len(self.player.queue.history)) == 0: return
 
-            next_song = self.player.queue.history.get_at(-1)
+            next_song = self.player.queue.history.get_at(-2 if len_history >= 2 else -1)
             self.player.queue.put_at(0, next_song)
+            if self.player.current: self.player.queue.put_at(1, self.player.current)
             await self.player.skip()
         except Exception as e:
             logger.error(traceback.format_exc())
 
-    @button(label="Play/Pause", emoji='⏯️', row=0, style=ButtonStyle.green)
-    async def on_play(self, button : Button, interaction : Interaction):
+    async def on_play(self, interaction : Interaction):
         try:
+            if self.playpause_button.label == "Play":
+               self.playpause_button.label = "Pause"
+               self.playpause_button.emoji = pause
+            else:
+                self.playpause_button.label = "Play"
+                self.playpause_button.emoji = play
+
             await self.player.pause(not self.player.paused)
+            await self.message.edit(embed=self, view=self)
         except Exception as e:
             logger.error(traceback.format_exc())
 
-    @button(label="Next", emoji='⏭️', row=0, style=ButtonStyle.gray)
-    async def on_next(self, button : Button, interaction : Interaction):
+    async def on_next(self, interaction : Interaction):
         try:
             await self.player.skip()
         except Exception as e:
             logger.error(traceback.format_exc())
 
-    @button(label="Shuffle", emoji='🔀', row=1, style=ButtonStyle.gray)
-    async def on_shuffle(self, button : Button, interaction : Interaction):
+    async def on_shuffle(self, interaction : Interaction):
         pass
