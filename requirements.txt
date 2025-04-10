@@ -51,8 +51,8 @@ requests==2.32.3
 setuptools==78.1.0
 sniffio==1.3.1
 spotipy==2.25.1
-typing_extensions==4.13.1
 urllib3==2.4.0
+typing_extensions==4.13.2
 valo_api==2.1.0
 websockets==15.0.1
 Werkzeug==3.1.3
