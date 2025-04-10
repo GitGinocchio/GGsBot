@@ -3,8 +3,13 @@ from .MusicUtilities import *
 import yt_dlp
 import spotipy
 import asyncio
+import wavelink
 
 from utils.exceptions import *
+
+class LavalinkExtension:
+    def __init__(self):
+        pass
 
 class YoutubeExtension(yt_dlp.YoutubeDL):
     def __init__(self, *, loop : asyncio.AbstractEventLoop, params : dict):

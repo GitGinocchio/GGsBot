@@ -57,6 +57,10 @@
                 ],
                 "cookiefile": "./data/cookies/ytdlcookies.txt"
             }
+        },
+        "lavalink" : {
+            "nodes" : [
+            ]
         }
     },
 

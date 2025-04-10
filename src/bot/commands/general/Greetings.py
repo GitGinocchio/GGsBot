@@ -38,10 +38,10 @@ class Greetings(commands.Cog):
             )
 
             embed.set_thumbnail(url=(member.avatar.url if member.avatar else member.default_avatar.url))
+
+            if channel: await channel.send(embed=embed)
         except ExtensionException as e:
             pass
-        else:
-            await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member : nextcord.Member):
@@ -61,10 +61,11 @@ class Greetings(commands.Cog):
             )
 
             embed.set_thumbnail(url=(member.avatar.url if member.avatar else member.default_avatar.url))
+
+            if channel:
+                await channel.send(embed=embed)
         except ExtensionException as e:
             pass
-        else:
-            await channel.send(embed=embed)
 
 def setup(bot : commands.Bot):
     bot.add_cog(Greetings(bot))
