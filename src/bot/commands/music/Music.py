@@ -14,6 +14,7 @@ from nextcord import \
 from typing import Literal, cast
 from wavelink import            \
     AutoPlayMode,               \
+    InvalidNodeException,       \
     Playable,                   \
     Player,                     \
     Node,                       \
@@ -79,10 +80,10 @@ class NextcordWavelinkPlayer(Player, VoiceProtocol):
     
     async def disconnect(self, **kwargs):
         await Player.disconnect(self, **kwargs)
-        await self.cleanup()
+        self.cleanup()
     
-    async def cleanup(self):
-        await VoiceProtocol.cleanup(self)
+    def cleanup(self):
+        VoiceProtocol.cleanup(self)
 
 
 class Music(commands.Cog):
@@ -172,11 +173,12 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_stats_update(self, payload: StatsEventPayload) -> None:
-        logger.debug(f"{payload.cpu.cores} cores, {payload.cpu.lavalink_load}% lavalink load, {payload.cpu.system_load}% system load")
+        pass
+        #logger.debug(f"{payload.cpu.cores} cores, {payload.cpu.lavalink_load}% lavalink load, {payload.cpu.system_load}% system load")
 
     @commands.Cog.listener()
     async def on_wavelink_player_update(self, payload: PlayerUpdateEventPayload) -> None:
-        logger.debug(f"Player {payload.player} updated (ping: {payload.ping}, time: {payload.time}, position: {payload.position}, connected: {payload.connected})")
+        #logger.debug(f"Player {payload.player} updated (ping: {payload.ping}, time: {payload.time}, position: {payload.position}, connected: {payload.connected})")
         player : NextcordWavelinkPlayer = cast(NextcordWavelinkPlayer, payload.player)
         if not player: return
 
@@ -189,7 +191,7 @@ class Music(commands.Cog):
         now = datetime.now(timezone.utc)
         
         if player.ui.last_update > now - timedelta(seconds=10):
-            logger.debug(f'Cannot update track because it was updated within the last 10 seconds.')
+            #logger.debug(f'Cannot update track because it was updated within the last 10 seconds.')
             return
 
         await player.ui.update_track()
@@ -247,6 +249,14 @@ class Music(commands.Cog):
             await message.edit(content=None, embed=ui, view=ui)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
+        except InvalidNodeException as e:
+            error = GGsBotException(
+                title="No nodes available",
+                description=str(e),
+                suggestions="Try again later or contact a moderator."
+            )
+
+            await interaction.followup.send(embed=error.asEmbed(), ephemeral=True)
         except Exception as e:
             logger.error(traceback.format_exc())
 

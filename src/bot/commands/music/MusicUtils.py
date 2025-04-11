@@ -1,5 +1,7 @@
+import re
 
-
+def isurl(string : str):
+    return bool(re.match(r'^https?://[^\s]+', string))
 
 def fromseconds(s : float):
     """convert from a given time in `seconds` to an `hours`, `minutes`, `seconds` and `milliseconds` format"""

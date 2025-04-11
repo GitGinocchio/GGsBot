@@ -1,13 +1,17 @@
+from typing import Any, Callable, Coroutine
 from nextcord import Colour, HTTPException, Member, Message
-from nextcord.ui import Button, button
-from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji
-from wavelink import Playlist, Search, Playable, Player
+from nextcord.ui import Button, button, Modal, TextInput, Select
+from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji, TextInputStyle
+from wavelink import Playlist, Search, Playable, Player, TrackSource, QueueMode, AutoPlayMode
 from datetime import datetime, timedelta, timezone
 import traceback
+import asyncio
 
 from utils.abc import Page
+from utils.exceptions import GGsBotException
 from utils.system import getlogger
-from .MusicUtils import fromseconds
+from utils.emojis import *
+from .MusicUtils import fromseconds, isurl
 
 
 logger = getlogger()
@@ -74,8 +78,6 @@ class AddedToQueue(Page):
         
         self.add_field(name="Added by", value=f'{member.mention}', inline=False)
 
-
-
 class NoTracksFound(Page):
     def __init__(self, query : str):
         Page.__init__(self, timeout=0)
@@ -114,23 +116,37 @@ class UserPaused(Page):
         self.description = f"{user.mention} paused the current playing song."
         self.color = Colour.yellow()
 
+class AddModal(Modal):
+    def __init__(self, on_query_callback : Coroutine[Any, Any, None]):
+        Modal.__init__(self, "Add a track to the queue")
+        self.on_query_callback = on_query_callback
 
-#<:progress_bar_black:1358794186480156729>
-progress_bar_black = PartialEmoji(name="progress_bar_black",id=1358794186480156729)
-#<:progrees_bar_green:1358794140028113089>
-progress_bar_green = PartialEmoji(name="progress_bar_green", id=1358794140028113089)
-#<:skip_forward:1360005491182407921>
-skip_forward = PartialEmoji(name="skip_forward", id=1360005491182407921)
-#<:skip_back:1360005482533621980>
-skip_back = PartialEmoji(name="skip_back", id=1360005482533621980)
-#<:shuffle:1360005473671184434>
-shuffle = PartialEmoji(name="shuffle", id=1360005473671184434)
-#<:play:1360005439378685992>
-play = PartialEmoji(name="play", id=1360005439378685992)
-#<:pause:1360005404054261772>
-pause = PartialEmoji(name="pause", id=1360005404054261772)
+        self.query = TextInput(
+            label="Add tracks, playlists and albums to the queue",
+            placeholder="Name and URls are allowed",
+            style=TextInputStyle.short,
+            required=True
+        )
 
+        self.searchengine = TextInput(
+            label="Search engine for queries",
+            placeholder="YouTube, YouTubeMusic, SoundCloud or Spotify",
+            style=TextInputStyle.short,
+            default_value="Spotify",
+            required=True,
+            row=1
+        )
 
+        self.query.callback = self.callback
+
+        self.add_item(self.query)
+        self.add_item(self.searchengine)
+
+    async def callback(self, interaction: Interaction):
+        try:
+            asyncio.create_task(self.on_query_callback(interaction, self.query.value.strip(), self.searchengine.value.strip()))
+        except Exception as e:
+            logger.error(traceback.format_exc())
 
 class MiniPlayer(Page):
     def __init__(self, player : Player, message : Message):
@@ -143,19 +159,48 @@ class MiniPlayer(Page):
         self.player = player
         self.last_update : datetime = datetime.now(timezone.utc)
 
-        self.back_button = Button(style=ButtonStyle.grey, label="Back", emoji=skip_back, row=0, disabled=True)
-        self.back_button.callback = self.on_back
-        self.playpause_button = Button(style=ButtonStyle.grey, label="Play", emoji=play, row=0, disabled=True)
-        self.playpause_button.callback = self.on_play
-        self.next_button = Button(style=ButtonStyle.grey, label="Next", emoji=skip_forward, row=0, disabled=True)
-        self.next_button.callback = self.on_next
+        self.last_shuffle : datetime = None
+
+        # First row
+
         self.shuffle_button = Button(style=ButtonStyle.grey, label="Shuffle", emoji=shuffle, row=0, disabled=True)
         self.shuffle_button.callback = self.on_shuffle
+
+        self.repeat_button = Button(style=ButtonStyle.grey, label="Loop [no]", emoji=repeat, row=0, disabled=True)
+        self.repeat_button.callback = self.on_repeat
+
+        self.autoqueue_button = Button(style=ButtonStyle.grey, label="Autoqueue [disabled]", emoji=autoqueue_disabled, row=0, disabled=True)
+        self.autoqueue_button.callback = self.on_autoqueue
+
+        # Second row
+
+        self.add_button = Button(style=ButtonStyle.grey, label="Add", emoji=queue_add, row=1, disabled=False)
+        self.add_button.callback = self.on_add
+
+        self.queue_button = Button(style=ButtonStyle.grey, label="Queue", emoji=queue_list, row=1, disabled=False)
+        self.queue_button.callback = self.on_queue
+
+        # Third row
+
+        self.back_button = Button(style=ButtonStyle.grey, label="Back", emoji=skip_back, row=2, disabled=True)
+        self.back_button.callback = self.on_back
+        
+        self.playpause_button = Button(style=ButtonStyle.grey, label="Play", emoji=play, row=2, disabled=True)
+        self.playpause_button.callback = self.on_play
+        
+        self.next_button = Button(style=ButtonStyle.grey, label="Next", emoji=skip_forward, row=2, disabled=True)
+        self.next_button.callback = self.on_next
+
+        self.add_item(self.shuffle_button)
+        self.add_item(self.repeat_button)
+        self.add_item(self.autoqueue_button)
+
+        self.add_item(self.add_button)
+        self.add_item(self.queue_button)
 
         self.add_item(self.back_button)
         self.add_item(self.playpause_button)
         self.add_item(self.next_button)
-        self.add_item(self.shuffle_button)
 
 
     def _get_progress_bar(self, position: int, length: int, size: int = 10) -> str:
@@ -166,7 +211,7 @@ class MiniPlayer(Page):
 
     async def update_track(self, finished : bool = False):
         try:
-            #now = datetime.now(timezone.utc)
+            now = datetime.now(timezone.utc)
             
             #if self.last_update > now - timedelta(seconds=10):
                 #logger.debug(f'Cannot update track because it was updated within the last 10 seconds.')
@@ -179,7 +224,11 @@ class MiniPlayer(Page):
             self.back_button.disabled = not track
             self.playpause_button.disabled = not track
             self.next_button.disabled = not track
-            self.shuffle_button.disabled = not track
+            self.repeat_button.disabled = not track
+            self.autoqueue_button.disabled = not track
+
+            if (self.last_shuffle and self.last_shuffle < now - timedelta(minutes=1)) or not self.last_shuffle:
+                self.shuffle_button.disabled = not track
             
             self.playpause_button.label = "Pause" if track and self.player.playing else "Play"
             self.playpause_button.emoji = pause if track and self.player.playing else play
@@ -212,6 +261,118 @@ class MiniPlayer(Page):
         except Exception as e:
             logger.error(traceback.format_exc())
 
+    async def on_query(self, interaction : Interaction, query : str, searchengine : str):
+        try:
+
+            if searchengine in ['Youtube', 'YouTubeMusic', 'SoundCloud']:
+                searchengine = TrackSource[searchengine]
+            elif searchengine == "Spotify":
+                searchengine = "spsearch:"
+            else:
+                error = GGsBotException(
+                    title="Invalid Search Engine",
+                    description=f"{searchengine} is not a valid search engine.",
+                    suggestions=f"Please use one of the following: {','.join(source.name for source in TrackSource) + ',Spotify'}"
+                )
+
+                await interaction.followup.send(embed=error.asEmbed(), ephemeral=True)
+                return
+
+            if not isurl(query):
+                searchengine = "spsearch:"
+            else:
+                searchengine = TrackSource.YouTubeMusic
+
+            tracks : Playlist | list[Playable] = await Playable.search(query, source=searchengine)
+
+            if isinstance(tracks, list) and len(tracks) == 0:
+                await interaction.followup.send(embed=NoTracksFound(query), delete_after=5, ephemeral=True)
+                return
+
+            await self.player.queue.put_wait(tracks)
+
+            if not self.player.playing:
+                await self.player.pause(False)
+                next_song = self.player.queue.get()
+                await self.player.play(next_song, volume=30)
+
+            if isinstance(tracks, Playlist):
+                embed = AddedToQueue(tracks, interaction.user)
+            else:
+                embed = AddedToQueue(tracks[0], interaction.user)
+
+            await interaction.followup.send(embed=embed, delete_after=5, ephemeral=True)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    # First row
+
+    async def on_queue(self, interaction : Interaction):
+        try:
+            pass
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    async def on_add(self, interaction : Interaction):
+        try:
+            modal = AddModal(self.on_query)
+            await interaction.response.send_modal(modal)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    # Second row
+
+    async def on_shuffle(self, interaction : Interaction):
+        try:
+            self.player.queue.shuffle()
+
+            self.shuffle_button.disabled = True
+            self.last_shuffle = datetime.now(timezone.utc)
+
+            await self.message.edit(embed=self, view=self)
+
+            page = UserShuffled(interaction.user)
+
+            await interaction.response.send_message(embed=page, view=page, ephemeral=True, delete_after=5)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    async def on_repeat(self, interaction : Interaction):
+        try:
+            if self.player.queue.mode == QueueMode.normal:
+                self.player.queue.mode = QueueMode.loop
+                self.repeat_button.emoji = repeat_enabled
+                self.repeat_button.label = "Loop [song]"
+            elif self.player.queue.mode == QueueMode.loop:
+                self.player.queue.mode = QueueMode.loop_all
+                self.repeat_button.emoji = infinity
+                self.repeat_button.label = "Loop [queue]"
+            else:
+                self.player.queue.mode = QueueMode.normal
+                self.repeat_button.emoji = repeat
+                self.repeat_button.label = "Loop [no]"
+
+            await self.message.edit(embed=self, view=self)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    async def on_autoqueue(self, interaction : Interaction):
+        try:
+            if self.player.autoplay == AutoPlayMode.disabled:
+                self.player.autoplay = AutoPlayMode.enabled
+                self.autoqueue_button.emoji = autoqueue
+                self.autoqueue_button.label = "Autoqueue [enabled]"
+            elif self.player.autoplay == AutoPlayMode.enabled:
+                self.player.autoplay = AutoPlayMode.disabled
+                self.autoqueue_button.emoji = autoqueue_disabled
+                self.autoqueue_button.label = "Autoqueue [disabled]"
+
+            await self.message.edit(embed=self, view=self)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    # Third row
+
     async def on_back(self, interaction : Interaction):
         try:
             if not self.player.queue.history: return
@@ -243,6 +404,3 @@ class MiniPlayer(Page):
             await self.player.skip()
         except Exception as e:
             logger.error(traceback.format_exc())
-
-    async def on_shuffle(self, interaction : Interaction):
-        pass
