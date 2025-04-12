@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Exceptions",
+    "type": ["object"],
+    "patternProperties": {
+      "schema" : {
+        "type" : "string"
+      },
+      ".+": {
+        "type": "object",
+        "required": ["default"],
+        "properties": {
+          "default": {
+            "type": "object",
+            "required": ["title", "description", "suggestions"],
+            "properties": {
+              "title": {"type": "string"},
+              "description": {"type": "string"},
+              "suggestions": {"type": ["string", "null"]}
+            }
+          },
+          ".+": {
+            "$ref": "#/definitions/exception"
+          }
+        }
+      }
+    },
+    "definitions": {
+      "exception": {
+        "type": "object",
+        "required": ["title", "description", "suggestions"],
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "suggestions": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }

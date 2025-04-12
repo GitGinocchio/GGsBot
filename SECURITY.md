@@ -2,20 +2,18 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+>[!WARNING]
+> For now there are not releases so you can find the latest stable version of GGsBot in the main branch
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version           | Supported          |
+| -------           | ------------------ |
+|  main branch      | :white_check_mark: |
+|  other branches   | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you find a vulnerability in GGsBot, please report it. 
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+You can do this by creating an [issue](https://github.com/GitGinocchio/GGsBot/issues/new/choose).
+
+Please provide as much information as possible about the vulnerability, including:

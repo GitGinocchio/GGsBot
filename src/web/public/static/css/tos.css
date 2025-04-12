@@ -1,0 +1,28 @@
+body {
+    /* font-family: Arial, sans-serif; */
+    /* background-color: var(--primary-background-color); */
+    /* line-height: 1.6; */
+}
+
+.tos-content {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+}
+
+.tos-content h1, h2 {
+    color: #2c3e50;
+}
+.tos-content h3, h4 {
+    color: #34495e;
+}
+.tos-content p, li {
+    color: #555;
+}
+.tos-content ul {
+    margin-top: 10px;
+}
+.tos-content ul li {
+    margin-bottom: 5px;
+}
