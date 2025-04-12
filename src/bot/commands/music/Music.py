@@ -115,7 +115,7 @@ class Music(commands.Cog):
                     retries=3
                 )
                 nodes.append(node)
-                break
+                #break
 
             await Pool.connect(nodes=nodes, client=self.bot, cache_capacity=100)
         except Exception as e:
@@ -307,8 +307,7 @@ class Music(commands.Cog):
             else:
                 page = AddedToQueue(tracks[0], interaction.user)
 
-            await interaction.delete_original_message()
-            await interaction.channel.send(embed=page)
+            await interaction.followup.send(embed=page, ephemeral=True, delete_after=5)
 
             if not player.playing:
                 if player.paused: await player.pause(False)
@@ -324,7 +323,7 @@ class Music(commands.Cog):
             queryurl : str = SlashOption("queryurl", "Query or URL of the song or playlist you want to add", required=True),
             searchengine = SlashOption(
                 description="Search engine to use for the query (default: Youtube)", 
-                choices={"Youtube" : str(TrackSource.YouTube.value),"Youtube Music" : str(TrackSource.YouTubeMusic.value),"Soundcloud" : str(TrackSource.SoundCloud.value), "Spotify" : "spsearch"},
+                choices={"Youtube" : str(TrackSource.YouTube.value),"Youtube Music" : str(TrackSource.YouTubeMusic.value),"Soundcloud" : str(TrackSource.SoundCloud.value), "Spotify" : "spsearch:"},
                 default=str(TrackSource.YouTube.value)
             ),
             shuffle : bool = SlashOption(
@@ -358,8 +357,7 @@ class Music(commands.Cog):
             else:
                 page = AddedToQueue(tracks[0], interaction.user)
 
-            await interaction.delete_original_message()
-            await interaction.channel.send(embed=page)
+            await interaction.followup.send(embed=page, ephemeral=True, delete_after=5)
 
             if not player.playing:
                 if player.paused: await player.pause(False)
@@ -409,9 +407,8 @@ class Music(commands.Cog):
                 for track in set(filter(lambda track: track.playlist == current.playlist, player.queue)):
                     player.queue.remove(track, None)
 
-            await interaction.delete_original_message()
             page = UserSkipped(interaction.user, current.playlist if playlist and current.playlist else current)
-            await player.channel.send(embed=page)
+            await interaction.followup.send(embed=page, ephemeral=True, delete_after=5)
 
             await player.skip()
         except GGsBotException as e:
@@ -440,8 +437,7 @@ class Music(commands.Cog):
             player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             player.queue.shuffle()
 
-            await interaction.delete_original_message()
-            await player.channel.send(embed=UserShuffled(interaction.user))
+            await interaction.followup.send(embed=UserShuffled(interaction.user), ephemeral=True, delete_after=5)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
@@ -476,8 +472,7 @@ class Music(commands.Cog):
             
             await player.pause(True)
 
-            await interaction.delete_original_message()
-            await player.channel.send(embed=UserPaused(interaction.user))
+            await interaction.followup.send(embed=UserPaused(interaction.user), ephemeral=True, delete_after=5)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:
@@ -513,8 +508,7 @@ class Music(commands.Cog):
             player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             await player.pause(False)
 
-            await interaction.delete_original_message()
-            await player.channel.send(embed=UserResumed(interaction.user))
+            await interaction.followup.send(embed=UserResumed(interaction.user), ephemeral=True, delete_after=5)
         except GGsBotException as e:
             await interaction.followup.send(embed=e.asEmbed())
         except Exception as e:

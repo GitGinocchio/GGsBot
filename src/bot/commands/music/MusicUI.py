@@ -2,7 +2,7 @@ from typing import Any, Callable, Coroutine
 from nextcord import Colour, HTTPException, Member, Message
 from nextcord.ui import Button, button, Modal, TextInput, Select
 from nextcord import ButtonStyle, Interaction, Emoji, PartialEmoji, TextInputStyle
-from wavelink import Playlist, Search, Playable, Player, TrackSource, QueueMode, AutoPlayMode
+from wavelink import LavalinkLoadException, Playlist, Search, Playable, Player, TrackSource, QueueMode, AutoPlayMode
 from datetime import datetime, timedelta, timezone
 import traceback
 import asyncio
@@ -202,7 +202,6 @@ class MiniPlayer(Page):
         self.add_item(self.playpause_button)
         self.add_item(self.next_button)
 
-
     def _get_progress_bar(self, position: int, length: int, size: int = 10) -> str:
         progress_ratio = position / length
         filled_blocks = round(progress_ratio * size)
@@ -263,7 +262,6 @@ class MiniPlayer(Page):
 
     async def on_query(self, interaction : Interaction, query : str, searchengine : str):
         try:
-
             if searchengine in ['Youtube', 'YouTubeMusic', 'SoundCloud']:
                 searchengine = TrackSource[searchengine]
             elif searchengine == "Spotify":
@@ -277,11 +275,6 @@ class MiniPlayer(Page):
 
                 await interaction.followup.send(embed=error.asEmbed(), ephemeral=True)
                 return
-
-            if not isurl(query):
-                searchengine = "spsearch:"
-            else:
-                searchengine = TrackSource.YouTubeMusic
 
             tracks : Playlist | list[Playable] = await Playable.search(query, source=searchengine)
 
@@ -302,6 +295,8 @@ class MiniPlayer(Page):
                 embed = AddedToQueue(tracks[0], interaction.user)
 
             await interaction.followup.send(embed=embed, delete_after=5, ephemeral=True)
+        except LavalinkLoadException as e:
+            await interaction.followup.send(embed=GGsBotException.formatException(e).asEmbed(), ephemeral=True)
         except Exception as e:
             logger.error(traceback.format_exc())
 
@@ -341,11 +336,11 @@ class MiniPlayer(Page):
         try:
             if self.player.queue.mode == QueueMode.normal:
                 self.player.queue.mode = QueueMode.loop
-                self.repeat_button.emoji = repeat_enabled
+                self.repeat_button.emoji = infinity
                 self.repeat_button.label = "Loop [song]"
             elif self.player.queue.mode == QueueMode.loop:
                 self.player.queue.mode = QueueMode.loop_all
-                self.repeat_button.emoji = infinity
+                self.repeat_button.emoji = repeat_enabled
                 self.repeat_button.label = "Loop [queue]"
             else:
                 self.player.queue.mode = QueueMode.normal
