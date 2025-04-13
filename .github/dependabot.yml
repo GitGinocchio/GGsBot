@@ -6,12 +6,11 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/"  # Location of requirements.txt
+    directory: "/"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "pip"
-    directory: "/"  # Location of dev_requirements.txt
-    requirements-file: "dev_requirements.txt"
+    directory: "/.dev"
     schedule:
       interval: "daily"
