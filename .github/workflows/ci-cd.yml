@@ -87,27 +87,27 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Run python-semantic-release
+        uses: python-semantic-release/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit: true
+          tag: true
+          push: true
+          changelog: true
+
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
           name: docker-image
 
-      - name: Run python-semantic-release
-        uses: python-semantic-release/python-semantic-release@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit: false
-          tag: true
-          push: false
-          changelog: true
-
-      #- name: Tag Docker image with version
-        #run: |
-          #docker load -i ./ggsbot.tar
-          #docker tag ggsbot:latest ggsbot:${{ steps.semantic_release.outputs.version }}
+      - name: Tag Docker image with version
+        run: |
+          docker load -i ./ggsbot.tar
+          docker tag ggsbot:latest ggsbot:${{ steps.semantic_release.outputs.tag }}
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: ./ggsbot.tar
-          tag_name: ${{ steps.semantic_release.outputs.version }}
+          tag_name: ${{ steps.semantic_release.outputs.tag }}
