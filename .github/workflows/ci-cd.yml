@@ -91,10 +91,18 @@ jobs:
         uses: python-semantic-release/python-semantic-release@master
         with:
           github_token: ${{ secrets.RELEASE_TOKEN }}
-          commit: true
+          commit: false
           tag: true
-          push: true
+          push: false
           changelog: true
+
+      - name: Push changes to main branch
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -am "Release version ${{ steps.semantic_release.outputs.version }}"
+          git push origin main
+        
 
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
