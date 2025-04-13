@@ -46,7 +46,7 @@ jobs:
     
       - name: Test with pytest
         run: |
-          export CONFIG_PATH=$(pwd)/src/config/config.test.jsonc
+          export CONFIG_PATH=$(pwd)/config/config.test.jsonc
           export PYTHONPATH=$(pwd)/src
           pytest -v ./tests/
 
