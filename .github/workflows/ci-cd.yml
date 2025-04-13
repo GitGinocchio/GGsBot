@@ -46,7 +46,8 @@ jobs:
     
       - name: Test with pytest
         run: |
-          set PYTHONPATH=src && pytest -v ./tests/
+          export PYTHONPATH=$(pwd)/src
+          pytest -v ./tests/
 
   build:
     runs-on: ubuntu-latest
