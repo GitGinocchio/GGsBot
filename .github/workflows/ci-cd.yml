@@ -7,8 +7,8 @@ name: Continous Integration and Deployment (CI/CD)
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  #pull_request:
+    #branches: [ "main" ]
 
 permissions:
   contents: read

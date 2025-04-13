@@ -1,10 +1,10 @@
 name: Python Check Packages Conflicts
 
 on:
-    push:
-        branches: [ "main" ]
+    #push:
+      #branches: [ "main" ]
     pull_request:
-        branches: [ "main" ]
+      branches: [ "main" ]
 
 jobs:
   check-packages-conficts:
