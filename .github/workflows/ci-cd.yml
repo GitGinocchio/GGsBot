@@ -101,6 +101,10 @@ jobs:
         with:
           name: docker-image
 
+      - name: Debug tag value
+        run: |
+          echo "Tag value: ${{ steps.semantic_release.outputs.tag }}"
+
       - name: Tag Docker image with version
         run: |
           docker load -i ./ggsbot.tar
