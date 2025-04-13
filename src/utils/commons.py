@@ -6,6 +6,7 @@ from logging import Logger
 from enum import StrEnum
 import traceback
 import aiohttp
+import re
 import os
 
 from .terminal import F
@@ -64,7 +65,13 @@ def hex_to_colour(hex : str) -> Colour:
 sessions : dict[str, aiohttp.ClientSession] = {}
 
 def getbaseurl(url : str):
-    return (splitted_url:=url.split('/'))[0] + '//' + splitted_url[2]
+    match = re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://[^/?#]+(?::\d+)?', url)
+    if match:
+        return match.group(0)
+   
+    # fallback per URL senza schema (es. www.example.com/...)
+    match = re.match(r'^[^/?#]+', url)
+    return match.group(0) if match else url
 
 def getsession(url : str, **kwargs):
     base_url = getbaseurl(url)
