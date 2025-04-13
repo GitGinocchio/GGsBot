@@ -64,19 +64,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Build and Save Docker image as tar
         run: |
           docker build -t ggsbot:latest .
-
-      - name: Save Docker image as tar
-        run: |
           docker save ggsbot:latest -o ggsbot.tar
 
-      - name: Upload Docker image to release
-        uses: softprops/action-gh-release@v2
+      - name: Save Docker image as an artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: latest
-          files: ggsbot.tar
+          name: docker-image
+          path: ggsbot.tar
 
   release:
     runs-on: ubuntu-latest
@@ -87,15 +84,34 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run python-semantic-release
         uses: python-semantic-release/python-semantic-release@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit: true
+          github_token: ${{ secrets.RELEASE_TOKEN }}
+          commit: false
           tag: true
-          push: true
+          push: false
           changelog: true
 
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
 
+      - name: Debug tag value
+        run: |
+          echo "Tag value: ${{ steps.semantic_release.outputs.tag }}"
 
+      - name: Tag Docker image with version
+        run: |
+          docker load -i ./ggsbot.tar
+          docker tag ggsbot:latest ggsbot:${{ steps.semantic_release.outputs.tag }}
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./ggsbot.tar
+          tag_name: ${{ steps.semantic_release.outputs.tag }}
