@@ -101,10 +101,10 @@ jobs:
           push: false
           changelog: true
 
-      - name: Tag Docker image with version
-        run: |
-          docker load -i ./ggsbot.tar
-          docker tag ggsbot:latest ggsbot:${{ steps.semantic_release.outputs.version }}
+      #- name: Tag Docker image with version
+        #run: |
+          #docker load -i ./ggsbot.tar
+          #docker tag ggsbot:latest ggsbot:${{ steps.semantic_release.outputs.version }}
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
