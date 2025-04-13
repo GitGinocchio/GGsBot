@@ -46,7 +46,7 @@ jobs:
     
       - name: Test with pytest
         run: |
-          pytest
+          set PYTHONPATH=src && pytest -v ./tests/
 
   build:
     runs-on: ubuntu-latest
