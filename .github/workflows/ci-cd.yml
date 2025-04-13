@@ -90,7 +90,7 @@ jobs:
       - name: Run python-semantic-release
         uses: python-semantic-release/python-semantic-release@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           commit: true
           tag: true
           push: true
