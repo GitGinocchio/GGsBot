@@ -78,12 +78,14 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
     needs:
       - test
       - build
+      
 
     steps:
       - name: Set up Docker Buildx
@@ -152,7 +154,7 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           commit: true
           tag: false
-          push: false
+          push: true
           changelog: true
 
       #- name: Create a New Branch for Version Update
