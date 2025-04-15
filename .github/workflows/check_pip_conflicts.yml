@@ -1,6 +1,8 @@
 name: Check Python Dependency Conflicts
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
