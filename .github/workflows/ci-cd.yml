@@ -154,7 +154,7 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           commit: true
           tag: false
-          push: true
+          push: false
           changelog: true
          
       - name: Create a New Branch for Version Update
