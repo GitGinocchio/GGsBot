@@ -96,10 +96,6 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
-  
-      - name: Force release branch to be at workflow SHA
-        run: |
-          git reset --hard ${{ github.sha }}
 
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
@@ -107,43 +103,12 @@ jobs:
           name: docker-image
 
       - name: Verify upstream has NOT changed
-        # Last chance to abort before causing an error as another PR/push was applied to
-        # the upstream branch while this workflow was running. This is important
-        # because we are committing a version change (--commit). You may omit this step
-        # if you have 'commit: false' in your configuration.
-        #
-        # You may consider moving this to a repo script and call it from this step instead
-        # of writing it in-line.
-        shell: bash
         run: |
-          set +o pipefail
-
-          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
-          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
-
-          set -o pipefail
-
-          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
-              exit 1
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "::error::main branch has changed during CI, aborting release."
+            exit 1
           fi
-
-          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
-
-          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
-              exit 1
-          fi
-
-          HEAD_SHA="$(git rev-parse HEAD)"
-
-          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
-              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
-              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
-              exit 1
-          fi
-
-          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
 
       - name: Semantic Version Release
         id: release
@@ -154,29 +119,8 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           commit: true
           tag: false
-          push: true
+          push: false
           changelog: true
-
-      - name: Create a New Branch for Version Update
-        run: |
-          git checkout -b release-version-${{ steps.release.outputs.tag }}
-          git add .
-          git commit -m "Release version ${{ steps.release.outputs.tag }}"
-          git push origin release-version-${{ steps.release.outputs.tag }}
-
-      - name: Create Pull Request for Release
-        uses: peter-evans/create-pull-request@v3
-        with:
-          title: "Release Version ${{ steps.release.outputs.tag }}"
-          body: "This PR contains the version update for ${{ steps.release.outputs.tag }}."
-          base: main
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Merge Pull Request
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} --merge --auto
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Tag Docker image with version
         if: steps.release.outputs.released == 'true'
