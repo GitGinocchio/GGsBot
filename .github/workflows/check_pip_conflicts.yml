@@ -23,8 +23,8 @@ jobs:
 
       - name: Check for conflicts in requirements.txt
         run: |
-          if [ -f requirements.txt ]; then pipgrip -r requirements.txt --dry-run; fi
+          if [ -f requirements.txt ]; then pipgrip -r requirements.txt; fi
 
       - name: Check for conflicts in .dev/requirements.txt
         run: |
-          if [ -f ./.dev/requirements.txt ]; then pipgrip -r ./.dev/requirements.txt --dry-run; fi
+          if [ -f ./.dev/requirements.txt ]; then pipgrip -r ./.dev/requirements.txt; fi
