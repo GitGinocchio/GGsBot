@@ -5,8 +5,10 @@ name: Continous Integration and Deployment (CI/CD)
 
 
 on:
-  push:
+  pull_request:
+    types: [ closed ]
     branches: [ "main" ]
+
 
 permissions:
   id-token: write
@@ -149,9 +151,24 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
           commit: true
-          tag: true
-          push: true
+          tag: false
+          push: false
           changelog: true
+
+      #- name: Create a New Branch for Version Update
+        #run: |
+          #git checkout -b release-version-${{ steps.release.outputs.tag }}
+          #git add .
+          #git commit -m "Release version ${{ steps.release.outputs.tag }}"
+          #git push origin release-version-${{ steps.release.outputs.tag }}
+
+      #- name: Create Pull Request for Release
+        #uses: peter-evans/create-pull-request@v3
+        #with:
+          #title: "Release Version ${{ steps.release.outputs.tag }}"
+          #body: "This PR contains the version update for ${{ steps.release.outputs.tag }}."
+          #base: main
+          #token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag Docker image with version
         if: steps.release.outputs.released == 'true'
