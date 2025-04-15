@@ -3,6 +3,6 @@ version_variable = "src/__init__.py:__version__"
 version_source = "tag"
 branch = "main"
 upload_to_pypi = false
-upload_to_release = true
+upload_to_release = false
 changelog_file = "CHANGELOG.md"
 commit_author = "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
