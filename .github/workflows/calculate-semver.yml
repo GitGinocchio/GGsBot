@@ -1,0 +1,27 @@
+name: Semantic Version Release on PR Commit
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency:
+        group: ${{ github.workflow }}-calculate-semver-${{ github.ref_name }}
+        cancel-in-progress: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
+      - name: Semantic Version Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.RELEASE_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+          commit: true
+          tag: false
+          push: true
+          changelog: true
