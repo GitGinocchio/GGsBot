@@ -5,16 +5,16 @@ on:
     branches: [ "main" ]
 
 jobs:
-  release:
+  calculate-semver:
     runs-on: ubuntu-latest
     concurrency:
-        group: ${{ github.workflow }}-calculate-semver-${{ github.ref_name }}
+        group: ${{ github.workflow }}-calculate-semver-${{ github.head_ref }}
         cancel-in-progress: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
         
       - name: Semantic Version Release
