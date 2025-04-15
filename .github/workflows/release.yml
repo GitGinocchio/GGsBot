@@ -1,0 +1,31 @@
+name: Setup a new release
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  issues: write
+  packages: write
+  pull-requests: write
+
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run python-semantic-release
+        uses: python-semantic-release/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.RELEASE_TOKEN }}
+          commit: true
+          tag: true
+          push: true
+          changelog: true
+
