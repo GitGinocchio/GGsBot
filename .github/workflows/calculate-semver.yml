@@ -1,4 +1,4 @@
-name: Semantic Version Release on PR Commit
+name: Semantic Version Calculation
 
 on:
   pull_request:
@@ -12,7 +12,10 @@ jobs:
         cancel-in-progress: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
         
       - name: Semantic Version Release
         id: release
