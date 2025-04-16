@@ -36,6 +36,7 @@ jobs:
 
   test:
     if: startsWith(github.ref_name, 'release/')
+
     runs-on: ubuntu-latest
     needs: semver
 
