@@ -5,3 +5,6 @@ upload_to_pypi = false
 upload_to_release = false
 changelog_file = "CHANGELOG.md"
 commit_author = "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+[tool.semantic_release.branches.main]
+match = "release"
