@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## v0.0.0 (2025-04-15)
+
+## v0.0.0 (2025-04-16)
 
 ### Build System
 
@@ -46,13 +47,25 @@
   ([`6205a73`](https://github.com/GitGinocchio/GGsBot/commit/6205a73e56b4221b10bc612bceed57856024f0a9))
 
 - Test
+  ([`29fb29f`](https://github.com/GitGinocchio/GGsBot/commit/29fb29f08eda1643d0ab70861f1050db90eaed7e))
+
+- Test
+  ([`24a2e07`](https://github.com/GitGinocchio/GGsBot/commit/24a2e07daa55fd24fda592d2fc0c373aabd5ef24))
+
+- Test
   ([`60fc7e5`](https://github.com/GitGinocchio/GGsBot/commit/60fc7e5061b4e31719d138146ac77192a8f75d8b))
+
+- Test
+  ([`6a73407`](https://github.com/GitGinocchio/GGsBot/commit/6a734075d6582c02c30afe7cb3bf3f30581ef182))
 
 - Test
   ([`3bec180`](https://github.com/GitGinocchio/GGsBot/commit/3bec180439e29d3833dc3a6c1045b8dd5ae55ec3))
 
 - Test
   ([`012a113`](https://github.com/GitGinocchio/GGsBot/commit/012a1132344a6f1437fbdbf661cc8b89f838fbfc))
+
+- Test
+  ([`3be3471`](https://github.com/GitGinocchio/GGsBot/commit/3be3471d3bbc36d48278dce49151e3007ece05fe))
 
 - Test ([#149](https://github.com/GitGinocchio/GGsBot/pull/149),
   [`187dcb5`](https://github.com/GitGinocchio/GGsBot/commit/187dcb5d416d83af6bb61d29634bb2c768ab0e81))
@@ -69,6 +82,12 @@
 
 - Test with semantic versioning
   ([`8d9bafa`](https://github.com/GitGinocchio/GGsBot/commit/8d9bafac6b926263e75b52d75b261d89a6690bb3))
+
+- Tests
+  ([`e475ddf`](https://github.com/GitGinocchio/GGsBot/commit/e475ddf492a559062cc5859a709dd470d650dd0d))
+
+- Tests
+  ([`e0663d6`](https://github.com/GitGinocchio/GGsBot/commit/e0663d683a82fd3f7f4ff31ddf92299e0251555a))
 
 - Upload artifact fixes (maybe)
   ([`6bd4060`](https://github.com/GitGinocchio/GGsBot/commit/6bd40605554ce11a09f450f33125a4c3cfb7d388))
