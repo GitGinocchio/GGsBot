@@ -1,0 +1,43 @@
+name: Calculate Semantic Version
+
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+
+jobs:
+  calculate-semver:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-semver-${{ github.head_ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install python-semantic-release
+
+      - name: Run semantic-release (with changelog and version bump)
+        run: semantic-release version --changelog --no-vcs-release
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -m "chore: update version and changelog"
+          git push origin ${{ github.head_ref }}
+
