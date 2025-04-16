@@ -114,12 +114,12 @@ jobs:
           #docker load -i ./ggsbot.tar
           #docker tag ggsbot:latest ggsbot:${{ steps.release.outputs.tag }}
 
-      - name: Create GitHub Release
+      #- name: Create GitHub Release
         #if: steps.release.outputs.released == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./ggsbot.tar
-          tag_name: ${{ steps.release.outputs.tag }}
+        #uses: softprops/action-gh-release@v2
+        #with:
+          #files: ./ggsbot.tar
+          #tag_name: ${{ steps.release.outputs.tag }}
 
       - name: Create GitHub Pull Request
         if: steps.release.outputs.released == 'true'
