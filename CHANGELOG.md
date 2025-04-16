@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.0.0 (2025-04-16)
+## v0.1.0 (2025-04-16)
 
 ### Build System
 
@@ -99,3 +99,8 @@
 
 - Readme.md
   ([`6092d73`](https://github.com/GitGinocchio/GGsBot/commit/6092d736ebfce0941eb588a02e07ff01733a0dff))
+
+### Features
+
+- Fake feature
+  ([`e13094a`](https://github.com/GitGinocchio/GGsBot/commit/e13094aea4a6e10a63bd929e51ec29b12144466f))
