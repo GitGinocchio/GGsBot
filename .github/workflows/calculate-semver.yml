@@ -30,6 +30,6 @@ jobs:
       - name: Install dependencies
         run: pip install python-semantic-release
 
-      - name: Run semantic-release (with changelog and version bump)
-        run: semantic-release version --changelog --no-vcs-release
+      - name: Bump version and update changelog
+        run: semantic-release version --changelog --no-vcs-release --no-tag
 
