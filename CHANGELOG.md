@@ -3,6 +3,31 @@
 
 ## v0.1.0 (2025-04-16)
 
+### Continuous Integration
+
+- Test
+  ([`ca8e615`](https://github.com/GitGinocchio/GGsBot/commit/ca8e615b4370eaa2685c504acbe4a5de1b6c52f6))
+
+- Test
+  ([`29fb29f`](https://github.com/GitGinocchio/GGsBot/commit/29fb29f08eda1643d0ab70861f1050db90eaed7e))
+
+- Test
+  ([`24a2e07`](https://github.com/GitGinocchio/GGsBot/commit/24a2e07daa55fd24fda592d2fc0c373aabd5ef24))
+
+### Features
+
+- Another fake feature
+  ([`4130798`](https://github.com/GitGinocchio/GGsBot/commit/4130798cffed5f2f1a8b3911727eacc3c6f54730))
+
+- Fake feature
+  ([`e13094a`](https://github.com/GitGinocchio/GGsBot/commit/e13094aea4a6e10a63bd929e51ec29b12144466f))
+
+
+## v0.0.1 (2025-04-15)
+
+
+## v0.0.0 (2025-04-15)
+
 ### Build System
 
 - Changed python image version
@@ -45,15 +70,6 @@
 
 - Temporary quick fix
   ([`6205a73`](https://github.com/GitGinocchio/GGsBot/commit/6205a73e56b4221b10bc612bceed57856024f0a9))
-
-- Test
-  ([`ca8e615`](https://github.com/GitGinocchio/GGsBot/commit/ca8e615b4370eaa2685c504acbe4a5de1b6c52f6))
-
-- Test
-  ([`29fb29f`](https://github.com/GitGinocchio/GGsBot/commit/29fb29f08eda1643d0ab70861f1050db90eaed7e))
-
-- Test
-  ([`24a2e07`](https://github.com/GitGinocchio/GGsBot/commit/24a2e07daa55fd24fda592d2fc0c373aabd5ef24))
 
 - Test
   ([`60fc7e5`](https://github.com/GitGinocchio/GGsBot/commit/60fc7e5061b4e31719d138146ac77192a8f75d8b))
@@ -102,11 +118,3 @@
 
 - Readme.md
   ([`6092d73`](https://github.com/GitGinocchio/GGsBot/commit/6092d736ebfce0941eb588a02e07ff01733a0dff))
-
-### Features
-
-- Another fake feature
-  ([`4130798`](https://github.com/GitGinocchio/GGsBot/commit/4130798cffed5f2f1a8b3911727eacc3c6f54730))
-
-- Fake feature
-  ([`e13094a`](https://github.com/GitGinocchio/GGsBot/commit/e13094aea4a6e10a63bd929e51ec29b12144466f))
