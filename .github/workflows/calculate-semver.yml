@@ -33,11 +33,3 @@ jobs:
       - name: Run semantic-release (with changelog and version bump)
         run: semantic-release version --changelog --no-vcs-release
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -u
-          git commit -m "chore: update version and changelog"
-          git push origin ${{ github.head_ref }}
-
