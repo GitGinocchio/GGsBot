@@ -95,6 +95,7 @@ jobs:
           if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
             echo "::error::main branch has changed during CI, aborting release."
             exit 1
+          fi
 
       - name: Semantic Version Release
         id: release
