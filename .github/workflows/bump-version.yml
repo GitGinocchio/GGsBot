@@ -19,14 +19,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.12'
-
-      - name: Install python-semantic-release
-        run: pip install python-semantic-release
-
       - name: Semantic Version Release
         id: semver
         uses: python-semantic-release/python-semantic-release@v9.21.0
@@ -34,21 +26,24 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          commit: true
+          commit: false
           tag: false
           push: false
           changelog: true
           vcs_release: false
 
-      - name: Check if changes were made
+      - name: Commit updated files
         id: changes
         run: |
+          # Verifica se ci sono modifiche prima di procedere con il commit
           if git diff --quiet; then
-            echo "changed=false"
             echo "changed=false" >> $GITHUB_OUTPUT
           else
-            echo "changed=true"
             echo "changed=true" >> $GITHUB_OUTPUT
+            git config user.name "github-actions"
+            git config user.email "actions@users.noreply.github.com"
+            git add .
+            git commit -m "chore(release): bump version and update changelog"
           fi
 
       - name: Create Pull Request with changes
