@@ -10,9 +10,6 @@ on:
 jobs:
   calculate-semver:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-semver-${{ github.head_ref }}
-      cancel-in-progress: true
 
     steps:
       - name: Checkout PR branch
