@@ -1,8 +1,7 @@
 name: Continuous Integration and Deployment (CI/CD)
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
 
@@ -11,7 +10,6 @@ permissions:
   contents: write
   issues: write
   packages: write
-  pull-requests: write
 
 jobs:
   semver:
@@ -37,6 +35,7 @@ jobs:
         run: semantic-release version --changelog --no-vcs-release --no-tag
 
   test:
+    if: startsWith(github.ref, 'refs/heads/release/')
     runs-on: ubuntu-latest
     needs: semver
 
@@ -79,10 +78,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract Version
+        id: extract_version
+        run: |
+          VERSION=$(cat src/__init__.py | grep '__version__' | cut -d '"' -f 2)
+          echo "Version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+
       - name: Build and Save Docker image as tar
         run: |
-          docker build -t ggsbot:latest .
-          docker save ggsbot:latest -o ggsbot.tar
+          docker build -t ggsbot:${{ steps.extract_version.outputs.version }} .
+          docker save ggsbot:${{ steps.extract_version.outputs.version }} -o ggsbot.tar
 
       - name: Save Docker image as an artifact
         uses: actions/upload-artifact@v4
@@ -102,69 +108,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Checkout Repository on Release Branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 100
-
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
           name: docker-image
 
-      - name: Verify upstream has NOT changed
-        run: |
-          git fetch origin main
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-            echo "::error::main branch has changed during CI, aborting release."
-            exit 1
-          fi
-
-      - name: Semantic Version Release
-        id: release
-        uses: python-semantic-release/python-semantic-release@v9.21.0
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          git_committer_name: "github-actions"
-          git_committer_email: "actions@users.noreply.github.com"
-          commit: true
-          tag: false
-          push: true
-          changelog: true
-
-      #- name: Tag Docker image with version
-        #if: steps.release.outputs.released == 'true'
-        #run: |
-          #docker load -i ./ggsbot.tar
-          #docker tag ggsbot:latest ggsbot:${{ steps.release.outputs.tag }}
-
-      #- name: Create GitHub Release
-        #if: steps.release.outputs.released == 'true'
-        #uses: softprops/action-gh-release@v2
-        #with:
-          #files: ./ggsbot.tar
-          #tag_name: ${{ steps.release.outputs.tag }}
-
-      - name: Create GitHub Pull Request
-        if: steps.release.outputs.released == 'true'
-        uses: peter-evans/create-pull-request@v5
-        id: pull_request
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: merge release into main"
-          title: "chore: merge release branch into main"
-          body: |
-            This PR was automatically created by the CI after a release.
-          base: main
-          branch: release
-          labels: automerge
-          draft: false
-
-      - name: Enable Pull Request Automerge
-        if: steps.pull_request.outputs.pull-request-url != ''
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
-          merge-method: squash
+          files: ./ggsbot.tar
+          tag_name: ${{ needs.build.outputs.version }}

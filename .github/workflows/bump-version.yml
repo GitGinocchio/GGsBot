@@ -1,0 +1,72 @@
+name: Bump Version and Changelog
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.12'
+
+      - name: Install python-semantic-release
+        run: pip install python-semantic-release
+
+      - name: Semantic Version Release
+        id: semver
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+          commit: true
+          tag: false
+          push: false
+          changelog: true
+          vcs_release: false
+
+      - name: Check if changes were made
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request with changes
+        uses: peter-evans/create-pull-request@v6
+        if: steps.changes.outputs.changed == 'true'
+        id: pull_request
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(release): bump version and changelog"
+          title: "chore(release): bump version and changelog"
+          body: |
+            This PR was automatically created to update the version and changelog.
+          branch: release/${{ steps.semver.outputs.version }}
+          base: main
+          delete-branch: true
+
+      - name: Enable Pull Request Automerge
+        if: steps.pull_request.outputs.pull-request-url != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
+          merge-method: squash
