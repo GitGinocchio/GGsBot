@@ -102,5 +102,8 @@
 
 ### Features
 
+- Another fake feature
+  ([`4130798`](https://github.com/GitGinocchio/GGsBot/commit/4130798cffed5f2f1a8b3911727eacc3c6f54730))
+
 - Fake feature
   ([`e13094a`](https://github.com/GitGinocchio/GGsBot/commit/e13094aea4a6e10a63bd929e51ec29b12144466f))
