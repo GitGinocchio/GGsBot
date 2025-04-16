@@ -47,6 +47,9 @@
   ([`6205a73`](https://github.com/GitGinocchio/GGsBot/commit/6205a73e56b4221b10bc612bceed57856024f0a9))
 
 - Test
+  ([`ca8e615`](https://github.com/GitGinocchio/GGsBot/commit/ca8e615b4370eaa2685c504acbe4a5de1b6c52f6))
+
+- Test
   ([`29fb29f`](https://github.com/GitGinocchio/GGsBot/commit/29fb29f08eda1643d0ab70861f1050db90eaed7e))
 
 - Test
