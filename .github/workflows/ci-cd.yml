@@ -1,14 +1,8 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Continous Integration and Deployment (CI/CD)
-
+name: Continuous Integration and Deployment (CI/CD)
 
 on:
-  pull_request:
-    types: [ closed ]
-    branches: [ "main" ]
-
+  push:
+    branches: [ "release" ]
 
 permissions:
   id-token: write
@@ -23,31 +17,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-    
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v3
         with:
           python-version: "3.12"
-    
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-
           if [ -f ./.dev/requirements.txt ]; then pip install -r ./.dev/requirements.txt; fi
-
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Check dependencies conflicts
-        run: |
-          python -m pip check
-    
+        run: python -m pip check
+
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
+
       - name: Test with pytest
         run: |
           export CONFIG_PATH=$(pwd)/config/config.test.jsonc
@@ -78,14 +67,12 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
     needs:
       - test
       - build
-      
 
     steps:
       - name: Set up Docker Buildx
@@ -96,10 +83,6 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
-  
-      - name: Force release branch to be at workflow SHA
-        run: |
-          git reset --hard ${{ github.sha }}
 
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
@@ -107,86 +90,56 @@ jobs:
           name: docker-image
 
       - name: Verify upstream has NOT changed
-        # Last chance to abort before causing an error as another PR/push was applied to
-        # the upstream branch while this workflow was running. This is important
-        # because we are committing a version change (--commit). You may omit this step
-        # if you have 'commit: false' in your configuration.
-        #
-        # You may consider moving this to a repo script and call it from this step instead
-        # of writing it in-line.
-        shell: bash
         run: |
-          set +o pipefail
-
-          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
-          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
-
-          set -o pipefail
-
-          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
-              exit 1
-          fi
-
-          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
-
-          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
-              exit 1
-          fi
-
-          HEAD_SHA="$(git rev-parse HEAD)"
-
-          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
-              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
-              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
-              exit 1
-          fi
-
-          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "::error::main branch has changed during CI, aborting release."
+            exit 1
 
       - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
-          github_token: ${{ secrets.RELEASE_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
           commit: true
           tag: false
           push: true
           changelog: true
-         
-      - name: Create a New Branch for Version Update
-        run: |
-          git checkout -b release-version-${{ steps.release.outputs.tag }}
-          git add .
-          git commit -m "Release version ${{ steps.release.outputs.tag }}"
-          git push origin release-version-${{ steps.release.outputs.tag }}
 
-      - name: Create Pull Request for Release
-        uses: peter-evans/create-pull-request@v3
+      #- name: Tag Docker image with version
+        #if: steps.release.outputs.released == 'true'
+        #run: |
+          #docker load -i ./ggsbot.tar
+          #docker tag ggsbot:latest ggsbot:${{ steps.release.outputs.tag }}
+
+      #- name: Create GitHub Release
+        #if: steps.release.outputs.released == 'true'
+        #uses: softprops/action-gh-release@v2
+        #with:
+          #files: ./ggsbot.tar
+          #tag_name: ${{ steps.release.outputs.tag }}
+
+      - name: Create GitHub Pull Request
+        if: steps.release.outputs.released == 'true'
+        uses: peter-evans/create-pull-request@v5
+        id: pull_request
         with:
-          title: "Release Version ${{ steps.release.outputs.tag }}"
-          body: "This PR contains the version update for ${{ steps.release.outputs.tag }}."
-          base: main
           token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: merge release into main"
+          title: "chore: merge release branch into main"
+          body: |
+            This PR was automatically created by the CI after a release.
+          base: main
+          branch: release
+          labels: automerge
+          draft: false
 
-      - name: Merge Pull Request
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} --merge --auto
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-
-      - name: Tag Docker image with version
-        if: steps.release.outputs.released == 'true'
-        run: |
-          docker load -i ./ggsbot.tar
-          docker tag ggsbot:latest ggsbot:${{ steps.release.outputs.tag }}
-      
-      - name: Create GitHub Release
-        if: steps.release.outputs.released == 'true'
-        uses: softprops/action-gh-release@v2
+      - name: Enable Pull Request Automerge
+        if: steps.pull_request.outputs.pull-request-url != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          files: ./ggsbot.tar
-          tag_name: ${{ steps.release.outputs.tag }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
+          merge-method: squash
