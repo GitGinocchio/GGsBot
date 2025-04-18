@@ -23,6 +23,9 @@ freeze:
 clearpycache:
 	$(PYTHON) ./src/bot/.make/clearpycache.py
 
+test:
+	set PYTHONPATH=src && pytest -v ./tests/
+
 run:
 	cd .venv/Scripts && activate && cd ../.. && $(PYTHON) ./src/main.py
 
