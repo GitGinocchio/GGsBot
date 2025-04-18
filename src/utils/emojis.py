@@ -1,0 +1,16 @@
+from nextcord import PartialEmoji
+
+progress_bar_black =    PartialEmoji(name="progress_bar_black",     id=1358794186480156729)
+progress_bar_green =    PartialEmoji(name="progress_bar_green",     id=1358794140028113089)
+skip_forward =          PartialEmoji(name="skip_forward",           id=1360005491182407921)
+skip_back =             PartialEmoji(name="skip_back",              id=1360005482533621980)
+shuffle =               PartialEmoji(name="shuffle",                id=1360005473671184434)
+play =                  PartialEmoji(name="play",                   id=1360005439378685992)
+pause =                 PartialEmoji(name="pause",                  id=1360005404054261772)
+queue_add =             PartialEmoji(name="queue_add",              id=1360005463231561829)
+queue_list =            PartialEmoji(name="queue",                  id=1360005453966344454)
+repeat =                PartialEmoji(name="repeat",                 id=1360347728030339225)
+repeat_enabled =        PartialEmoji(name="repeat_enabled",         id=1360347939247095969)
+infinity =              PartialEmoji(name="infinity",               id=1360347752797835474)
+autoqueue =             PartialEmoji(name="autoqueue",              id=1360354243718156569)
+autoqueue_disabled =    PartialEmoji(name="autoqueue_disabled",     id=1360354363457147177)
