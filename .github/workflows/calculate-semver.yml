@@ -46,3 +46,7 @@ jobs:
             git commit -m "chore(release): bump version and update changelog"
             git push origin HEAD:${{ github.head_ref }}
           fi
+
+          # Trigger degli status check successivi
+          echo "Triggering status checks..."
+          gh pr comment ${{ github.event.pull_request.number }} --body "Triggering status checks..."
