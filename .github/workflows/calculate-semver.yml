@@ -1,0 +1,48 @@
+name: Continuous Integration and Deployment (CI/CD)
+
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  semver:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install python-semantic-release
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-semantic-release
+
+      - name: Run semantic-release to update version and changelog
+        run: |
+          semantic-release version --no-vcs-release --no-tag --no-push --changelog
+
+      - name: Commit updated files
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            git config user.name "github-actions"
+            git config user.email "actions@users.noreply.github.com"
+            git add .
+            git commit -m "chore(release): bump version and update changelog"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
