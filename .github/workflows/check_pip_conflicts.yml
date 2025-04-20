@@ -3,8 +3,14 @@ name: Check Python Dependency Conflicts
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - "requirements.txt"
+      - ".dev/requirements.txt"
   pull_request:
     branches: [ "main" ]
+    paths:
+      - "requirements.txt"
+      - ".dev/requirements.txt"
 
 jobs:
   dependency-conflict-check:
