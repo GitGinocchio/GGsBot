@@ -11,6 +11,9 @@
 ### Chores
 
 - **release**: Bump version and update changelog
+  ([`ac1e8a7`](https://github.com/GitGinocchio/GGsBot/commit/ac1e8a7761a4d03b637e391623be490a61f10f62))
+
+- **release**: Bump version and update changelog
   ([#157](https://github.com/GitGinocchio/GGsBot/pull/157),
   [`33f0979`](https://github.com/GitGinocchio/GGsBot/commit/33f0979b6ca495e1a9f1ea3eaf7b56dbca70e2a4))
 
@@ -56,6 +59,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Temporary quick fix
   ([`6205a73`](https://github.com/GitGinocchio/GGsBot/commit/6205a73e56b4221b10bc612bceed57856024f0a9))
+
+- Test
+  ([`e527858`](https://github.com/GitGinocchio/GGsBot/commit/e5278586401b26d8ef6eacaee43ff860714571f3))
 
 - Test
   ([`8ac1551`](https://github.com/GitGinocchio/GGsBot/commit/8ac155180fcb5f5885cfe96275737455a135ca75))
