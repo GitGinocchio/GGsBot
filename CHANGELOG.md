@@ -11,14 +11,26 @@
 ### Chores
 
 - **release**: Bump version and update changelog
-  ([`b22e3c6`](https://github.com/GitGinocchio/GGsBot/commit/b22e3c632a2d5b1fd766f98bf324653dfc9eea82))
-
-- **release**: Bump version and update changelog
-  ([`ac1e8a7`](https://github.com/GitGinocchio/GGsBot/commit/ac1e8a7761a4d03b637e391623be490a61f10f62))
-
-- **release**: Bump version and update changelog
   ([#157](https://github.com/GitGinocchio/GGsBot/pull/157),
   [`33f0979`](https://github.com/GitGinocchio/GGsBot/commit/33f0979b6ca495e1a9f1ea3eaf7b56dbca70e2a4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump version and update changelog
+  ([#165](https://github.com/GitGinocchio/GGsBot/pull/165),
+  [`622cb0b`](https://github.com/GitGinocchio/GGsBot/commit/622cb0bff2d9b0d78bdf40fb7a0b1c4351877c13))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump version and update changelog
+  ([#166](https://github.com/GitGinocchio/GGsBot/pull/166),
+  [`fb61300`](https://github.com/GitGinocchio/GGsBot/commit/fb61300fc414eb4be1a1bb03c2c2f31c0dec05f4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump version and update changelog
+  ([#167](https://github.com/GitGinocchio/GGsBot/pull/167),
+  [`75db0bd`](https://github.com/GitGinocchio/GGsBot/commit/75db0bd60422101b01db997b5f85658c8842b11e))
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
 
@@ -64,9 +76,6 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
   ([`6205a73`](https://github.com/GitGinocchio/GGsBot/commit/6205a73e56b4221b10bc612bceed57856024f0a9))
 
 - Test
-  ([`e527858`](https://github.com/GitGinocchio/GGsBot/commit/e5278586401b26d8ef6eacaee43ff860714571f3))
-
-- Test
   ([`8ac1551`](https://github.com/GitGinocchio/GGsBot/commit/8ac155180fcb5f5885cfe96275737455a135ca75))
 
 - Test
@@ -106,18 +115,6 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
   ([`6092d73`](https://github.com/GitGinocchio/GGsBot/commit/6092d736ebfce0941eb588a02e07ff01733a0dff))
 
 ### Features
-
-- Fake feat pt. 2
-  ([`cf46459`](https://github.com/GitGinocchio/GGsBot/commit/cf46459a680cc98250b287a01c64b617e3d5c09a))
-
-- Fake feat pt.3
-  ([`52d05d4`](https://github.com/GitGinocchio/GGsBot/commit/52d05d4f70a87f734180e2a2eba20732743ac1eb))
-
-- Fake feature
-  ([`0f6dfce`](https://github.com/GitGinocchio/GGsBot/commit/0f6dfcee9d200751cbcd7bcc0dd3f8271d48467a))
-
-- Fake feature
-  ([`1ecee19`](https://github.com/GitGinocchio/GGsBot/commit/1ecee19f7153281ded829756ee0806399708a93b))
 
 - Fake feature ([#162](https://github.com/GitGinocchio/GGsBot/pull/162),
   [`5b7e224`](https://github.com/GitGinocchio/GGsBot/commit/5b7e22499a992f5e7008091d3fca515231890b2e))
