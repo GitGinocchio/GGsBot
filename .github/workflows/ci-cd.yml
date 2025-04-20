@@ -3,7 +3,6 @@ name: Continuous Integration and Deployment (CI/CD)
 on:
   push:
     branches: [ main ]
-    branches-ignore: [ 'release/*' ]
 
 permissions:
   id-token: write
