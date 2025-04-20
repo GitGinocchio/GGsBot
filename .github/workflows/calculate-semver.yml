@@ -1,4 +1,4 @@
-name: Continuous Integration and Deployment (CI/CD)
+name: Calculate Semantic Version
 
 
 on:
