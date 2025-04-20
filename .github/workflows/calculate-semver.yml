@@ -29,8 +29,8 @@ jobs:
 
       - name: Run semantic-release to update version and changelog
         run: |
-          semantic-release version --no-vcs-release --no-tag --no-push --changelog
-
+          semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
+        
       - name: Commit updated files
         id: changes
         run: |
