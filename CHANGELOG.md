@@ -28,6 +28,12 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
 
+- **release**: Bump version and update changelog
+  ([#167](https://github.com/GitGinocchio/GGsBot/pull/167),
+  [`75db0bd`](https://github.com/GitGinocchio/GGsBot/commit/75db0bd60422101b01db997b5f85658c8842b11e))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 ### Continuous Integration
 
 - Bypass main branch rules
