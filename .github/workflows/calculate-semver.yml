@@ -1,9 +1,9 @@
-name: Continuous Integration and Deployment (CI/CD)
+name: Calculate Semantic Version
 
 
 on:
-  push:
-    branches: [ main ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   semver:
@@ -29,8 +29,8 @@ jobs:
 
       - name: Run semantic-release to update version and changelog
         run: |
-          semantic-release version --no-vcs-release --no-tag --no-push --changelog
-
+          semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
+        
       - name: Commit updated files
         id: changes
         run: |
@@ -46,3 +46,7 @@ jobs:
             git commit -m "chore(release): bump version and update changelog"
             git push origin HEAD:${{ github.head_ref }}
           fi
+
+          # Trigger degli status check successivi
+          echo "Triggering status checks..."
+          gh pr comment ${{ github.event.pull_request.number }} --body "Triggering status checks..."
