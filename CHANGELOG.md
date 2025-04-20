@@ -11,6 +11,9 @@
 ### Chores
 
 - **release**: Bump version and update changelog
+  ([`b22e3c6`](https://github.com/GitGinocchio/GGsBot/commit/b22e3c632a2d5b1fd766f98bf324653dfc9eea82))
+
+- **release**: Bump version and update changelog
   ([`ac1e8a7`](https://github.com/GitGinocchio/GGsBot/commit/ac1e8a7761a4d03b637e391623be490a61f10f62))
 
 - **release**: Bump version and update changelog
