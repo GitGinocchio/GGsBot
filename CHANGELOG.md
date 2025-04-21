@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-04-21)
+
+### Continuous Integration
+
+- Test 👎
+  ([`a02de58`](https://github.com/GitGinocchio/GGsBot/commit/a02de58f9ae36e632fbe99d3d7e02fb71e33a502))
+
+### Features
+
+- Fake feature
+  ([`e2ff4a5`](https://github.com/GitGinocchio/GGsBot/commit/e2ff4a54a48acbfcd2d382d98ef1fc33b30039fd))
+
+
 ## v0.1.0 (2025-04-21)
 
 ### Build System
@@ -102,6 +115,11 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
   [`022eefe`](https://github.com/GitGinocchio/GGsBot/commit/022eefea4b1d2b418a922b273a73327749228743))
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#185](https://github.com/GitGinocchio/GGsBot/pull/185),
+  [`a39ba8e`](https://github.com/GitGinocchio/GGsBot/commit/a39ba8ee56949da8bd1e39d52ae9d19a5ce5856c))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
 
 - **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
   [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
