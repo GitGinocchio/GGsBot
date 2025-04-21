@@ -10,7 +10,7 @@ on:
 jobs:
   run-condition:
     runs-on: ubuntu-latest
-    if: (!startsWith(github.ref_name, 'release/'))
+    if: ${{ !startsWith(github.ref_name, 'release/') }}
     steps:
       - name: Placeholder step
         run: echo "This job runs only if the branch name does not start with 'release/'."
@@ -101,7 +101,7 @@ jobs:
             
             git add .
             
-            git commit -m "chore(release): bump version and update changelog"
+            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
           fi
 
       - name: Create Pull Request with changes
