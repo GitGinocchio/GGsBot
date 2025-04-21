@@ -61,6 +61,9 @@ class HTTPServer:
         aiojinja.setup(self.app, loader=jinja2.FileSystemLoader(TEMPLATES_DIR))
         self.app.middlewares.append(self.logger)
 
+        # 404
+        self.app.router.add_route("*", '/{tail:.*}',        self.four_o_four)
+
         # user
         self.app.router.add_get('/',                        self.index)
         self.app.router.add_get('/about',                   self.about)
@@ -118,6 +121,10 @@ class HTTPServer:
     async def tos(self, request : Request): 
         return { "request" : request}
     
+    #@aiojinja.template('404.html')
+    async def four_o_four(self, request : Request):
+        return Response(text="404", status=404)
+
     @aiojinja.template('pp.html')
     async def pp(self, request : Request): 
         return { "request" : request, "underconstruction" : True}
@@ -154,21 +161,12 @@ class HTTPServer:
         return Response(text="Interactions", status=200)
 
     async def status(self, request : Request):
-        # Per ottenere le info del sistema, utilizzare:
-        # Su linux: os.system("top")
-        # Su Windows: psutil
-
         uptime = datetime.now(timezone.utc) - self.start_time
 
         status = {}
 
-        if OS == 'Windows':
-            stats = get_psutil_stats()
-
-            status['machine'] = stats
-        else:
-            stats = get_top_stats()
-            status['machine'] = stats
+        stats = get_psutil_stats()
+        status['machine'] = stats
 
         status['machine']['os'] = OS
         status['uptime'] = uptime.total_seconds()
@@ -176,6 +174,8 @@ class HTTPServer:
         status['database'] = { 'num_queries' : self.db.num_queries }
 
         return Response(text=json.dumps(status), content_type="application/json")
+
+    # running/restarting/shutdown methods
 
     async def run(self):
         try:

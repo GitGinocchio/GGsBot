@@ -29,7 +29,7 @@ printsysteminfo()
 show_paths(logger)
 
 def run(args : Namespace):
-    intents = getintents()
+    intents = getintents(config.get('INTENTS', None))
 
     bot = commands.Bot(
         intents=intents,

@@ -1,4 +1,5 @@
 from cachetools import LRUCache
+import traceback
 import json
 import os
 
@@ -79,12 +80,13 @@ class CustomDecoder(json.JSONDecoder):
         return '\n'.join(lines)
             
     def decode(self, s):
-        if self.file.commented:
-            s = self._remove_comments(s)
         try:
+            s = self._remove_comments(s)
             obj = dict(super().decode(s))
         except json.decoder.JSONDecodeError as e:
-            print(e)
+            print(traceback.format_exc())
+            raise e
+            return {}
         else:
             for key,value in obj.items():
                 if isinstance(value, dict):
@@ -98,7 +100,7 @@ class CustomDecoder(json.JSONDecoder):
 cache = LRUCache(maxsize=100)
 
 class JsonFile(dict):
-    def __init__(self, fp : str,*, indent : int = '\t', encoding : str = 'utf-8', autosave : bool = True, commented : bool = False, force_load : bool = False):
+    def __init__(self, fp : str,*, indent : int = '\t', encoding : str = 'utf-8', autosave : bool = True, force_load : bool = False):
         """
 
         ---
@@ -114,11 +116,9 @@ class JsonFile(dict):
         :indent: the indentation of the file. default to '\\t'
         :encoding: the encoding of the file. default to 'utf-8'.
         :autosave: If True, the file is automatically saved after each change.
-        :commented: Specify if there are comments in the json file
         :force_load: Force to load the file.
         """
         if not fp.endswith(('json','.jsonc')): raise ValueError('fp must be a json file and end with ".json" or ".jsonc" (JSON with comments)')
-        self.commented = True if fp.endswith('.jsonc') else commented
         self.encoding = encoding
         self.autosave = autosave
         self.indent = indent
