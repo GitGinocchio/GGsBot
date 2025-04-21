@@ -28,6 +28,8 @@ clear()
 printsysteminfo()
 show_paths(logger)
 
+
+
 def run(args : Namespace):
     intents = getintents(config.get('INTENTS', None))
 
