@@ -1,47 +1,42 @@
 name: Publish Release
 
 on:
-  push:
-    tags:
-      - 'v*'
-
-permissions:
-  id-token: write
-  contents: write
-  issues: write
-  packages: write
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 jobs:
   build-and-publish:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
 
     steps:
+      - name: Extract version from branch name
+        id: extract_version
+        run: |
+          VERSION="${{ github.event.pull_request.head.ref }}"
+          VERSION="${VERSION#release/}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract Version from Tag
-        id: extract_version
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Build and Save Docker image as tar
         run: |
-          docker build -t ggsbot:${{ steps.extract_version.outputs.version }} .
-          docker save ggsbot:${{ steps.extract_version.outputs.version }} -o ggsbot.tar
+            docker build -t ggsbot:${{ steps.extract_version.outputs.version }} .
+            docker save ggsbot:${{ steps.extract_version.outputs.version }} -o ggsbot.tar
 
       - name: Save Docker image as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image
-          path: ggsbot.tar
+            name: docker-image
+            path: ggsbot.tar
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./ggsbot.tar
-          tag_name: ${{ steps.extract_version.outputs.version }}
+            files: ./ggsbot.tar
+            tag_name: v${{ steps.extract_version.outputs.version }}
