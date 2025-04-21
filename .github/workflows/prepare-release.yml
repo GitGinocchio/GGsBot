@@ -13,7 +13,7 @@ jobs:
     if: (!startsWith(github.ref_name, 'release/'))
     steps:
       - name: Placeholder step
-        run: null
+        run: echo "This job runs only if the branch name does not start with 'release/'."
 
   test:
     runs-on: ubuntu-latest
