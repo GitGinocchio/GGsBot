@@ -88,6 +88,16 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 - **ci**: Run dependency check only on requirements changes
   ([`1cb8704`](https://github.com/GitGinocchio/GGsBot/commit/1cb8704ed29869820e90219926557eda29a2a191))
 
+- **release**: Bump to 0.1.0 (v0.1.0) ([#180](https://github.com/GitGinocchio/GGsBot/pull/180),
+  [`4919d27`](https://github.com/GitGinocchio/GGsBot/commit/4919d27fd64a3b0c468abc98f1d191461fde9e7b))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#181](https://github.com/GitGinocchio/GGsBot/pull/181),
+  [`24ce0e0`](https://github.com/GitGinocchio/GGsBot/commit/24ce0e0da0350ba7281d3b198cfde06dbf493209))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 - **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
   [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
 
@@ -227,6 +237,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
   ([`6092d73`](https://github.com/GitGinocchio/GGsBot/commit/6092d736ebfce0941eb588a02e07ff01733a0dff))
 
 ### Features
+
+- Fake feature
+  ([`b5dff56`](https://github.com/GitGinocchio/GGsBot/commit/b5dff5642532bc1f77cb6a72d5f98bf5e68f6f8b))
 
 - Fake feature ([#162](https://github.com/GitGinocchio/GGsBot/pull/162),
   [`5b7e224`](https://github.com/GitGinocchio/GGsBot/commit/5b7e22499a992f5e7008091d3fca515231890b2e))
