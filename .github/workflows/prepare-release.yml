@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    if: github.event.pusher.name != 'github-actions[bot]'
+    if: github.event.pusher.email != 'actions@users.noreply.github.com'
     runs-on: ubuntu-latest
 
     steps:
@@ -104,7 +104,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
-          committer: github-actions[bot] <actions@users.noreply.github.com>
           author: github-actions[bot] <actions@users.noreply.github.com>
           title: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
           body: |
