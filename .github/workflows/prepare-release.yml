@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    if: github.event.pusher.email != 'actions@users.noreply.github.com'
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
