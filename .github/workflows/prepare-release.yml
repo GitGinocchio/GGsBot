@@ -102,9 +102,8 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         id: pull_request
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           commit-message: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
-          author: github-actions[bot] <actions@users.noreply.github.com>
           title: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
           body: |
             This PR was automatically created to update the version and/or changelog.
