@@ -128,6 +128,11 @@ Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
 Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
+- **release**: Bump to 0.1.0 (v0.1.0) ([#195](https://github.com/GitGinocchio/GGsBot/pull/195),
+  [`144672d`](https://github.com/GitGinocchio/GGsBot/commit/144672dc336a4080b10d1edd4adbab48c2d62f02))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
 - **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
   [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
 
