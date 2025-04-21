@@ -83,6 +83,8 @@ jobs:
           echo "prev_tag=$(semantic-release version --print-last-released-tag)" >> $GITHUB_OUTPUT
 
           semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Commit updated files
         id: changes
