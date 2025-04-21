@@ -10,6 +10,11 @@
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
 
+- **release**: Bump to 0.2.0 (v0.2.0) ([#183](https://github.com/GitGinocchio/GGsBot/pull/183),
+  [`87208de`](https://github.com/GitGinocchio/GGsBot/commit/87208de94570932de3e0c3596b73e8a8aaaf9c56))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 
 ## v0.1.0 (2025-04-21)
 
