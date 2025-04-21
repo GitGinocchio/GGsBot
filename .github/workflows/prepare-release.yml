@@ -7,6 +7,10 @@ on:
     #paths:
     #  - "**/*.py"
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   test:
     if: github.actor != 'github-actions[bot]'
