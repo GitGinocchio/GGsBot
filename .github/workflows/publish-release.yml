@@ -5,6 +5,14 @@ on:
     types: [closed]
     branches: [main]
 
+permissions:
+  pull-requests: write
+  contents: write
+
+concurrency:
+  group: build-and-publish-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-publish:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
