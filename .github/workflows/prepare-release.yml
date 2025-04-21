@@ -9,13 +9,6 @@ on:
     #  - "**/*.py"
 
 jobs:
-  run-condition:
-    runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.ref_name, 'release/') }}
-    steps:
-      - name: Placeholder step
-        run: echo "This job runs only if the branch name does not start with 'release/'."
-
   test:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && (!startsWith(github.head_ref, 'release/'))
