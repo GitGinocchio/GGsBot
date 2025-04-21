@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-04-21)
+
+### Features
+
+- Fake feature ([#177](https://github.com/GitGinocchio/GGsBot/pull/177),
+  [`5d970b1`](https://github.com/GitGinocchio/GGsBot/commit/5d970b16bc046f06b6a1410d47c358e7b3675ff4))
+
+* feat: fake feature
+
+* Update prepare-release.yml
+
+
 ## v0.2.0 (2025-04-21)
 
 ### Build System
@@ -25,6 +37,11 @@ Signed-off-by: dependabot[bot] <support@github.com>
 Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 ### Chores
+
+- **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
+  [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - **release**: Bump version and update changelog
   ([#174](https://github.com/GitGinocchio/GGsBot/pull/174),
