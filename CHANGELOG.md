@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-04-21)
+
+### Chores
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#182](https://github.com/GitGinocchio/GGsBot/pull/182),
+  [`022eefe`](https://github.com/GitGinocchio/GGsBot/commit/022eefea4b1d2b418a922b273a73327749228743))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+
 ## v0.1.0 (2025-04-21)
 
 ### Build System
@@ -237,6 +247,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
   ([`6092d73`](https://github.com/GitGinocchio/GGsBot/commit/6092d736ebfce0941eb588a02e07ff01733a0dff))
 
 ### Features
+
+- Fake feature
+  ([`456da19`](https://github.com/GitGinocchio/GGsBot/commit/456da19c294aab2dc7707a4d9530b0bc2acda05e))
 
 - Fake feature
   ([`b5dff56`](https://github.com/GitGinocchio/GGsBot/commit/b5dff5642532bc1f77cb6a72d5f98bf5e68f6f8b))
