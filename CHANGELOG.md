@@ -123,6 +123,11 @@ Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
 Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
+- **release**: Bump to 0.1.0 (v0.1.0) ([#194](https://github.com/GitGinocchio/GGsBot/pull/194),
+  [`b61fda4`](https://github.com/GitGinocchio/GGsBot/commit/b61fda4221e5d4419b06bcc45fd6ade0db4b28a0))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
 - **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
   [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
 
@@ -230,6 +235,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Semver calculation on pr ([#161](https://github.com/GitGinocchio/GGsBot/pull/161),
   [`4dd1463`](https://github.com/GitGinocchio/GGsBot/commit/4dd146304409295c5e0f7135e0f1981cedcd4d4a))
+
+- Setting correct permissions
+  ([`338c79a`](https://github.com/GitGinocchio/GGsBot/commit/338c79ae9a7e3983183e7b94e3a2c457ae813b89))
 
 - Tag docker image and minor changes
   ([`ac00f90`](https://github.com/GitGinocchio/GGsBot/commit/ac00f90b5099c113dd825002463fc10418d4beb2))
