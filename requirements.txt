@@ -36,7 +36,7 @@ multidict==6.4.3
 mutagen==1.47.0
 nextcord==3.0.1
 numpy==2.2.4
-pillow==11.1.0
+pillow==11.2.1
 propcache==0.3.1
 psutil==7.0.0
 pycparser==2.22
