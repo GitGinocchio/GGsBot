@@ -24,6 +24,14 @@ Signed-off-by: dependabot[bot] <support@github.com>
 
 Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
+### Chores
+
+- **release**: Bump version and update changelog
+  ([#174](https://github.com/GitGinocchio/GGsBot/pull/174),
+  [`065db8e`](https://github.com/GitGinocchio/GGsBot/commit/065db8e23e4fbc48f8aeedf1b6828f53bea49bb8))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 ### Features
 
 - Fake feature ([#173](https://github.com/GitGinocchio/GGsBot/pull/173),
