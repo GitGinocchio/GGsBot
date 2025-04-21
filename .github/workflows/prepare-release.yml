@@ -120,9 +120,6 @@ jobs:
           delete-branch: true
 
       - name: Enable Pull Request Automerge
-        if: steps.pull_request.outputs.pull-request-url != ''
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
-          pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
-          merge-method: squash
+        run: gh pr merge --merge --auto "1"
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
