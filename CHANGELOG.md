@@ -108,6 +108,11 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
 
+- **release**: Bump to 0.1.0 (v0.1.0) ([#188](https://github.com/GitGinocchio/GGsBot/pull/188),
+  [`58a624b`](https://github.com/GitGinocchio/GGsBot/commit/58a624b3c5343e37753a311a032195db96d25b51))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
+
 - **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
   [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
 
