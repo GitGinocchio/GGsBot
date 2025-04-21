@@ -8,8 +8,13 @@ on:
     #  - "**/*.py"
 
 jobs:
+  run-condition:
+    runs-on: ubuntu-latest
+    if: (!startsWith(github.ref_name, 'release/'))
+
   test:
     runs-on: ubuntu-latest
+    needs: run-condition
 
     steps:
       - uses: actions/checkout@v4
