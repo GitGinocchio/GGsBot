@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    if: github.event.pusher.name
     runs-on: ubuntu-latest
 
     steps:
@@ -101,8 +102,10 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         id: pull_request
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
+          committer: github-actions[bot] <actions@users.noreply.github.com>
+          author: github-actions[bot] <actions@users.noreply.github.com>
           title: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
           body: |
             This PR was automatically created to update the version and/or changelog.
@@ -122,6 +125,6 @@ jobs:
         if: steps.pull_request.outputs.pull-request-url != ''
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
           merge-method: squash
