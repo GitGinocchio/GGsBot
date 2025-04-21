@@ -2,17 +2,20 @@ name: Prepare Release
 
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
     #paths:
     #  - "**/*.py"
 
 jobs:
   test:
+    if: github.event.pull_request.merged == true && (!startsWith(github.event.pull_request.head.ref, 'release/'))
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v3

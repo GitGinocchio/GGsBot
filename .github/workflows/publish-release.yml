@@ -29,12 +29,6 @@ jobs:
             docker build -t ggsbot:${{ steps.extract_version.outputs.version }} .
             docker save ggsbot:${{ steps.extract_version.outputs.version }} -o ggsbot.tar
 
-      - name: Save Docker image as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-            name: docker-image
-            path: ggsbot.tar
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
