@@ -1,6 +1,35 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-04-21)
+
+### Build System
+
+- **deps**: Bump setuptools from 78.1.0 to 79.0.0
+  ([#170](https://github.com/GitGinocchio/GGsBot/pull/170),
+  [`9c159cf`](https://github.com/GitGinocchio/GGsBot/commit/9c159cf85d18e4cefe7c72d83a2e5105405050f3))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 78.1.0 to 79.0.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v78.1.0...v79.0.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 79.0.0
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+### Features
+
+- Fake feature ([#173](https://github.com/GitGinocchio/GGsBot/pull/173),
+  [`8b02ab7`](https://github.com/GitGinocchio/GGsBot/commit/8b02ab710bd35c617a41af27ee1f90990ebce97b))
+
+
 ## v0.1.0 (2025-04-21)
 
 ### Build System
@@ -99,7 +128,16 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
 
+- **release**: Bump version and update changelog
+  ([#172](https://github.com/GitGinocchio/GGsBot/pull/172),
+  [`bcf3ede`](https://github.com/GitGinocchio/GGsBot/commit/bcf3ede348d80eb3b49f328d42026b16110417c4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 ### Continuous Integration
+
+- Added run-condition job
+  ([`8a48812`](https://github.com/GitGinocchio/GGsBot/commit/8a48812355e52dbbb2e6a623534259b405969502))
 
 - Bypass main branch rules
   ([`2aeec1c`](https://github.com/GitGinocchio/GGsBot/commit/2aeec1c675984854616ee96c6ae6ba0bbc93dc09))
