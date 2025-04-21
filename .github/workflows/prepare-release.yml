@@ -123,6 +123,6 @@ jobs:
         if: steps.pull_request.outputs.pull-request-url != ''
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
           merge-method: squash
