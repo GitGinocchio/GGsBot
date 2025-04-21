@@ -11,6 +11,9 @@ jobs:
   run-condition:
     runs-on: ubuntu-latest
     if: (!startsWith(github.ref_name, 'release/'))
+    steps:
+      - name: Placeholder step
+        run: null
 
   test:
     runs-on: ubuntu-latest
