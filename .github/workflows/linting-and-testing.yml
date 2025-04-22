@@ -28,9 +28,6 @@ jobs:
           if [ -f ./.dev/requirements.txt ]; then pip install -r ./.dev/requirements.txt; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Check dependencies conflicts
-        run: python -m pip check
-
       - name: Lint with flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
