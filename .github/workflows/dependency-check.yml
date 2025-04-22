@@ -18,21 +18,26 @@ jobs:
   dependency-conflict-check:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11, 3.12]
+        requirements-file: 
+          - requirements.txt
+          - .dev/requirements.txt
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install pipgrip
         run: pip install pipgrip
 
-      - name: Check for conflicts in requirements.txt
+      - name: Check for conflicts in ${{ matrix.requirements-file }}
         run: |
-          if [ -f requirements.txt ]; then pipgrip -r requirements.txt; fi
-
-      - name: Check for conflicts in .dev/requirements.txt
-        run: |
-          if [ -f ./.dev/requirements.txt ]; then pipgrip -r ./.dev/requirements.txt; fi
+          if [ -f "${{ matrix.requirements-file }}" ]; 
+            then pipgrip --tree-ascii -r ${{ matrix.requirements-file }}; 
+          fi
