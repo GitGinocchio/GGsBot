@@ -43,6 +43,25 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 
 Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 
+- **deps**: Bump setuptools from 78.1.0 to 79.0.0
+  ([#170](https://github.com/GitGinocchio/GGsBot/pull/170),
+  [`9c159cf`](https://github.com/GitGinocchio/GGsBot/commit/9c159cf85d18e4cefe7c72d83a2e5105405050f3))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 78.1.0 to 79.0.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v78.1.0...v79.0.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 79.0.0
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
 - **deps**: Bump yarl from 1.19.0 to 1.20.0
   ([#158](https://github.com/GitGinocchio/GGsBot/pull/158),
   [`7e7f320`](https://github.com/GitGinocchio/GGsBot/commit/7e7f320fa8f455359cfc96ae4f340e9430ca8f02))
@@ -68,6 +87,81 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 
 - **ci**: Run dependency check only on requirements changes
   ([`1cb8704`](https://github.com/GitGinocchio/GGsBot/commit/1cb8704ed29869820e90219926557eda29a2a191))
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#180](https://github.com/GitGinocchio/GGsBot/pull/180),
+  [`4919d27`](https://github.com/GitGinocchio/GGsBot/commit/4919d27fd64a3b0c468abc98f1d191461fde9e7b))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#181](https://github.com/GitGinocchio/GGsBot/pull/181),
+  [`24ce0e0`](https://github.com/GitGinocchio/GGsBot/commit/24ce0e0da0350ba7281d3b198cfde06dbf493209))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#182](https://github.com/GitGinocchio/GGsBot/pull/182),
+  [`022eefe`](https://github.com/GitGinocchio/GGsBot/commit/022eefea4b1d2b418a922b273a73327749228743))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#185](https://github.com/GitGinocchio/GGsBot/pull/185),
+  [`a39ba8e`](https://github.com/GitGinocchio/GGsBot/commit/a39ba8ee56949da8bd1e39d52ae9d19a5ce5856c))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#188](https://github.com/GitGinocchio/GGsBot/pull/188),
+  [`58a624b`](https://github.com/GitGinocchio/GGsBot/commit/58a624b3c5343e37753a311a032195db96d25b51))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#191](https://github.com/GitGinocchio/GGsBot/pull/191),
+  [`94f5e56`](https://github.com/GitGinocchio/GGsBot/commit/94f5e5638ae164a91a15c88f993534c51e522a68))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#193](https://github.com/GitGinocchio/GGsBot/pull/193),
+  [`301ce49`](https://github.com/GitGinocchio/GGsBot/commit/301ce492d38346d7d9c964800d2b41be45b16c20))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#194](https://github.com/GitGinocchio/GGsBot/pull/194),
+  [`b61fda4`](https://github.com/GitGinocchio/GGsBot/commit/b61fda4221e5d4419b06bcc45fd6ade0db4b28a0))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#195](https://github.com/GitGinocchio/GGsBot/pull/195),
+  [`144672d`](https://github.com/GitGinocchio/GGsBot/commit/144672dc336a4080b10d1edd4adbab48c2d62f02))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#196](https://github.com/GitGinocchio/GGsBot/pull/196),
+  [`68a2452`](https://github.com/GitGinocchio/GGsBot/commit/68a24528726e8ec2a62a8460de408d1bc554ccbd))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.2.0 (v0.2.0) ([#176](https://github.com/GitGinocchio/GGsBot/pull/176),
+  [`0b19f9d`](https://github.com/GitGinocchio/GGsBot/commit/0b19f9daea684ca06f755dd0cb656fbd216cb0f4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.2.0 (v0.2.0) ([#183](https://github.com/GitGinocchio/GGsBot/pull/183),
+  [`87208de`](https://github.com/GitGinocchio/GGsBot/commit/87208de94570932de3e0c3596b73e8a8aaaf9c56))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.2.0 (v0.2.0) ([#186](https://github.com/GitGinocchio/GGsBot/pull/186),
+  [`967e3ea`](https://github.com/GitGinocchio/GGsBot/commit/967e3ea62daa8209565705c5d74ac25b68c39830))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.3.0 (v0.3.0) ([#178](https://github.com/GitGinocchio/GGsBot/pull/178),
+  [`6215520`](https://github.com/GitGinocchio/GGsBot/commit/621552015866340ae132bf618b27059e3ce63deb))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump to 0.3.0 (v0.3.0) ([#187](https://github.com/GitGinocchio/GGsBot/pull/187),
+  [`42ef852`](https://github.com/GitGinocchio/GGsBot/commit/42ef852c179ae53e4e3ad7a68b990d468737a211))
+
+Co-authored-by: github-actions[bot] <actions@users.noreply.github.com>
 
 - **release**: Bump version and update changelog
   ([#157](https://github.com/GitGinocchio/GGsBot/pull/157),
@@ -99,10 +193,28 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 Co-authored-by: github-actions <actions@users.noreply.github.com>
 
+- **release**: Bump version and update changelog
+  ([#172](https://github.com/GitGinocchio/GGsBot/pull/172),
+  [`bcf3ede`](https://github.com/GitGinocchio/GGsBot/commit/bcf3ede348d80eb3b49f328d42026b16110417c4))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
+- **release**: Bump version and update changelog
+  ([#174](https://github.com/GitGinocchio/GGsBot/pull/174),
+  [`065db8e`](https://github.com/GitGinocchio/GGsBot/commit/065db8e23e4fbc48f8aeedf1b6828f53bea49bb8))
+
+Co-authored-by: github-actions <actions@users.noreply.github.com>
+
 ### Continuous Integration
+
+- Added run-condition job
+  ([`8a48812`](https://github.com/GitGinocchio/GGsBot/commit/8a48812355e52dbbb2e6a623534259b405969502))
 
 - Bypass main branch rules
   ([`2aeec1c`](https://github.com/GitGinocchio/GGsBot/commit/2aeec1c675984854616ee96c6ae6ba0bbc93dc09))
+
+- Changed GITHUB_TOKEN to RELEASE_TOKEN
+  ([`22203a6`](https://github.com/GitGinocchio/GGsBot/commit/22203a6eb5c172b5671d43c9d2fa023ecb6d2d83))
 
 - Disabling docker image tagging
   ([`aed6815`](https://github.com/GitGinocchio/GGsBot/commit/aed68151492d6ce43629c328e554c2c15336ece7))
@@ -133,6 +245,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Semver calculation on pr ([#161](https://github.com/GitGinocchio/GGsBot/pull/161),
   [`4dd1463`](https://github.com/GitGinocchio/GGsBot/commit/4dd146304409295c5e0f7135e0f1981cedcd4d4a))
+
+- Setting correct permissions
+  ([`338c79a`](https://github.com/GitGinocchio/GGsBot/commit/338c79ae9a7e3983183e7b94e3a2c457ae813b89))
 
 - Tag docker image and minor changes
   ([`ac00f90`](https://github.com/GitGinocchio/GGsBot/commit/ac00f90b5099c113dd825002463fc10418d4beb2))
@@ -171,6 +286,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 - Test with semantic versioning
   ([`8d9bafa`](https://github.com/GitGinocchio/GGsBot/commit/8d9bafac6b926263e75b52d75b261d89a6690bb3))
 
+- Test 👎
+  ([`a02de58`](https://github.com/GitGinocchio/GGsBot/commit/a02de58f9ae36e632fbe99d3d7e02fb71e33a502))
+
 - Upload artifact fixes (maybe)
   ([`6bd4060`](https://github.com/GitGinocchio/GGsBot/commit/6bd40605554ce11a09f450f33125a4c3cfb7d388))
 
@@ -184,6 +302,18 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 ### Features
 
+- Fake feature
+  ([`404dac9`](https://github.com/GitGinocchio/GGsBot/commit/404dac931c16d733eb0038ee53cb8b821d522653))
+
+- Fake feature
+  ([`e2ff4a5`](https://github.com/GitGinocchio/GGsBot/commit/e2ff4a54a48acbfcd2d382d98ef1fc33b30039fd))
+
+- Fake feature
+  ([`456da19`](https://github.com/GitGinocchio/GGsBot/commit/456da19c294aab2dc7707a4d9530b0bc2acda05e))
+
+- Fake feature
+  ([`b5dff56`](https://github.com/GitGinocchio/GGsBot/commit/b5dff5642532bc1f77cb6a72d5f98bf5e68f6f8b))
+
 - Fake feature ([#162](https://github.com/GitGinocchio/GGsBot/pull/162),
   [`5b7e224`](https://github.com/GitGinocchio/GGsBot/commit/5b7e22499a992f5e7008091d3fca515231890b2e))
 
@@ -192,3 +322,13 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 * feat: fake feat pt. 2
 
 * feat: fake feat pt.3
+
+- Fake feature ([#173](https://github.com/GitGinocchio/GGsBot/pull/173),
+  [`8b02ab7`](https://github.com/GitGinocchio/GGsBot/commit/8b02ab710bd35c617a41af27ee1f90990ebce97b))
+
+- Fake feature ([#177](https://github.com/GitGinocchio/GGsBot/pull/177),
+  [`5d970b1`](https://github.com/GitGinocchio/GGsBot/commit/5d970b16bc046f06b6a1410d47c358e7b3675ff4))
+
+* feat: fake feature
+
+* Update prepare-release.yml
