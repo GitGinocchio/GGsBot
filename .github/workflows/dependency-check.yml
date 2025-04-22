@@ -2,12 +2,14 @@ name: Check Python Dependency Conflicts
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - "dev"
     paths:
       - "requirements.txt"
       - ".dev/requirements.txt"
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "dev"
     paths:
       - "requirements.txt"
       - ".dev/requirements.txt"
