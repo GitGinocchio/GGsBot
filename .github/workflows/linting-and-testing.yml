@@ -4,10 +4,16 @@ on:
   push:
     branches:
       - dev
+    paths-ignore:
+      - "requirements.txt"
+      - ".dev/requirements.txt"
 
   pull_request:
     branches:
       - dev
+    paths-ignore:
+      - "requirements.txt"
+      - ".dev/requirements.txt"
 
 jobs:
   test:
