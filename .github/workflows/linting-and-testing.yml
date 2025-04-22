@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Depencency Check
-        uses: ./.github/workflows/dependency-check.yml@dev
-
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Depencency Check
+        uses: ./.github/workflows/dependency-check.yml@dev
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v3
