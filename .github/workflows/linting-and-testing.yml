@@ -17,9 +17,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Depencency Check
-        uses: ./.github/actions/dependency-check.yml
-
       - name: Set up Python 3.12
         uses: actions/setup-python@v3
         with:
