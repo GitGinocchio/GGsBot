@@ -169,8 +169,10 @@ jobs:
 
       - name: Build and Save Docker image as tar
         run: |
-          image_name=ggsbot:$(echo "${{ needs.prepare-release.outputs.version }}" | sed 's/\+/-/g')
-          image_filename=ggsbot-${{ needs.prepare-release.outputs.version }}
+          parsed_version=$(echo "${{ needs.prepare-release.outputs.version }}" | sed 's/\+/-/g')
+
+          image_name=ggsbot:$parsed_version
+          image_filename=ggsbot-$parsed_version
 
           docker build -t $image_name .
 
