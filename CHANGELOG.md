@@ -94,6 +94,9 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 - **deps**: Updated Bandit workflow to include 'dev' branch
   ([`ac427b7`](https://github.com/GitGinocchio/GGsBot/commit/ac427b7bd191764a55e0b7bb586366f830aa54f8))
 
+- **release**: Bump to 0.1.0 (v0.1.0)
+  ([`d373fc1`](https://github.com/GitGinocchio/GGsBot/commit/d373fc14a5c50db42b89d6ab10beed3778e3526b))
+
 - **release**: Bump to 0.1.0 (v0.1.0) ([#180](https://github.com/GitGinocchio/GGsBot/pull/180),
   [`4919d27`](https://github.com/GitGinocchio/GGsBot/commit/4919d27fd64a3b0c468abc98f1d191461fde9e7b))
 
@@ -271,6 +274,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Implemented pip packages cache
   ([`88e33c8`](https://github.com/GitGinocchio/GGsBot/commit/88e33c885296d680f07df59c09c92b910041275d))
+
+- Improved release.yml
+  ([`a72d75a`](https://github.com/GitGinocchio/GGsBot/commit/a72d75a952258f77f904f15dff3a555fec947a2f))
 
 - Improved workflow
   ([`1ab776e`](https://github.com/GitGinocchio/GGsBot/commit/1ab776e66ecb8d590a9f36de81053c81505f6ab8))
