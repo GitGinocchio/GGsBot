@@ -48,10 +48,11 @@ jobs:
       changed: ${{ steps.changes.outputs.changed }}
 
     steps:
-      - name: Checkout PR branch
+      - name: Checkout dev branch
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: dev
           fetch-depth: 0
 
       - name: Set up Python
