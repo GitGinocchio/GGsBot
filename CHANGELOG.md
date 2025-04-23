@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.1.3+test (2025-04-23)
+
+### Chores
+
+- **release**: Bump to 0.1.1+test (v0.1.1+test)
+  ([`9c86706`](https://github.com/GitGinocchio/GGsBot/commit/9c86706d30eb2da9539e24132792f0f13e117cf5))
+
+- **release**: Bump to 0.1.1+test (v0.1.1+test)
+  ([`35d507a`](https://github.com/GitGinocchio/GGsBot/commit/35d507a1e0dd7f177a47397732f566c5c149d522))
+
+- **release**: Bump to 0.1.2+test (v0.1.2+test)
+  ([`3f145d0`](https://github.com/GitGinocchio/GGsBot/commit/3f145d07240547e5a65510a67083475843851c0b))
+
+
 ## v0.1.0 (2025-04-23)
 
 ### Build System
@@ -93,6 +107,9 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 
 - **deps**: Updated Bandit workflow to include 'dev' branch
   ([`ac427b7`](https://github.com/GitGinocchio/GGsBot/commit/ac427b7bd191764a55e0b7bb586366f830aa54f8))
+
+- **release**: Bump to 0.1.0 (v0.1.0)
+  ([`3fe5332`](https://github.com/GitGinocchio/GGsBot/commit/3fe53324672ce6a6b59bbbd0b611a2e682dfdfad))
 
 - **release**: Bump to 0.1.0 (v0.1.0)
   ([`d373fc1`](https://github.com/GitGinocchio/GGsBot/commit/d373fc14a5c50db42b89d6ab10beed3778e3526b))
@@ -284,6 +301,49 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 - Improved workflow
   ([`ee60a0c`](https://github.com/GitGinocchio/GGsBot/commit/ee60a0c4bd1cd0e2a43339deeb880e011dc9d0cb))
 
+- Improved workflows ([#199](https://github.com/GitGinocchio/GGsBot/pull/199),
+  [`8176cb2`](https://github.com/GitGinocchio/GGsBot/commit/8176cb2e53b2db3778c429707ab02f6a58e37374))
+
+* refactor: deleted run.py and run.sh as not necessary
+
+* chore(deps): set target branch to 'dev' for pip updates in dependabot.yml
+
+* chore(deps): Updated Bandit workflow to include 'dev' branch
+
+* ci: Updated workflow for dependency checks and created test workflow
+
+* ci: Added dependency check step to linting-and-testing workflow
+
+* ci: fixed "Error: Can't find 'action.yml'"
+
+* ci: fixed Error: Can't find 'action.yml'
+
+* Update linting-and-testing.yml
+
+* ci: ignore changes to requirements.txt and .dev/requirements.txt
+
+* ci: allowing workflow to run only on .py files changes
+
+* ci: updated workflow to use strategy
+
+* ci: fixed could not find python version
+
+* test: trying to fix python version error
+
+* Update dependency-check.yml
+
+* ci: implemented pip packages cache
+
+* ci: minor changes
+
+* ci: improved workflow
+
+* ci: test changes
+
+* ci: tests
+
+* ci: testing new ci-cd workflows
+
 - Minor changes
   ([`b2cb6cf`](https://github.com/GitGinocchio/GGsBot/commit/b2cb6cf22627252d9edbfbdc2bed8bb5ddf93ace))
 
@@ -292,6 +352,9 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Minor changes
   ([`3ce2182`](https://github.com/GitGinocchio/GGsBot/commit/3ce21820aa1dd0f13a12bfb667ebba4d93b1afc4))
+
+- Release action inputs and new image formats
+  ([`943c6ea`](https://github.com/GitGinocchio/GGsBot/commit/943c6ea69aebd5cbd365b6d238edc5609788339f))
 
 - Semantic-release version
   ([`a4221e7`](https://github.com/GitGinocchio/GGsBot/commit/a4221e74c1948c95f2aa8ab48da93132e431a65b))
