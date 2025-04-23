@@ -82,6 +82,9 @@ jobs:
             git push origin HEAD:${{ github.ref }}
           fi
 
+          echo "changed=$changed"
+          echo "content=$content"
+
           echo "content=$content" >> $GITHUB_OUTPUT
           echo "changed=$changed" >> $GITHUB_OUTPUT
 
