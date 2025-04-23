@@ -70,23 +70,21 @@ jobs:
           prev_version=$(semantic-release version --print-last-released)
           prev_tag=$(semantic-release version --print-last-released-tag)
 
+          extra_args=""
+
           if [ "${{ inputs.major }}" == "true" ]; then
-            version=$(semantic-release version --print --major)
-            tag=$(semantic-release version --print-tag)
-            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --major
+            extra_args="--major"
           elif [ "${{ inputs.minor }}" == "true" ]; then
-            version=$(semantic-release version --print --minor)
-            tag=$(semantic-release version --print-tag)
-            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --minor
+            extra_args="--minor"
           elif [ "${{ inputs.patch }}" == "true" ]; then
-            version=$(semantic-release version --print --patch)
-            tag=$(semantic-release version --print-tag)
-            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --patch
-          else 
-            version=$(semantic-release version --print)
-            tag=$(semantic-release version --print-tag)
-            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
-          fi
+            extra_args="--patch"
+
+          if [ "${{ inputs.metadata }}" != "" ]; then
+            extra_args+=" --metadata ${{ inputs.metadata }}"
+
+          version=$(semantic-release version --print $extra_args)
+          tag=$(semantic-release version --print-tag $extra_args)
+          semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit $extra_args
 
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "prev_version=$prev_version" >> $GITHUB_OUTPUT
@@ -116,7 +114,7 @@ jobs:
             
             git add .
             
-            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }}}${{ inputs.metadata }} (${{ steps.semver.outputs.tag }}${{ inputs.metadata }})"
+            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
             git push origin HEAD:dev
           fi
 
@@ -168,8 +166,8 @@ jobs:
 
       - name: Build and Save Docker image as tar
         run: |
-          image_name=ggsbot:${{ needs.prepare-release.outputs.version }}${{ inputs.metadata }}
-          image_filename=ggsbot-${{ needs.prepare-release.outputs.version }}${{ inputs.metadata }}
+          image_name=ggsbot:${{ needs.prepare-release.outputs.version }}
+          image_filename=ggsbot-${{ needs.prepare-release.outputs.version }}
 
           docker build -t $image_name .
 
