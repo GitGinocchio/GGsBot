@@ -2,35 +2,65 @@ name: Check Python Dependency Conflicts
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - "dev"
     paths:
-      - "requirements.txt"
-      - ".dev/requirements.txt"
+      - "**/*requirements.txt"
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "dev"
     paths:
-      - "requirements.txt"
-      - ".dev/requirements.txt"
+      - "**/*requirements.txt"
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      modified_files: ${{ steps.find-files.outputs.modified_files }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find modified requirements files
+        id: find-files
+        run: |
+          modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')
+          echo "modified_files=[\"$modified_files\"]" >> $GITHUB_OUTPUT
+          echo $modified_files
+
+
   dependency-conflict-check:
     runs-on: ubuntu-latest
+    needs: setup
 
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9.*", "3.10.*", "3.11.*", "3.12.*"]
+        requirements-file: ${{ fromJson(needs.setup.outputs.modified_files) }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install pipgrip
         run: pip install pipgrip
 
-      - name: Check for conflicts in requirements.txt
-        run: |
-          if [ -f requirements.txt ]; then pipgrip -r requirements.txt; fi
+      - name: Check for dependency conflicts in "${{ matrix.requirements-file }}"" with Python version "${{ matrix.python-version }}"
 
-      - name: Check for conflicts in .dev/requirements.txt
         run: |
-          if [ -f ./.dev/requirements.txt ]; then pipgrip -r ./.dev/requirements.txt; fi
+          pipgrip --tree -r "${{ matrix.requirements-file }}"
