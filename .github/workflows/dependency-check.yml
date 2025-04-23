@@ -13,16 +13,28 @@ on:
       - "**/*requirements.txt"
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      modified_files: ${{ steps.find-files.outputs.modified_files }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find modified requirements files
+        id: find-files
+        run: echo "modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')" >> $GITHUB_OUTPUT
+
   dependency-conflict-check:
     runs-on: ubuntu-latest
+    needs: setup
 
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9.*", "3.10.*", "3.11.*", "3.12.*"]
-        requirements-file: 
-          - requirements.txt
-          - .dev/requirements.txt
 
     steps:
       - uses: actions/checkout@v4
@@ -44,8 +56,8 @@ jobs:
       - name: Install pipgrip
         run: pip install pipgrip
 
-      - name: Check for conflicts in ${{ matrix.requirements-file }}
+      - name: Check for requirements conflicts with python version ${{ matrix.python-version }}
         run: |
-          if [ -f "${{ matrix.requirements-file }}" ]; 
-            then pipgrip --tree-ascii -r ${{ matrix.requirements-file }}; 
-          fi
+          for file in ${{ needs.setup.outputs.modified_files }}; do
+            pipgrip --tree -r "$file"
+          done
