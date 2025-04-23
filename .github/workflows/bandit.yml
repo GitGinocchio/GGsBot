@@ -19,8 +19,8 @@ on:
     branches:
       - "main"
       - "dev"
-    #paths:
-      #- "**/*.py"
+    paths:
+      - "**/*.py"
   #schedule:
     #- cron: '25 16 * * 0'
 
