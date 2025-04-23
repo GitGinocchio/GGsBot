@@ -21,6 +21,7 @@ jobs:
       tag: ${{ steps.semver.outputs.tag }}
       prev_tag: ${{ steps.semver.outputs.prev_tag }}
       changed: ${{ steps.changes.outputs.changed }}
+      content: ${{ steps.changes.outputs.content }}
 
     steps:
       - name: Checkout PR branch
@@ -66,8 +67,11 @@ jobs:
         run: |
           if git diff --quiet; then
             changed=false
+            content=""
           else
             changed=true
+
+            content=$(git log --pretty=format:"%s" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }})
             
             git config user.name "${{ github.actor }}"
             git config user.email "${{ github.actor }}@users.noreply.github.com"
@@ -78,6 +82,7 @@ jobs:
             git push origin HEAD:${{ github.ref }}
           fi
 
+          echo "content=$content" >> $GITHUB_OUTPUT
           echo "changed=$changed" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request with changes (main branch)
@@ -130,5 +135,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-            files: ./ggsbot.tar
+            files: ./ggsbot.tar, CHANGELOG.md
+            body: |
             tag_name: ${{ needs.prepare-release.outputs.tag }}
