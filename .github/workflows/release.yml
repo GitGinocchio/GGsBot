@@ -16,7 +16,7 @@ on:
       patch:
         description: 'Force the next version to be a patch release'
         required: false 
-        default: true
+        default: false
         type: boolean
       metadata:
         description: 'Additional metadata to include in the release notes'
@@ -48,11 +48,10 @@ jobs:
       changed: ${{ steps.changes.outputs.changed }}
 
     steps:
-      - name: Checkout dev branch
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: dev
           fetch-depth: 0
 
       - name: Set up Python
@@ -68,10 +67,26 @@ jobs:
       - name: Run semantic-release to update version and changelog
         id: semver
         run: |
-          version=$(semantic-release version --print)
           prev_version=$(semantic-release version --print-last-released)
-          tag=$(semantic-release version --print-tag)
           prev_tag=$(semantic-release version --print-last-released-tag)
+
+          if [ "${{ inputs.major }}" == "true" ]; then
+            version=$(semantic-release version --print --major)
+            tag=$(semantic-release version --print-tag)
+            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --major
+          else if [ "${{ inputs.minor }}" == "true" ]; then
+            version=$(semantic-release version --print --minor)
+            tag=$(semantic-release version --print-tag)
+            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --minor
+          else if [ "${{ inputs.patch }}" == "true" ]; then
+            version=$(semantic-release version --print --patch)
+            tag=$(semantic-release version --print-tag)
+            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --patch
+          else 
+            version=$(semantic-release version --print)
+            tag=$(semantic-release version --print-tag)
+            semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
+          fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "prev_version=$prev_version" >> $GITHUB_OUTPUT
@@ -83,7 +98,6 @@ jobs:
           echo "tag=$tag"
           echo "prev_tag=$prev_tag"
 
-          semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
@@ -102,8 +116,8 @@ jobs:
             
             git add .
             
-            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
-            git push origin HEAD:dev --force
+            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }}}${{ inputs.metadata }} (${{ steps.semver.outputs.tag }}${{ inputs.metadata }})"
+            git push origin HEAD:${{ github.ref }}
           fi
 
           echo "changed=$changed"
@@ -154,22 +168,29 @@ jobs:
 
       - name: Build and Save Docker image as tar
         run: |
-          docker build -t ggsbot:${{ needs.prepare-release.outputs.version }} .
+          image_name=ggsbot:${{ needs.prepare-release.outputs.version }}${{ inputs.metadata }}
+          image_filename=ggsbot-${{ needs.prepare-release.outputs.version }}${{ inputs.metadata }}
 
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.tar
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.oci
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.image-json
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-image
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-archive
+          docker build -t $image_name .
+
+          for format in tar oci image-json docker-image docker-archive; do
+            docker save $image_name -o $image_filename.$format
+          done
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-            files: ./ggsbot.tar ./ggsbot.oci ./ggsbot.image-json ./ggsbot.docker-image ./ggsbot.docker-archive
-            body: |
-              ### 🔖 Release Information
-              - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
-              - **New Version:** `${{ needs.prepare-release.outputs.version }}`
-              - **Previous Tag:** `${{ needs.prepare-release.outputs.prev_tag }}`
-              - **New Tag:** `${{ needs.prepare-release.outputs.tag }}`
-            tag_name: ${{ needs.prepare-release.outputs.tag }}
+          files: |
+            ./ggsbot.tar
+            ./ggsbot.oci
+            ./ggsbot.image-json
+            ./ggsbot.docker-image
+            ./ggsbot.docker-archive
+          body: |
+            ### 🔖 Release Information
+            - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
+            - **New Version:** `${{ needs.prepare-release.outputs.version }}`
+            - **Previous Tag:** `${{ needs.prepare-release.outputs.prev_tag }}`
+            - **New Tag:** `${{ needs.prepare-release.outputs.tag }}`
+          body_path: CHANGELOG.md
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
