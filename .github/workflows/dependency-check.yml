@@ -25,7 +25,11 @@ jobs:
 
       - name: Find modified requirements files
         id: find-files
-        run: echo "modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')" >> $GITHUB_OUTPUT
+        run: |
+          modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')
+          echo "modified_files=[\"$modified_files\"]" >> $GITHUB_OUTPUT
+          echo $modified_files
+
 
   dependency-conflict-check:
     runs-on: ubuntu-latest
@@ -35,7 +39,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.9.*", "3.10.*", "3.11.*", "3.12.*"]
-
+        requirements-file: ${{ fromJson(needs.setup.outputs.modified_files) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,8 +60,7 @@ jobs:
       - name: Install pipgrip
         run: pip install pipgrip
 
-      - name: Check for requirements conflicts with python version ${{ matrix.python-version }}
+      - name: Check for dependency conflicts in "${{ matrix.requirements-file }}"" with Python version "${{ matrix.python-version }}"
+
         run: |
-          for file in ${{ needs.setup.outputs.modified_files }}; do
-            pipgrip --tree -r "$file"
-          done
+          pipgrip --tree -r "${{ matrix.requirements-file }}"
