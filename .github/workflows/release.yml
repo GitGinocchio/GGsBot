@@ -105,6 +105,8 @@ jobs:
             git push origin HEAD:${{ github.ref }}
           fi
 
+          echo "changed=$changed"
+
           echo "changed=$changed" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request with changes (main branch)
@@ -152,10 +154,21 @@ jobs:
       - name: Build and Save Docker image as tar
         run: |
           docker build -t ggsbot:${{ needs.prepare-release.outputs.version }} .
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot.tar
+
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.tar
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.oci
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.image-json
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-image
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-archive
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-            files: ./ggsbot.tar
+            files: ./ggsbot.tar ./ggsbot.oci ./ggsbot.image-json ./ggsbot.docker-image ./ggsbot.docker-archive
+            body: |
+              ### 🔖 Release Information
+              - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
+              - **New Version:** `${{ needs.prepare-release.outputs.version }}`
+              - **Previous Tag:** `${{ needs.prepare-release.outputs.prev_tag }}`
+              - **New Tag:** `${{ needs.prepare-release.outputs.tag }}`
             tag_name: ${{ needs.prepare-release.outputs.tag }}

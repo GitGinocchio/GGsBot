@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## v0.1.0 (2025-04-21)
+## v0.1.0 (2025-04-23)
 
 ### Build System
 
@@ -88,6 +88,15 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 - **ci**: Run dependency check only on requirements changes
   ([`1cb8704`](https://github.com/GitGinocchio/GGsBot/commit/1cb8704ed29869820e90219926557eda29a2a191))
 
+- **deps**: Set target branch to 'dev' for pip updates in dependabot.yml
+  ([`9e1a5af`](https://github.com/GitGinocchio/GGsBot/commit/9e1a5af6ed8be0798d1e6a7e18c0a2311e4b99e5))
+
+- **deps**: Updated Bandit workflow to include 'dev' branch
+  ([`ac427b7`](https://github.com/GitGinocchio/GGsBot/commit/ac427b7bd191764a55e0b7bb586366f830aa54f8))
+
+- **release**: Bump to 0.1.0 (v0.1.0)
+  ([`d373fc1`](https://github.com/GitGinocchio/GGsBot/commit/d373fc14a5c50db42b89d6ab10beed3778e3526b))
+
 - **release**: Bump to 0.1.0 (v0.1.0) ([#180](https://github.com/GitGinocchio/GGsBot/pull/180),
   [`4919d27`](https://github.com/GitGinocchio/GGsBot/commit/4919d27fd64a3b0c468abc98f1d191461fde9e7b))
 
@@ -135,6 +144,11 @@ Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
 - **release**: Bump to 0.1.0 (v0.1.0) ([#196](https://github.com/GitGinocchio/GGsBot/pull/196),
   [`68a2452`](https://github.com/GitGinocchio/GGsBot/commit/68a24528726e8ec2a62a8460de408d1bc554ccbd))
+
+Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
+
+- **release**: Bump to 0.1.0 (v0.1.0) ([#198](https://github.com/GitGinocchio/GGsBot/pull/198),
+  [`d94d7ed`](https://github.com/GitGinocchio/GGsBot/commit/d94d7edb2be44e5e2e805455e78a031ee1e72243))
 
 Co-authored-by: GitGinocchio <GitGinocchio@users.noreply.github.com>
 
@@ -207,8 +221,14 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 ### Continuous Integration
 
+- Added dependency check step to linting-and-testing workflow
+  ([`9af651f`](https://github.com/GitGinocchio/GGsBot/commit/9af651fc61c1f97782517a239934cfa78c96e384))
+
 - Added run-condition job
   ([`8a48812`](https://github.com/GitGinocchio/GGsBot/commit/8a48812355e52dbbb2e6a623534259b405969502))
+
+- Allowing workflow to run only on .py files changes
+  ([`6a4ca2a`](https://github.com/GitGinocchio/GGsBot/commit/6a4ca2a7de080705ee226d145e1588f992368306))
 
 - Bypass main branch rules
   ([`2aeec1c`](https://github.com/GitGinocchio/GGsBot/commit/2aeec1c675984854616ee96c6ae6ba0bbc93dc09))
@@ -219,8 +239,17 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 - Disabling docker image tagging
   ([`aed6815`](https://github.com/GitGinocchio/GGsBot/commit/aed68151492d6ce43629c328e554c2c15336ece7))
 
+- Fixed "Error: Can't find 'action.yml'"
+  ([`943bb57`](https://github.com/GitGinocchio/GGsBot/commit/943bb574b21aa09c166ae7914f6d7de687ddf0ab))
+
 - Fixed artifact path
   ([`8b8ec60`](https://github.com/GitGinocchio/GGsBot/commit/8b8ec60f71ee1cce03b430dad1d9263edefbeac5))
+
+- Fixed could not find python version
+  ([`5d834c9`](https://github.com/GitGinocchio/GGsBot/commit/5d834c9134242894322f560a102f9592fbe27b6b))
+
+- Fixed Error: Can't find 'action.yml'
+  ([`4295c4d`](https://github.com/GitGinocchio/GGsBot/commit/4295c4d3dbb7cdb145dc28fd040b853a05b0d17c))
 
 - Fixed exit zero flag
   ([`ee3435e`](https://github.com/GitGinocchio/GGsBot/commit/ee3435ee86ca4e418f30018adefc8573c345b965))
@@ -239,6 +268,30 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 - Fixed tests config path
   ([`efc7a89`](https://github.com/GitGinocchio/GGsBot/commit/efc7a899161c6af3d7698b5d2ee865ea44c8d6cf))
+
+- Ignore changes to requirements.txt and .dev/requirements.txt
+  ([`fa776ca`](https://github.com/GitGinocchio/GGsBot/commit/fa776ca58c69c6cea8440a56600a57cdc27f34d2))
+
+- Implemented pip packages cache
+  ([`88e33c8`](https://github.com/GitGinocchio/GGsBot/commit/88e33c885296d680f07df59c09c92b910041275d))
+
+- Improved release.yml
+  ([`a72d75a`](https://github.com/GitGinocchio/GGsBot/commit/a72d75a952258f77f904f15dff3a555fec947a2f))
+
+- Improved workflow
+  ([`1ab776e`](https://github.com/GitGinocchio/GGsBot/commit/1ab776e66ecb8d590a9f36de81053c81505f6ab8))
+
+- Improved workflow
+  ([`ee60a0c`](https://github.com/GitGinocchio/GGsBot/commit/ee60a0c4bd1cd0e2a43339deeb880e011dc9d0cb))
+
+- Minor changes
+  ([`b2cb6cf`](https://github.com/GitGinocchio/GGsBot/commit/b2cb6cf22627252d9edbfbdc2bed8bb5ddf93ace))
+
+- Minor changes
+  ([`9a1439e`](https://github.com/GitGinocchio/GGsBot/commit/9a1439e7f70fa90772b7477e18591f9374cb0939))
+
+- Minor changes
+  ([`3ce2182`](https://github.com/GitGinocchio/GGsBot/commit/3ce21820aa1dd0f13a12bfb667ebba4d93b1afc4))
 
 - Semantic-release version
   ([`a4221e7`](https://github.com/GitGinocchio/GGsBot/commit/a4221e74c1948c95f2aa8ab48da93132e431a65b))
@@ -283,11 +336,29 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 
 * Delete semantic-version.yml
 
+- Test changes
+  ([`5ad2630`](https://github.com/GitGinocchio/GGsBot/commit/5ad2630a8e0786f5d09e0339838911c16e412d22))
+
 - Test with semantic versioning
   ([`8d9bafa`](https://github.com/GitGinocchio/GGsBot/commit/8d9bafac6b926263e75b52d75b261d89a6690bb3))
 
 - Test 👎
   ([`a02de58`](https://github.com/GitGinocchio/GGsBot/commit/a02de58f9ae36e632fbe99d3d7e02fb71e33a502))
+
+- Testing new ci-cd workflows
+  ([`c6436ee`](https://github.com/GitGinocchio/GGsBot/commit/c6436ee65f87d7fbba42a2a10c28344c590d3af2))
+
+- Tests
+  ([`5b42ea6`](https://github.com/GitGinocchio/GGsBot/commit/5b42ea6de5d267b16e94f188f59a8867fd0ad15a))
+
+- Tests
+  ([`457d8cf`](https://github.com/GitGinocchio/GGsBot/commit/457d8cff45494d561578bbf9944cbfa92d2d85b0))
+
+- Updated workflow for dependency checks and created test workflow
+  ([`a81dd26`](https://github.com/GitGinocchio/GGsBot/commit/a81dd26dcd32bf82bec8081da7c851634cb240e9))
+
+- Updated workflow to use strategy
+  ([`28dbe36`](https://github.com/GitGinocchio/GGsBot/commit/28dbe361ed6b8b2fc974b0aa50166fe388718978))
 
 - Upload artifact fixes (maybe)
   ([`6bd4060`](https://github.com/GitGinocchio/GGsBot/commit/6bd40605554ce11a09f450f33125a4c3cfb7d388))
@@ -332,3 +403,13 @@ Co-authored-by: github-actions <actions@users.noreply.github.com>
 * feat: fake feature
 
 * Update prepare-release.yml
+
+### Refactoring
+
+- Deleted run.py and run.sh as not necessary
+  ([`44a44b3`](https://github.com/GitGinocchio/GGsBot/commit/44a44b3c4fc47c26f4770be0257abf3d70be1157))
+
+### Testing
+
+- Trying to fix python version error
+  ([`93bddd1`](https://github.com/GitGinocchio/GGsBot/commit/93bddd175c6b1187b74432fe49493d849c875284))
