@@ -5,14 +5,12 @@ on:
     branches: 
       - "dev"
     paths:
-      - "requirements.txt"
-      - ".dev/requirements.txt"
+      - "**/*requirements.txt"
   pull_request:
     branches:
       - "dev"
     paths:
-      - "requirements.txt"
-      - ".dev/requirements.txt"
+      - "**/*requirements.txt"
 
 jobs:
   dependency-conflict-check:
