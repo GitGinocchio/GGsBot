@@ -78,6 +78,7 @@ jobs:
             extra_args="--minor"
           elif [ "${{ inputs.patch }}" == "true" ]; then
             extra_args="--patch"
+          fi
 
           if [ "${{ inputs.metadata }}" != "" ]; then
             extra_args+=" --metadata ${{ inputs.metadata }}"
