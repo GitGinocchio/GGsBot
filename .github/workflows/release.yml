@@ -74,11 +74,11 @@ jobs:
             version=$(semantic-release version --print --major)
             tag=$(semantic-release version --print-tag)
             semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --major
-          else if [ "${{ inputs.minor }}" == "true" ]; then
+          elif [ "${{ inputs.minor }}" == "true" ]; then
             version=$(semantic-release version --print --minor)
             tag=$(semantic-release version --print-tag)
             semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --minor
-          else if [ "${{ inputs.patch }}" == "true" ]; then
+          elif [ "${{ inputs.patch }}" == "true" ]; then
             version=$(semantic-release version --print --patch)
             tag=$(semantic-release version --print-tag)
             semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit --patch
