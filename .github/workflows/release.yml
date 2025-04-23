@@ -2,6 +2,31 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      major:
+        description: 'Force the next version to be a major release'
+        required: false 
+        default: false
+        type: boolean
+      minor: 
+        description: 'Force the next version to be a minor release'
+        required: false 
+        default: false
+        type: boolean
+      patch:
+        description: 'Force the next version to be a patch release'
+        required: false 
+        default: false
+        type: boolean
+      metadata:
+        description: 'Additional metadata to include in the release notes'
+        required: false
+        default: ''
+        type: string
+
+  push:
+    branches:
+      - main
 
 permissions:
   pull-requests: write
