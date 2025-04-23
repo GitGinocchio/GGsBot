@@ -23,8 +23,7 @@ from utils.config import config
 from utils.db import Database
 from utils.system import \
     OS,                  \
-    get_psutil_stats,    \
-    get_top_stats        \
+    get_psutil_stats
 
 logger = getlogger()
 
