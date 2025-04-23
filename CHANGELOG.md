@@ -3,6 +3,11 @@
 
 ## v0.1.1+test (2025-04-23)
 
+### Chores
+
+- **release**: Bump to 0.1.1+test (v0.1.1+test)
+  ([`35d507a`](https://github.com/GitGinocchio/GGsBot/commit/35d507a1e0dd7f177a47397732f566c5c149d522))
+
 
 ## v0.1.0 (2025-04-23)
 
