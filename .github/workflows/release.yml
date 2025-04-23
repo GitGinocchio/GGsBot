@@ -25,7 +25,6 @@ jobs:
       tag: ${{ steps.semver.outputs.tag }}
       prev_tag: ${{ steps.semver.outputs.prev_tag }}
       changed: ${{ steps.changes.outputs.changed }}
-      content: ${{ steps.changes.outputs.content }}
 
     steps:
       - name: Checkout PR branch
@@ -74,12 +73,6 @@ jobs:
             content=""
           else
             changed=true
-
-            if [ -n "$prev_tag" ]; then
-              content=$(git log --pretty=format:"%s%n%b" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
-            else
-              content=$(git log --pretty=format:"%s%n%b" HEAD..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
-            fi
             
             git config user.name "${{ github.actor }}"
             git config user.email "${{ github.actor }}@users.noreply.github.com"
@@ -91,9 +84,7 @@ jobs:
           fi
 
           echo "changed=$changed"
-          echo "content=$content"
 
-          echo "content=$content" >> $GITHUB_OUTPUT
           echo "changed=$changed" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request with changes (main branch)
@@ -148,4 +139,9 @@ jobs:
         with:
             files: ./ggsbot.tar, CHANGELOG.md
             body: |
+              ### 🔖 Release Information
+              - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
+              - **New Version:** `${{ needs.prepare-release.outputs.version }}`
+              - **Previous Tag:** `${{ needs.prepare-release.outputs.prev_tag }}`
+              - **New Tag:** `${{ needs.prepare-release.outputs.tag }}`
             tag_name: ${{ needs.prepare-release.outputs.tag }}
