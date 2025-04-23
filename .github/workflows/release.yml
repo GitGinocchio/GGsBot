@@ -81,6 +81,7 @@ jobs:
 
           if [ "${{ inputs.metadata }}" != "" ]; then
             extra_args+=" --metadata ${{ inputs.metadata }}"
+          fi
 
           version=$(semantic-release version --print $extra_args)
           tag=$(semantic-release version --print-tag $extra_args)
