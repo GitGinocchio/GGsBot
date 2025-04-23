@@ -25,7 +25,11 @@ jobs:
 
       - name: Find modified requirements files
         id: find-files
-        run: echo "modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')" >> $GITHUB_OUTPUT
+        run: |
+          modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')
+          echo $modified_files >> $GITHUB_OUTPUT
+          echo $modified_files
+
 
   dependency-conflict-check:
     runs-on: ubuntu-latest
