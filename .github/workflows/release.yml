@@ -117,7 +117,7 @@ jobs:
             git add .
             
             git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }}}${{ inputs.metadata }} (${{ steps.semver.outputs.tag }}${{ inputs.metadata }})"
-            git push origin HEAD:dev --force
+            git push origin HEAD:dev
           fi
 
           echo "changed=$changed"
