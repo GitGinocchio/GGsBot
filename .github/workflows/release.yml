@@ -2,6 +2,27 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      major:
+        description: 'Force the next version to be a major release'
+        required: false 
+        default: false
+        type: boolean
+      minor: 
+        description: 'Force the next version to be a minor release'
+        required: false 
+        default: false
+        type: boolean
+      patch:
+        description: 'Force the next version to be a patch release'
+        required: false 
+        default: true
+        type: boolean
+      metadata:
+        description: 'Additional metadata to include in the release notes'
+        required: false
+        default: ''
+        type: string
 
   push:
     branches:
@@ -132,12 +153,16 @@ jobs:
       - name: Build and Save Docker image as tar
         run: |
           docker build -t ggsbot:${{ needs.prepare-release.outputs.version }} .
-          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot.tar
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.tar
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.oci
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.image-json
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-image
+          docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.docker-archive
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-            files: ./ggsbot.tar, CHANGELOG.md
+            files: ./ggsbot.tar ./ggsbot.oci ./ggsbot.image-json ./ggsbot.docker-image ./ggsbot.docker-archive
             body: |
               ### 🔖 Release Information
               - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
