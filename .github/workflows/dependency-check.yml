@@ -27,7 +27,7 @@ jobs:
         id: find-files
         run: |
           modified_files=$(git diff --name-only $GITHUB_SHA^ $GITHUB_SHA | grep 'requirements\.txt$')
-          echo $modified_files >> $GITHUB_OUTPUT
+          echo "modified_files=$modified_files" >> $GITHUB_OUTPUT
           echo $modified_files
 
 
