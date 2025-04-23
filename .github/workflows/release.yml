@@ -48,10 +48,11 @@ jobs:
       changed: ${{ steps.changes.outputs.changed }}
 
     steps:
-      - name: Checkout PR branch
+      - name: Checkout dev branch
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: dev
           fetch-depth: 0
 
       - name: Set up Python
@@ -102,7 +103,7 @@ jobs:
             git add .
             
             git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
-            git push origin HEAD:${{ github.ref }}
+            git push origin HEAD:dev --force
           fi
 
           echo "changed=$changed"
