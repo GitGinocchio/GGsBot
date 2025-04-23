@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - main
+
 permissions:
   pull-requests: write
   contents: write
@@ -71,7 +75,11 @@ jobs:
           else
             changed=true
 
-            content=$(git log --pretty=format:"%s" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }})
+            if [ -n "$prev_tag" ]; then
+              content=$(git log --pretty=format:"%s" HEAD..${{ steps.semver.outputs.tag }})
+            else
+              content=$(git log --pretty=format:"%s" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }})
+            fi
             
             git config user.name "${{ github.actor }}"
             git config user.email "${{ github.actor }}@users.noreply.github.com"
