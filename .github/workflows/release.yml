@@ -27,6 +27,31 @@ on:
   push:
     branches:
       - main
+    inputs:
+      major:
+        description: 'Force the next version to be a major release'
+        required: false 
+        default: false
+        type: boolean
+      minor: 
+        description: 'Force the next version to be a minor release'
+        required: false 
+        default: false
+        type: boolean
+      patch:
+        description: 'Force the next version to be a patch release'
+        required: false 
+        default: false
+        type: boolean
+      metadata:
+        description: 'Additional metadata to include in the release notes'
+        required: false
+        default: ''
+        type: string
+
+  push:
+    branches:
+      - main
 
 permissions:
   pull-requests: write
@@ -119,6 +144,8 @@ jobs:
             git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }}}${{ inputs.metadata }} (${{ steps.semver.outputs.tag }}${{ inputs.metadata }})"
             git push origin HEAD:${{ github.ref }}
           fi
+
+          echo "changed=$changed"
 
           echo "changed=$changed"
 
