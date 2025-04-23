@@ -76,9 +76,9 @@ jobs:
             changed=true
 
             if [ -n "$prev_tag" ]; then
-              content=$(git log --pretty=format:"%s" HEAD..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
+              content=$(git log --pretty=format:"%s%n%b" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
             else
-              content=$(git log --pretty=format:"%s" ${{ steps.semver.outputs.prev_tag }}..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
+              content=$(git log --pretty=format:"%s%n%b" HEAD..${{ steps.semver.outputs.tag }} -- CHANGELOG.md)
             fi
             
             git config user.name "${{ github.actor }}"
