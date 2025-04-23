@@ -88,10 +88,11 @@ jobs:
 
       - name: Commit updated files (dev branch)
         id: changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           if git diff --quiet; then
             changed=false
-            content=""
           else
             changed=true
             
@@ -153,6 +154,7 @@ jobs:
       - name: Build and Save Docker image as tar
         run: |
           docker build -t ggsbot:${{ needs.prepare-release.outputs.version }} .
+
           docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.tar
           docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.oci
           docker save ggsbot:${{ needs.prepare-release.outputs.version }} -o ggsbot-${{ needs.prepare-release.outputs.version }}.image-json
