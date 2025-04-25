@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      major:
+        description: 'Force the next version to be a major release'
+        required: false 
+        default: false
+        type: boolean
+      minor: 
+        description: 'Force the next version to be a minor release'
+        required: false 
+        default: false
+        type: boolean
+      patch:
+        description: 'Force the next version to be a patch release'
+        required: false 
+        default: false
+        type: boolean
+      metadata:
+        description: 'Additional metadata to include in the release notes'
+        required: false
+        default: ''
+        type: string
+
+  push:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  contents: write
+
+concurrency:
+  group: prepare-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
+      prev_version: ${{ steps.semver.outputs.prev_version }}
+      tag: ${{ steps.semver.outputs.tag }}
+      prev_tag: ${{ steps.semver.outputs.prev_tag }}
+      changed: ${{ steps.changes.outputs.changed }}
+      changelog: ${{ steps.changes.outputs.changelog }}
+
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: dev
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install python-semantic-release
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-semantic-release
+
+      - name: Run semantic-release to update version and changelog
+        id: semver
+        run: |
+          prev_version=$(semantic-release version --print-last-released)
+          prev_tag=$(semantic-release version --print-last-released-tag)
+
+          extra_args=""
+
+          if [ "${{ inputs.major }}" == "true" ]; then
+            extra_args="--major"
+          elif [ "${{ inputs.minor }}" == "true" ]; then
+            extra_args="--minor"
+          elif [ "${{ inputs.patch }}" == "true" ]; then
+            extra_args="--patch"
+          fi
+
+          if [ "${{ inputs.metadata }}" != "" ]; then
+            extra_args+=" --build-metadata ${{ inputs.metadata }}"
+          fi
+
+          version=$(semantic-release version --print $extra_args)
+          tag=$(semantic-release version --print-tag $extra_args)
+          semantic-release version --no-vcs-release --no-tag --no-push --changelog --no-commit $extra_args
+
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "prev_version=$prev_version" >> $GITHUB_OUTPUT
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          echo "prev_tag=$prev_tag" >> $GITHUB_OUTPUT
+
+          echo "version=$version"
+          echo "prev_version=$prev_version"
+          echo "tag=$tag"
+          echo "prev_tag=$prev_tag"
+
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Commit updated files (dev branch)
+        id: changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            changed=false
+          else
+            changed=true
+            
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            
+            git add .
+
+            changelog=$(git log --pretty=format:"* %s" $(git describe --tags $prev_tag)...$tag)
+            
+            git commit -m "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
+            git push origin HEAD:dev
+          fi
+
+          echo "changelog=$changelog"
+          echo "changed=$changed"
+
+          echo "changelog=$changelog" >> $GITHUB_OUTPUT
+          echo "changed=$changed" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request with changes (main branch)
+        uses: peter-evans/create-pull-request@v6
+        if: steps.changes.outputs.changed == 'true'
+        id: pull_request
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          commit-message: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
+          title: "chore(release): bump to ${{ steps.semver.outputs.version }} (${{ steps.semver.outputs.tag }})"
+          body: |
+            This PR was automatically created to update the version and/or changelog.
+      
+            ### 🔖 Release Information
+            - **Previous Version:** `${{ steps.semver.outputs.prev_version }}`
+            - **New Version:** `${{ steps.semver.outputs.version }}`
+            - **Previous Tag:** `${{ steps.semver.outputs.prev_tag }}`
+            - **New Tag:** `${{ steps.semver.outputs.tag }}`
+      
+            Once this PR is merged, the new version will be tagged and released.
+          branch: release/${{ steps.semver.outputs.version }}
+          base: main
+          delete-branch: true
+  
+      - name: Enable Pull Request Automerge (main branch)
+        if: steps.pull_request.outputs.pull-request-url != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.pull_request.outputs.pull-request-number }}
+          merge-method: squash
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    if: needs.prepare-release.outputs.changed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Save Docker image
+        id: build
+        run: |
+          parsed_version=$(echo "${{ needs.prepare-release.outputs.version }}" | sed 's/\+/-/g')
+
+          image_name=ggsbot:$parsed_version
+          image_filename=ggsbot-$parsed_version
+
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+          echo "image_filename=$image_filename" >> $GITHUB_OUTPUT
+
+          docker build -t $image_name .
+
+          for format in tar oci image-json docker-image docker-archive; do
+            docker save $image_name -o $image_filename.$format
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./${{ steps.build.outputs.image_filename }}.*
+          body: |
+            ### 🔖 Release Information
+            - **Previous Version:** `${{ needs.prepare-release.outputs.prev_version }}`
+            - **New Version:** `${{ needs.prepare-release.outputs.version }}`
+            - **Previous Tag:** `${{ needs.prepare-release.outputs.prev_tag }}`
+            - **New Tag:** `${{ needs.prepare-release.outputs.tag }}`
+
+            ## 📜 Changelog
+            ${{ needs.prepare-release.outputs.changelog }}
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
