@@ -1,9 +1,6 @@
 # CHANGELOG
 
 
-## v0.1.2 (2025-05-01)
-
-
 ## v0.1.1 (2025-05-01)
 
 ### Bug Fixes
@@ -355,6 +352,9 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 
 - **release**: Bump to 0.1.1+test (v0.1.1+test)
   ([`35d507a`](https://github.com/GitGinocchio/GGsBot/commit/35d507a1e0dd7f177a47397732f566c5c149d522))
+
+- **release**: Bump to 0.1.2 (v0.1.2)
+  ([`cd576a2`](https://github.com/GitGinocchio/GGsBot/commit/cd576a262cf23729825c2e84cf78f47eea5e4a0c))
 
 - **release**: Bump to 0.1.2+test (v0.1.2+test)
   ([`3f145d0`](https://github.com/GitGinocchio/GGsBot/commit/3f145d07240547e5a65510a67083475843851c0b))
