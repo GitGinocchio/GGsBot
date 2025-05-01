@@ -79,9 +79,21 @@ class ImageGeneration(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
 
-            url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
+            url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
             headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json' }
-            data = { "prompt" : prompt, "steps" : steps}
+            #url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
+            #data = { "prompt" : prompt, "steps" : steps}
+            data = [
+                {
+                    "provider": "workers-ai",
+                    "endpoint": model,
+                    "headers" : headers,
+                    "query" : {
+                        "prompt" : prompt,
+                        "steps" : steps
+                    }
+                }
+            ]
 
             content_type, content, code, reason = await asyncpost(url, headers=headers, json=data)
             
