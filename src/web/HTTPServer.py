@@ -60,9 +60,6 @@ class HTTPServer:
         aiojinja.setup(self.app, loader=jinja2.FileSystemLoader(TEMPLATES_DIR))
         self.app.middlewares.append(self.logger)
 
-        # 404
-        self.app.router.add_route("*", '/{tail:.*}',        self.four_o_four)
-
         # user
         self.app.router.add_get('/',                        self.index)
         self.app.router.add_get('/about',                   self.about)
@@ -82,6 +79,9 @@ class HTTPServer:
         self.app.router.add_get('/api/verify',              self.verify)
         self.app.router.add_get('/api/webhooks',            self.webhooks)
         self.app.router.add_get('/api/interactions',        self.interactions)
+
+        # 404
+        self.app.router.add_route("*", '/{tail:.*}',        self.four_o_four)
 
     @middleware
     async def logger(self, request : Request, handler : RequestHandler):
