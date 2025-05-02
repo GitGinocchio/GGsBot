@@ -13,7 +13,7 @@ Brotli==1.1.0
 cachetools==5.5.2
 certifi==2025.4.26
 cffi==1.17.1
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
 click==8.1.8
 cloudflare==4.1.0
 colorama==0.4.6
