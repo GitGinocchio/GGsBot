@@ -151,7 +151,7 @@ class Translator(commands.Cog):
             view = TranslationForm(self.translate,message)
             await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
         except GGsBotException as e:
-            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True,delete_after=5)
+            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True)
 
     @slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions, integration_types=GLOBAL_INTEGRATION)
     async def translate_text(self, 
@@ -174,7 +174,7 @@ class Translator(commands.Cog):
             response = await self.translate(userid=interaction.user.id, text=text,from_lang=from_lang,to_lang=to_lang,model=model)
         except GGsBotException as e:
             if e.code != 0: logger.error(e)
-            await interaction.followup.send(embed=e.asEmbed())
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
             await interaction.followup.send(response['result']['translated_text'])
 
@@ -184,7 +184,7 @@ class Translator(commands.Cog):
         if (user_requests:=self.requests_cache.get(userid, -1)) >= self.requests_limit:
             raise GGsBotException(
                 title="Daily limit reached!",
-                description="You have reached your daily limit of requests.",
+                description=f"You have reached your daily limit of {self.requests_limit} requests.",
                 suggestions="Please try again after 24 hours, or if you think this is an error contact support."
             )
         

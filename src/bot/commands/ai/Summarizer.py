@@ -59,7 +59,9 @@ class SummarizerModel(Modal):
                     suggestions="Please enter a positive number for Max Length and try again."
                 )
 
-            await interaction.response.send_message(f"Max Length: {max_length_value}\nModel: {model_value}", ephemeral=True)
+            response = await self.summarize_method(interaction.user.id, self.message.clean_content, max_length_int, model_value)
+
+            await interaction.response.send_message(f"{response.get("result", {}).get("summary", "Error occurred while summarizing the text. Please try again later.")}", ephemeral=True)
         except GGsBotException as e:
             await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
 
@@ -84,7 +86,7 @@ class Summarizer(commands.Cog):
             view = SummarizerModel(self.summarize,message)
             await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
         except GGsBotException as e:
-            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True,delete_after=5)
+            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True)
 
     @nextcord.slash_command(name='summarize',description="Summarize text using AI", integration_types=GLOBAL_INTEGRATION)
     async def summarize_text(self, 
@@ -96,14 +98,25 @@ class Summarizer(commands.Cog):
                 ):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
-            response = await self.summarize(text, max_length,model)
+            response = await self.summarize(interaction.user.id, text, max_length,model)
 
         except GGsBotException as e:
-            await interaction.followup.send(embed=e.asEmbed(), delete_after=5, ephemeral=True)
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
             await interaction.followup.send(response['result']['summary'])
 
-    async def summarize(self, text : str, max_length : int, model : str):
+    async def summarize(self, userid : int, text : str, max_length : int, model : str):
+        # NOTE: The default value is -1 because we want to check if the user has made any requests before. 
+        #       If they haven't, then we set it to 1. If they have, then we increment it by 1.
+        if (user_requests:=self.requests_cache.get(userid, -1)) >= self.requests_limit:
+            raise GGsBotException(
+                title="Daily limit reached!",
+                description=f"You have reached your daily limit of {self.requests_limit} requests.",
+                suggestions="Please try again after 24 hours, or if you think this is an error contact support."
+            )
+        
+        self.requests_cache[userid] = user_requests + 1 if user_requests != -1 else 1
+
         headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json'}
         data = [
             {
