@@ -1,7 +1,10 @@
 # CHANGELOG
 
 
-## v0.1.1 (2025-05-01)
+## v0.2.0 (2025-05-07)
+
+
+## v0.1.1 (2025-05-02)
 
 ### Bug Fixes
 
@@ -142,6 +145,9 @@ Bumps [setuptools](https://github.com/pypa/setuptools) from 80.0.1 to 80.1.0. - 
 
 ### Chores
 
+- **ai**: Fixed some issues and minor changes
+  ([`07abb8a`](https://github.com/GitGinocchio/GGsBot/commit/07abb8a320df6bb7f601af20c541092ec52b9409))
+
 - **deps**: Bump certifi from 2025.1.31 to 2025.4.26
   ([#216](https://github.com/GitGinocchio/GGsBot/pull/216),
   [`d4a868d`](https://github.com/GitGinocchio/GGsBot/commit/d4a868d21a84c0a77241cfa266efe05e507cf22e))
@@ -154,6 +160,25 @@ Bumps [certifi](https://github.com/certifi/python-certifi) from 2025.1.31 to 202
 dependency-type: direct:production
 
 update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump charset-normalizer from 3.4.1 to 3.4.2
+  ([#225](https://github.com/GitGinocchio/GGsBot/pull/225),
+  [`2c061f0`](https://github.com/GitGinocchio/GGsBot/commit/2c061f01369906bdbb907ed9c814c63da9367925))
+
+Bumps [charset-normalizer](https://github.com/jawah/charset_normalizer) from 3.4.1 to 3.4.2. -
+  [Release notes](https://github.com/jawah/charset_normalizer/releases) -
+  [Changelog](https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md) -
+  [Commits](https://github.com/jawah/charset_normalizer/compare/3.4.1...3.4.2)
+
+--- updated-dependencies: - dependency-name: charset-normalizer dependency-version: 3.4.2
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
 
 Signed-off-by: dependabot[bot] <support@github.com>
 
@@ -266,6 +291,27 @@ Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
 
 Co-authored-by: GitGinocchio <giuliotognetto2@gmail.com>
 
+- **deps**: Bump python-semantic-release from 9.21.0 to 9.21.1 in /.dev
+  ([#227](https://github.com/GitGinocchio/GGsBot/pull/227),
+  [`6d89597`](https://github.com/GitGinocchio/GGsBot/commit/6d895979ffc4212ce9cd3ae124bfda1f47427bb2))
+
+Bumps [python-semantic-release](https://github.com/python-semantic-release/python-semantic-release)
+  from 9.21.0 to 9.21.1. - [Release
+  notes](https://github.com/python-semantic-release/python-semantic-release/releases) -
+  [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.rst)
+  -
+  [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v9.21...v9.21.1)
+
+--- updated-dependencies: - dependency-name: python-semantic-release dependency-version: 9.21.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
 - **deps**: Bump setuptools from 79.0.0 to 79.0.1
   ([#210](https://github.com/GitGinocchio/GGsBot/pull/210),
   [`7d3b213`](https://github.com/GitGinocchio/GGsBot/commit/7d3b213d05377247bc27c1268b968b52c929700a))
@@ -344,6 +390,51 @@ Signed-off-by: dependabot[bot] <support@github.com>
 
 Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
+- **deps**: Bump setuptools from 80.1.0 to 80.3.1
+  ([#226](https://github.com/GitGinocchio/GGsBot/pull/226),
+  [`776afc3`](https://github.com/GitGinocchio/GGsBot/commit/776afc3f33a127d1618152421b88737d727f7c98))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.1.0 to 80.3.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.1.0...v80.3.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.3.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **deps**: Bump yt-dlp from 2025.3.31 to 2025.4.30
+  ([#220](https://github.com/GitGinocchio/GGsBot/pull/220),
+  [`6149560`](https://github.com/GitGinocchio/GGsBot/commit/6149560a7163c1310fa17fed1907498285e32a12))
+
+Bumps [yt-dlp](https://github.com/yt-dlp/yt-dlp) from 2025.3.31 to 2025.4.30. - [Release
+  notes](https://github.com/yt-dlp/yt-dlp/releases) -
+  [Changelog](https://github.com/yt-dlp/yt-dlp/blob/master/Changelog.md) -
+  [Commits](https://github.com/yt-dlp/yt-dlp/compare/2025.03.31...2025.04.30)
+
+--- updated-dependencies: - dependency-name: yt-dlp dependency-version: 2025.4.30
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **release**: Bump to 0.1.1 (v0.1.1)
+  ([`57ba0a2`](https://github.com/GitGinocchio/GGsBot/commit/57ba0a2ee465ddd979cc651d8aa3c6083659bbed))
+
 - **release**: Bump to 0.1.1 (v0.1.1)
   ([`6723c70`](https://github.com/GitGinocchio/GGsBot/commit/6723c70ecad22f70b35f4248560b89bff61b458a))
 
@@ -366,6 +457,11 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 
 - Updated dependency conflict check
   ([`1f2467d`](https://github.com/GitGinocchio/GGsBot/commit/1f2467d18ff8980db75bd3bf7f15286469bbbc12))
+
+### Features
+
+- **ai**: Added cloudflare api per-user rate limits
+  ([`fe10b7b`](https://github.com/GitGinocchio/GGsBot/commit/fe10b7b0a34820acb78b4d385bee9762e8a42d41))
 
 
 ## v0.1.0 (2025-04-23)
