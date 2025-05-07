@@ -67,7 +67,7 @@ class ChatBot(commands.Cog):
     @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,integration_types=GUILD_INTEGRATION, guild_ids=[DEVELOPER_GUILD_ID])
     async def chat(self, interaction : Interaction): pass
 
-    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,integration_types=GLOBAL_INTEGRATION)
+    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,integration_types=GLOBAL_INTEGRATION, guild_ids=[DEVELOPER_GUILD_ID])
     async def ask(self,
                   interaction : Interaction,
                   prompt : str = SlashOption("prompt","The question you want to ask",required=True),
