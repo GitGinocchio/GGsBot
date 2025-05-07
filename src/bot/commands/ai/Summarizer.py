@@ -66,7 +66,7 @@ class SummarizerModel(Modal):
 class Summarizer(commands.Cog):
     def __init__(self, bot : commands.Bot):
         self.bot = bot
-        self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
+        self.api = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
 
     @nextcord.message_command(name='summarize', integration_types=GLOBAL_INTEGRATION)
     async def summarize_message(self,
@@ -104,9 +104,20 @@ class Summarizer(commands.Cog):
             await interaction.followup.send(response['result']['summary'])
 
     async def summarize(self, text : str, max_length : int, model : str):
-        headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}
+        headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json'}
+        data = [
+            {
+                "provider": "workers-ai",
+                "endpoint": model,
+                "headers" : headers,
+                "query" : {
+                    "input_text" : text,
+                    "max_length" : max_length
+                }
+            }
+        ]
 
-        content_type, content, code, reason = await asyncpost(self.api + model, json={'input_text' : text, 'max_length' : max_length}, headers=headers)
+        content_type, content, code, reason = await asyncpost(self.api, json=data, headers=headers)
 
         if code != 200 or content_type != "application/json":
             raise GGsBotException(
