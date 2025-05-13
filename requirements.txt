@@ -19,7 +19,7 @@ cloudflare==4.1.0
 colorama==0.4.6
 comtypes==1.4.10
 distro==1.9.0
-Flask==3.1.0
+Flask==3.1.1
 frozenlist==1.6.0
 gTTS==2.5.4
 h11==0.16.0
