@@ -157,7 +157,7 @@ async def asyncpost(
 async def asyncrequest(): pass
     
 
-def load_commands(bot : commands.Bot, logger : Logger, *, categories : list[str] = None, ignore_categories : list[str] = []):
+def load_commands(bot : commands.Bot, logger : Logger, *, categories : list[str] = None, ignore_categories : list[str] = [], reload : bool = False):
     if not categories:
         categories = [c for c in os.listdir('./src/bot/commands') if c not in config['ignore_categories']]
 
@@ -168,7 +168,10 @@ def load_commands(bot : commands.Bot, logger : Logger, *, categories : list[str]
         for filename in os.listdir(f'./src/bot/commands/{category}'):
             if filename.endswith('.py') and filename not in config['ignore_files']:
                 try:
-                    bot.load_extension(f'bot.commands.{category}.{filename[:-3]}')
+                    if reload and f'bot.commands.{category}.{filename[:-3]}' in bot.extensions: 
+                        bot.reload_extension(f'bot.commands.{category}.{filename[:-3]}')
+                    elif not reload: 
+                        bot.load_extension(f'bot.commands.{category}.{filename[:-3]}')
                 except (commands.ExtensionAlreadyLoaded,
                         commands.ExtensionNotFound,
                         commands.InvalidSetupArguments) as e:
