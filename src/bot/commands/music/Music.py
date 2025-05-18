@@ -10,6 +10,8 @@ from nextcord import \
     Client,          \
     VoiceChannel,    \
     VoiceProtocol,   \
+    VoiceState,      \
+    Member,          \
     slash_command
 from typing import Literal, cast
 from wavelink import            \
@@ -88,7 +90,7 @@ class NextcordWavelinkPlayer(Player, VoiceProtocol):
 
 class Music(commands.Cog):
     def __init__(self, bot : commands.Bot):
-        self.mini_players : dict[int, MiniPlayer] = {}
+        self.sessions : set[int] = set()
         self.bot = bot
 
     # Events
@@ -204,6 +206,26 @@ class Music(commands.Cog):
     async def on_wavelink_track_stuck(self, payload: TrackStuckEventPayload) -> None:
         logger.debug(f"Track {payload.track} is stuck for {payload.threshold}ms in player {payload.player}")
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member : Member, before : VoiceState, after : VoiceState):
+        try:
+            if not before.channel or before.channel.id not in self.sessions: return
+
+            player = cast(NextcordWavelinkPlayer, before.channel.guild.voice_client)
+            if not player: 
+                self.sessions.discard(before.channel.id)
+                return
+
+            if after.channel and before.channel:
+                if before.channel.id == after.channel.id: return
+
+            player.disconnect(force=True)
+            await player.ui.message.delete()
+
+            self.sessions.discard(before.channel.id)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
     # Playback Commands
 
     @slash_command("music","Listen music in discord voice channels", default_member_permissions=8, integration_types=GUILD_INTEGRATION)
@@ -241,10 +263,9 @@ class Music(commands.Cog):
 
             message = await player.channel.send(content="Mini player is loading...")
 
+            self.sessions.add(interaction.channel.id)
             ui = MiniPlayer(player, message)
             player.ui = ui
-
-            self.mini_players[interaction.guild.id] = ui
 
             await message.edit(content=None, embed=ui, view=ui)
         except GGsBotException as e:
@@ -298,6 +319,10 @@ class Music(commands.Cog):
                 page = NoTracksFound(queryurl)
                 await interaction.followup.send(embed=page, ephemeral=True)
                 return
+            
+            tracks.extras = {
+                'requestor_id' : interaction.user.id
+            }
 
             await player.queue.put_wait(tracks)
             if shuffle: player.queue.shuffle()
@@ -349,6 +374,11 @@ class Music(commands.Cog):
 
             player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
             tracks : Search = await Playable.search(queryurl, source=searchengine)
+            
+            tracks.extras = {
+                'requestor_id' : interaction.user.id
+            }
+            
             await player.queue.put_wait(tracks)
             if shuffle: player.queue.shuffle()
 
@@ -533,7 +563,9 @@ class Music(commands.Cog):
                 )
 
             player : Player = cast(NextcordWavelinkPlayer, interaction.guild.voice_client)
+            self.sessions.discard(interaction.channel.id)
             await player.disconnect()
+            await player.ui.message.delete()
 
             await interaction.delete_original_message()
         except GGsBotException as e:

@@ -166,7 +166,7 @@ class MiniPlayer(Page):
         self.shuffle_button = Button(style=ButtonStyle.grey, label="Shuffle", emoji=shuffle, row=0, disabled=True)
         self.shuffle_button.callback = self.on_shuffle
 
-        self.repeat_button = Button(style=ButtonStyle.grey, label="Loop [no]", emoji=repeat, row=0, disabled=True)
+        self.repeat_button = Button(style=ButtonStyle.grey, label="Loop [off]", emoji=repeat, row=0, disabled=True)
         self.repeat_button.callback = self.on_repeat
 
         self.autoqueue_button = Button(style=ButtonStyle.grey, label="Autoqueue [disabled]", emoji=autoqueue_disabled, row=0, disabled=True)
@@ -176,9 +176,6 @@ class MiniPlayer(Page):
 
         self.add_button = Button(style=ButtonStyle.grey, label="Add", emoji=queue_add, row=1, disabled=False)
         self.add_button.callback = self.on_add
-
-        self.queue_button = Button(style=ButtonStyle.grey, label="Queue", emoji=queue_list, row=1, disabled=False)
-        self.queue_button.callback = self.on_queue
 
         # Third row
 
@@ -196,7 +193,6 @@ class MiniPlayer(Page):
         self.add_item(self.autoqueue_button)
 
         self.add_item(self.add_button)
-        self.add_item(self.queue_button)
 
         self.add_item(self.back_button)
         self.add_item(self.playpause_button)
@@ -250,6 +246,18 @@ class MiniPlayer(Page):
             self.title = f"**{track.title}**"
             self.description =  f"in `{track.album.name}`\nby *{track.author}*" if track.album.name else f'by {track.author}'
             self.description += "\n\n" + f'{pos_str}' + self._get_progress_bar(self.player.position,track.length, 15) + f'{end_str}'
+
+            track_string = lambda track: f'1. [**{track.title if len(track.title) < 40 else track.title[:37] + '...'}**]({track.uri}) by *{track.author}*'
+
+            self.description += f"\n### Queue ({len(self.player.queue)} tracks):\n"
+            self.description += '\n'.join([track_string(track) for track in self.player.queue[0:5]]) \
+                                if len(self.player.queue) > 0 \
+                                else '-# There are no other tracks in the queue'
+            self.description += f"\n### History ({max(len(self.player.queue.history) - 1, 0)} tracks):\n"
+            self.description += '\n'.join([track_string(track) for track in self.player.queue.history[-2:-7:-1]]) \
+                                if len(self.player.queue.history) - 1 > 0 \
+                                else '-# There are no tracks in the history'
+            
             if track.artwork: self.set_thumbnail(url=track.artwork)
 
             await self.message.edit(embed=self, view=self)
@@ -281,6 +289,10 @@ class MiniPlayer(Page):
             if isinstance(tracks, list) and len(tracks) == 0:
                 await interaction.followup.send(embed=NoTracksFound(query), delete_after=5, ephemeral=True)
                 return
+    
+            tracks.extras = {
+                'requestor_id' : interaction.user.id
+            }
 
             await self.player.queue.put_wait(tracks)
 
@@ -301,12 +313,6 @@ class MiniPlayer(Page):
             logger.error(traceback.format_exc())
 
     # First row
-
-    async def on_queue(self, interaction : Interaction):
-        try:
-            pass
-        except Exception as e:
-            logger.error(traceback.format_exc())
 
     async def on_add(self, interaction : Interaction):
         try:
@@ -345,7 +351,7 @@ class MiniPlayer(Page):
             else:
                 self.player.queue.mode = QueueMode.normal
                 self.repeat_button.emoji = repeat
-                self.repeat_button.label = "Loop [no]"
+                self.repeat_button.label = "Loop [off]"
 
             await self.message.edit(embed=self, view=self)
         except Exception as e:
