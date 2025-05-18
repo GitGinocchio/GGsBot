@@ -8,16 +8,15 @@ import io
 from utils.system import logger
 
 class BytesIOFFmpegPCMAudio(AudioSource):
-    def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
+    def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options : str = None, options : str = None):
         stdin = None if not pipe else source
-        command = [
+        command = (shlex.split(before_options) if before_options else []) + [
             '-i',
             '-' if pipe else source, 
             '-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning',
         ]
-        if before_options is not None: command.insert(0, before_options)
         command.insert(0, executable)
-        if options is not None: command.append(options)
+        if options is not None: command.extend(shlex.split(options))
         command.append('pipe:1')
 
         logger.debug(f"FFmpeg command: {command}")

@@ -691,5 +691,29 @@ class TextToSpeech(commands.Cog):
         except Exception as e:
             logger.error(traceback.format_exc())
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member : Member, before : VoiceState, after : VoiceState):
+        try:
+            if not before.channel or before.channel.id not in self.sessions: return
+
+            if after.channel and before.channel:
+                if before.channel.id == after.channel.id: return
+
+            len_members = len(before.channel.members)
+
+            if len_members <= 1:
+                self.sessions.discard(before.channel.id)
+
+                voice_client : VoiceClient = before.channel.guild.voice_client
+
+                if voice_client and voice_client.is_connected():
+                    voice_client.stop()
+                    await voice_client.disconnect()
+
+                await before.channel.send(embed=self.tts_disabled_page)
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
 def setup(bot : commands.Bot):
     bot.add_cog(TextToSpeech(bot))

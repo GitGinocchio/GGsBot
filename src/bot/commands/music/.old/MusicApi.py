@@ -5,8 +5,6 @@ from .MusicServices import YoutubeExtension,\
 import asyncio
 import os
 
-
-
 class MusicApi:
     def __init__(self, loop : asyncio.AbstractEventLoop):
         self.yt = YoutubeExtension(loop=loop,params=config['music']['youtube']['ytdl_params'])

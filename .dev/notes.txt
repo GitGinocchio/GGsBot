@@ -59,3 +59,6 @@ colori del bot:
 
 # How to create a disable slash_command
 https://stackoverflow.com/questions/78211436/discord-py-check-if-slash-command-exists
+
+Ricreare un logger con una configurazione json
+- https://github.com/mCodingLLC/VideosSampleCode/tree/master/videos/135_modern_logging
