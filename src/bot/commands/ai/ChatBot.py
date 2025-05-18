@@ -1,15 +1,16 @@
-from nextcord import \
-    Embed,           \
-    Color,           \
-    utils,           \
-    Thread,          \
-    Permissions,     \
-    Interaction,     \
-    SlashOption,     \
-    slash_command,   \
-    ChannelType,     \
-    TextChannel,     \
+from nextcord import (
+    Embed,
+    Color,
+    utils,
+    Thread,
+    Permissions,
+    Interaction,
+    SlashOption,
+    slash_command,
+    ChannelType,
+    TextChannel,
     Message
+)
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from nextcord.ext import commands
@@ -24,16 +25,20 @@ import os
 import io
 
 from utils.terminal import getlogger
-from utils.commons import \
-    Extensions,           \
-    USER_INTEGRATION,     \
-    GUILD_INTEGRATION,    \
-    GLOBAL_INTEGRATION,   \
-    getsession,           \
+from utils.commons import (
+    Extensions,
+    USER_INTEGRATION,
+    GUILD_INTEGRATION,
+    GLOBAL_INTEGRATION,
+    getsession,
     asyncget
+)
 from utils.db import Database
 from utils.exceptions import *
-from utils.config import config
+from utils.config import (
+    config, 
+    DEVELOPER_GUILD_ID
+)
 
 logger = getlogger()
 
@@ -58,10 +63,11 @@ class ChatBot(commands.Cog):
         self.db = Database()
         self.bot = bot
 
-    @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,integration_types=GUILD_INTEGRATION)
+    # NOTE: For now this set of commands are only available in the dev guild.
+    @slash_command('chat',"An AI chatbot powered by LLMs (Large Language Models)",default_member_permissions=permissions,integration_types=GUILD_INTEGRATION, guild_ids=[DEVELOPER_GUILD_ID])
     async def chat(self, interaction : Interaction): pass
 
-    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,integration_types=GLOBAL_INTEGRATION)
+    @slash_command('ask',description="Ask a question to GG'sBot AI",default_member_permissions=permissions,integration_types=GLOBAL_INTEGRATION, guild_ids=[DEVELOPER_GUILD_ID])
     async def ask(self,
                   interaction : Interaction,
                   prompt : str = SlashOption("prompt","The question you want to ask",required=True),

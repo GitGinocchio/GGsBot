@@ -1,9 +1,442 @@
 # CHANGELOG
 
 
-## v0.1.3+test (2025-04-23)
+## v0.2.0 (2025-05-07)
+
+
+## v0.1.1 (2025-05-02)
+
+### Bug Fixes
+
+- **HTTPServer.py**: Fixed 404 route
+  ([`bcae93f`](https://github.com/GitGinocchio/GGsBot/commit/bcae93f036381d2c8b0d8d8ff2f7b4a11df00b7d))
+
+- **ImageGeneration.py**: Now correctly using Ai gataway
+  ([`f109af2`](https://github.com/GitGinocchio/GGsBot/commit/f109af21fc4aa8da5119916704c24e2ffe982b1b))
+
+- **ImageGeneration.py**: Now correctly using Ai gataway
+  ([#223](https://github.com/GitGinocchio/GGsBot/pull/223),
+  [`5a95dad`](https://github.com/GitGinocchio/GGsBot/commit/5a95dad0dafdec96a468c302d136127904974668))
+
+* Bump pydantic from 2.10.6 to 2.11.3 (#140)
+
+* Bump pydantic-core from 2.27.2 to 2.33.1
+
+Bumps [pydantic-core](https://github.com/pydantic/pydantic-core) from 2.27.2 to 2.33.1. - [Release
+  notes](https://github.com/pydantic/pydantic-core/releases) -
+  [Commits](https://github.com/pydantic/pydantic-core/compare/v2.27.2...v2.33.1)
+
+--- updated-dependencies: - dependency-name: pydantic-core dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* Bump pydantic from 2.10.6 to 2.11.3
+
+Bumps [pydantic](https://github.com/pydantic/pydantic) from 2.10.6 to 2.11.3. - [Release
+  notes](https://github.com/pydantic/pydantic/releases) -
+  [Changelog](https://github.com/pydantic/pydantic/blob/main/HISTORY.md) -
+  [Commits](https://github.com/pydantic/pydantic/compare/v2.10.6...v2.11.3)
+
+--- updated-dependencies: - dependency-name: pydantic dependency-version: 2.11.3
+
+dependency-type: direct:production
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+* Revert "Bump pydantic from 2.10.6 to 2.11.3 (#140)"
+
+This reverts commit 31deaaa17b1de8b9ba2c8b2c35282f5d62a10013.
+
+* chore(deps): bump setuptools from 79.0.0 to 79.0.1 (#210)
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 79.0.0 to 79.0.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v79.0.0...v79.0.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 79.0.1
+
+update-type: version-update:semver-patch ...
+
+* chore(deps): bump pydantic from 2.10.6 to 2.11.3 (#209)
+
+* chore(deps): bump pydantic from 2.10.6 to 2.11.3
+
+* Update requirements.txt
+
+Co-authored-by: GitGinocchio <giuliotognetto2@gmail.com>
+
+* ci: updated dependency conflict check
+
+* Update dependency-check.yml
+
+* chore(deps): bump httpcore from 1.0.8 to 1.0.9 and h11 from 0.14.0 to 0.16.0 (#213)
+
+* chore(deps): bump httpcore from 1.0.8 to 1.0.9
+
+Bumps [httpcore](https://github.com/encode/httpcore) from 1.0.8 to 1.0.9. - [Release
+  notes](https://github.com/encode/httpcore/releases) -
+  [Changelog](https://github.com/encode/httpcore/blob/master/CHANGELOG.md) -
+  [Commits](https://github.com/encode/httpcore/compare/1.0.8...1.0.9)
+
+--- updated-dependencies: - dependency-name: httpcore dependency-version: 1.0.9
+
+* chore(deps): bump h11 from 0.14.0 to 0.16.0 (#211)
+
+Bumps [h11](https://github.com/python-hyper/h11) from 0.14.0 to 0.16.0. -
+  [Commits](https://github.com/python-hyper/h11/compare/v0.14.0...v0.16.0)
+
+--- updated-dependencies: - dependency-name: h11 dependency-version: 0.16.0
+
+* chore(deps): bump h11 from 0.14.0 to 0.16.0 in the pip group across 1 directory (#212)
+
+chore(deps): bump h11 in the pip group across 1 directory
+
+Bumps the pip group with 1 update in the / directory: [h11](https://github.com/python-hyper/h11).
+
+Updates `h11` from 0.14.0 to 0.16.0 -
+  [Commits](https://github.com/python-hyper/h11/compare/v0.14.0...v0.16.0)
+
+dependency-group: pip ...
+
+* chore(deps): bump certifi from 2025.1.31 to 2025.4.26 (#216)
+
+Bumps [certifi](https://github.com/certifi/python-certifi) from 2025.1.31 to 2025.4.26. -
+  [Commits](https://github.com/certifi/python-certifi/compare/2025.01.31...2025.04.26)
+
+--- updated-dependencies: - dependency-name: certifi dependency-version: 2025.4.26
+
+* chore(deps): bump setuptools from 79.0.1 to 80.0.0 (#217)
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 79.0.1 to 80.0.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v79.0.1...v80.0.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.0.0
+
+update-type: version-update:semver-major ...
+
+* chore(deps): bump setuptools from 80.0.0 to 80.0.1 (#219)
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.0.0 to 80.0.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.0.0...v80.0.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.0.1
+
+* chore(deps): bump setuptools from 80.0.1 to 80.1.0 (#221)
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.0.1 to 80.1.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.0.1...v80.1.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.1.0
+
+* fix(ImageGeneration.py): now correctly using Ai gataway
 
 ### Chores
+
+- **ai**: Fixed some issues and minor changes
+  ([`07abb8a`](https://github.com/GitGinocchio/GGsBot/commit/07abb8a320df6bb7f601af20c541092ec52b9409))
+
+- **deps**: Bump certifi from 2025.1.31 to 2025.4.26
+  ([#216](https://github.com/GitGinocchio/GGsBot/pull/216),
+  [`d4a868d`](https://github.com/GitGinocchio/GGsBot/commit/d4a868d21a84c0a77241cfa266efe05e507cf22e))
+
+Bumps [certifi](https://github.com/certifi/python-certifi) from 2025.1.31 to 2025.4.26. -
+  [Commits](https://github.com/certifi/python-certifi/compare/2025.01.31...2025.04.26)
+
+--- updated-dependencies: - dependency-name: certifi dependency-version: 2025.4.26
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump charset-normalizer from 3.4.1 to 3.4.2
+  ([#225](https://github.com/GitGinocchio/GGsBot/pull/225),
+  [`2c061f0`](https://github.com/GitGinocchio/GGsBot/commit/2c061f01369906bdbb907ed9c814c63da9367925))
+
+Bumps [charset-normalizer](https://github.com/jawah/charset_normalizer) from 3.4.1 to 3.4.2. -
+  [Release notes](https://github.com/jawah/charset_normalizer/releases) -
+  [Changelog](https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md) -
+  [Commits](https://github.com/jawah/charset_normalizer/compare/3.4.1...3.4.2)
+
+--- updated-dependencies: - dependency-name: charset-normalizer dependency-version: 3.4.2
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump h11 from 0.14.0 to 0.16.0 in the pip group across 1 directory
+  ([#212](https://github.com/GitGinocchio/GGsBot/pull/212),
+  [`33d7a48`](https://github.com/GitGinocchio/GGsBot/commit/33d7a48f611333084f53f9661f0d93b51b658251))
+
+chore(deps): bump h11 in the pip group across 1 directory
+
+Bumps the pip group with 1 update in the / directory: [h11](https://github.com/python-hyper/h11).
+
+Updates `h11` from 0.14.0 to 0.16.0 -
+  [Commits](https://github.com/python-hyper/h11/compare/v0.14.0...v0.16.0)
+
+--- updated-dependencies: - dependency-name: h11 dependency-version: 0.16.0
+
+dependency-type: direct:production
+
+dependency-group: pip ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **deps**: Bump h11 from 0.14.0 to 0.16.0 in the pip group across 1 directory
+  ([#215](https://github.com/GitGinocchio/GGsBot/pull/215),
+  [`4fa319d`](https://github.com/GitGinocchio/GGsBot/commit/4fa319d65ce4b190dc2d47cb01c6974186c0bb00))
+
+chore(deps): bump h11 in the pip group across 1 directory
+
+Bumps the pip group with 1 update in the / directory: [h11](https://github.com/python-hyper/h11).
+
+Updates `h11` from 0.14.0 to 0.16.0 -
+  [Commits](https://github.com/python-hyper/h11/compare/v0.14.0...v0.16.0)
+
+--- updated-dependencies: - dependency-name: h11 dependency-version: 0.16.0
+
+dependency-type: direct:production
+
+dependency-group: pip ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump httpcore from 1.0.8 to 1.0.9 and h11 from 0.14.0 to 0.16.0
+  ([#213](https://github.com/GitGinocchio/GGsBot/pull/213),
+  [`d2f4edc`](https://github.com/GitGinocchio/GGsBot/commit/d2f4edc8066a6535daf31ddf3608463015d2f6a1))
+
+* chore(deps): bump httpcore from 1.0.8 to 1.0.9
+
+Bumps [httpcore](https://github.com/encode/httpcore) from 1.0.8 to 1.0.9. - [Release
+  notes](https://github.com/encode/httpcore/releases) -
+  [Changelog](https://github.com/encode/httpcore/blob/master/CHANGELOG.md) -
+  [Commits](https://github.com/encode/httpcore/compare/1.0.8...1.0.9)
+
+--- updated-dependencies: - dependency-name: httpcore dependency-version: 1.0.9
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(deps): bump h11 from 0.14.0 to 0.16.0 (#211)
+
+Bumps [h11](https://github.com/python-hyper/h11) from 0.14.0 to 0.16.0. -
+  [Commits](https://github.com/python-hyper/h11/compare/v0.14.0...v0.16.0)
+
+--- updated-dependencies: - dependency-name: h11 dependency-version: 0.16.0
+
+update-type: version-update:semver-minor ...
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+---------
+
+- **deps**: Bump pydantic from 2.10.6 to 2.11.3
+  ([#209](https://github.com/GitGinocchio/GGsBot/pull/209),
+  [`d58c930`](https://github.com/GitGinocchio/GGsBot/commit/d58c9308a3dcfc7f8a874f155e4276230ce6ad37))
+
+* chore(deps): bump pydantic from 2.10.6 to 2.11.3
+
+Bumps [pydantic](https://github.com/pydantic/pydantic) from 2.10.6 to 2.11.3. - [Release
+  notes](https://github.com/pydantic/pydantic/releases) -
+  [Changelog](https://github.com/pydantic/pydantic/blob/main/HISTORY.md) -
+  [Commits](https://github.com/pydantic/pydantic/compare/v2.10.6...v2.11.3)
+
+--- updated-dependencies: - dependency-name: pydantic dependency-version: 2.11.3
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* Update requirements.txt
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+Co-authored-by: GitGinocchio <giuliotognetto2@gmail.com>
+
+- **deps**: Bump python-semantic-release from 9.21.0 to 9.21.1 in /.dev
+  ([#227](https://github.com/GitGinocchio/GGsBot/pull/227),
+  [`6d89597`](https://github.com/GitGinocchio/GGsBot/commit/6d895979ffc4212ce9cd3ae124bfda1f47427bb2))
+
+Bumps [python-semantic-release](https://github.com/python-semantic-release/python-semantic-release)
+  from 9.21.0 to 9.21.1. - [Release
+  notes](https://github.com/python-semantic-release/python-semantic-release/releases) -
+  [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.rst)
+  -
+  [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v9.21...v9.21.1)
+
+--- updated-dependencies: - dependency-name: python-semantic-release dependency-version: 9.21.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump setuptools from 79.0.0 to 79.0.1
+  ([#210](https://github.com/GitGinocchio/GGsBot/pull/210),
+  [`7d3b213`](https://github.com/GitGinocchio/GGsBot/commit/7d3b213d05377247bc27c1268b968b52c929700a))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 79.0.0 to 79.0.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v79.0.0...v79.0.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 79.0.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump setuptools from 79.0.1 to 80.0.0
+  ([#217](https://github.com/GitGinocchio/GGsBot/pull/217),
+  [`bafbb54`](https://github.com/GitGinocchio/GGsBot/commit/bafbb54841d1e6dd08bc274df7c9283a6140d7a6))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 79.0.1 to 80.0.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v79.0.1...v80.0.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.0.0
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **deps**: Bump setuptools from 80.0.0 to 80.0.1
+  ([#219](https://github.com/GitGinocchio/GGsBot/pull/219),
+  [`a1d6897`](https://github.com/GitGinocchio/GGsBot/commit/a1d6897c0b67b947dc593a21728c731da41c8c81))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.0.0 to 80.0.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.0.0...v80.0.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.0.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump setuptools from 80.0.1 to 80.1.0
+  ([#221](https://github.com/GitGinocchio/GGsBot/pull/221),
+  [`5c7621f`](https://github.com/GitGinocchio/GGsBot/commit/5c7621f7003058b5ce06a2d8840322ce85020c33))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.0.1 to 80.1.0. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.0.1...v80.1.0)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.1.0
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump setuptools from 80.1.0 to 80.3.1
+  ([#226](https://github.com/GitGinocchio/GGsBot/pull/226),
+  [`776afc3`](https://github.com/GitGinocchio/GGsBot/commit/776afc3f33a127d1618152421b88737d727f7c98))
+
+Bumps [setuptools](https://github.com/pypa/setuptools) from 80.1.0 to 80.3.1. - [Release
+  notes](https://github.com/pypa/setuptools/releases) -
+  [Changelog](https://github.com/pypa/setuptools/blob/main/NEWS.rst) -
+  [Commits](https://github.com/pypa/setuptools/compare/v80.1.0...v80.3.1)
+
+--- updated-dependencies: - dependency-name: setuptools dependency-version: 80.3.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **deps**: Bump yt-dlp from 2025.3.31 to 2025.4.30
+  ([#220](https://github.com/GitGinocchio/GGsBot/pull/220),
+  [`6149560`](https://github.com/GitGinocchio/GGsBot/commit/6149560a7163c1310fa17fed1907498285e32a12))
+
+Bumps [yt-dlp](https://github.com/yt-dlp/yt-dlp) from 2025.3.31 to 2025.4.30. - [Release
+  notes](https://github.com/yt-dlp/yt-dlp/releases) -
+  [Changelog](https://github.com/yt-dlp/yt-dlp/blob/master/Changelog.md) -
+  [Commits](https://github.com/yt-dlp/yt-dlp/compare/2025.03.31...2025.04.30)
+
+--- updated-dependencies: - dependency-name: yt-dlp dependency-version: 2025.4.30
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Giulio <giuliotognetto0208@gmail.com>
+
+- **release**: Bump to 0.1.1 (v0.1.1)
+  ([`57ba0a2`](https://github.com/GitGinocchio/GGsBot/commit/57ba0a2ee465ddd979cc651d8aa3c6083659bbed))
+
+- **release**: Bump to 0.1.1 (v0.1.1)
+  ([`6723c70`](https://github.com/GitGinocchio/GGsBot/commit/6723c70ecad22f70b35f4248560b89bff61b458a))
 
 - **release**: Bump to 0.1.1+test (v0.1.1+test)
   ([`9c86706`](https://github.com/GitGinocchio/GGsBot/commit/9c86706d30eb2da9539e24132792f0f13e117cf5))
@@ -11,8 +444,24 @@
 - **release**: Bump to 0.1.1+test (v0.1.1+test)
   ([`35d507a`](https://github.com/GitGinocchio/GGsBot/commit/35d507a1e0dd7f177a47397732f566c5c149d522))
 
+- **release**: Bump to 0.1.2 (v0.1.2)
+  ([`cd576a2`](https://github.com/GitGinocchio/GGsBot/commit/cd576a262cf23729825c2e84cf78f47eea5e4a0c))
+
 - **release**: Bump to 0.1.2+test (v0.1.2+test)
   ([`3f145d0`](https://github.com/GitGinocchio/GGsBot/commit/3f145d07240547e5a65510a67083475843851c0b))
+
+- **release**: Bump to 0.1.3+test (v0.1.3+test)
+  ([`199eee0`](https://github.com/GitGinocchio/GGsBot/commit/199eee0f0dc65b806db188e5b494b852f571d490))
+
+### Continuous Integration
+
+- Updated dependency conflict check
+  ([`1f2467d`](https://github.com/GitGinocchio/GGsBot/commit/1f2467d18ff8980db75bd3bf7f15286469bbbc12))
+
+### Features
+
+- **ai**: Added cloudflare api per-user rate limits
+  ([`fe10b7b`](https://github.com/GitGinocchio/GGsBot/commit/fe10b7b0a34820acb78b4d385bee9762e8a42d41))
 
 
 ## v0.1.0 (2025-04-23)

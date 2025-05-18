@@ -15,6 +15,7 @@ from nextcord.ui import \
     Button,             \
     string_select,      \
     button
+from cachetools import TTLCache
 from typing import Callable
 import json
 import os
@@ -116,11 +117,12 @@ class TranslationForm(View):
                 view=None)
 
             self.response = await self.translation_method(
-                                        text=self.message.clean_content,
-                                        from_lang=self.from_lang,
-                                        to_lang=self.to_lang,
-                                        model=self.model
-                                    )
+                userid=interaction.user.id,
+                text=self.message.clean_content,
+                from_lang=self.from_lang,
+                to_lang=self.to_lang,
+                model=self.model
+            )
         except GGsBotException as e:
             await interaction.edit_original_message(embed=e.asEmbed())
         else:
@@ -128,7 +130,9 @@ class TranslationForm(View):
 
 class Translator(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
-        self.api = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/"
+        self.api = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
+        self.requests_cache = TTLCache(maxsize=10000, ttl=86400)
+        self.requests_limit = 20
         self.bot = bot
 
     @message_command(name="translate",default_member_permissions=permissions, integration_types=GLOBAL_INTEGRATION)
@@ -147,7 +151,7 @@ class Translator(commands.Cog):
             view = TranslationForm(self.translate,message)
             await interaction.response.send_message(content='Fill out the translation form:', view=view,ephemeral=True)
         except GGsBotException as e:
-            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True,delete_after=5)
+            await interaction.response.send_message(embed=e.asEmbed(),ephemeral=True)
 
     @slash_command(name="translate", description="Translate a given text to language using AI",default_member_permissions=permissions, integration_types=GLOBAL_INTEGRATION)
     async def translate_text(self, 
@@ -167,20 +171,41 @@ class Translator(commands.Cog):
                     suggestions="Please choose a different languages for translation.",
                 )
 
-            response = await self.translate(text=text,from_lang=from_lang,to_lang=to_lang,model=model)
+            response = await self.translate(userid=interaction.user.id, text=text,from_lang=from_lang,to_lang=to_lang,model=model)
         except GGsBotException as e:
             if e.code != 0: logger.error(e)
-            await interaction.followup.send(embed=e.asEmbed())
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
             await interaction.followup.send(response['result']['translated_text'])
 
-    async def translate(self, text : str, to_lang : str, model : str, from_lang : str | None = None):
-        headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}"}
+    async def translate(self, userid: int, text : str, to_lang : str, model : str, from_lang : str | None = None):
+        # NOTE: The default value is -1 because we want to check if the user has made any requests before. 
+        #       If they haven't, then we set it to 1. If they have, then we increment it by 1.
+        if (user_requests:=self.requests_cache.get(userid, -1)) >= self.requests_limit:
+            raise GGsBotException(
+                title="Daily limit reached!",
+                description=f"You have reached your daily limit of {self.requests_limit} requests.",
+                suggestions="Please try again after 24 hours, or if you think this is an error contact support."
+            )
+        
+        self.requests_cache[userid] = user_requests + 1 if user_requests != -1 else 1
+        
+        headers = {"Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json'}
+        data = [
+            {
+                "provider": "workers-ai",
+                "endpoint": model,
+                "headers" : headers,
+                "query" : {
+                    "text" : text,
+                    "target_lang" : to_lang
+                }
+            }
+        ]
 
-        payload = {'text' : text,'target_lang' : to_lang}
-        if from_lang is not None: payload['source_lang'] = from_lang
+        if from_lang is not None: data[0]["query"]['source_lang'] = from_lang
 
-        content_type, content, code, reason = await asyncpost(self.api + model, json=payload, headers=headers)
+        content_type, content, code, reason = await asyncpost(self.api, json=data, headers=headers)
 
         if code != 200 or content_type != 'application/json':
             raise GGsBotException(

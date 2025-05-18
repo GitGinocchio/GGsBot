@@ -1,20 +1,22 @@
-from nextcord import \
-        Embed,\
-        Color,\
-        utils,\
-        Thread, \
-        Permissions,\
-        Interaction, \
-        SlashOption, \
-        slash_command, \
-        ChannelType, \
-        Message, \
-        Attachment, \
-        AttachmentFlags, \
-        File
+from nextcord import (
+    Embed,
+    Color,
+    utils,
+    Thread,
+    Permissions,
+    Interaction,
+    SlashOption,
+    slash_command,
+    ChannelType,
+    Message,
+    Attachment,
+    AttachmentFlags,
+    File
+)
 from jinja2 import Environment, FileSystemLoader
 from datetime import datetime, timezone
 from nextcord.ext import commands
+from cachetools import TTLCache
 from PIL import Image
 import numpy as np
 import requests
@@ -62,6 +64,8 @@ permissions = Permissions(
 
 class ImageGeneration(commands.Cog):
     def __init__(self, bot : commands.Bot):
+        self.requests_cache = TTLCache(maxsize=10000, ttl=86400)
+        self.requests_limit = 10 # 10 richieste per utente al giorno
         self.bot = bot
 
     @slash_command('image', "Set of commands to manage and create Ai generated images", integration_types=GLOBAL_INTEGRATION)
@@ -69,19 +73,40 @@ class ImageGeneration(commands.Cog):
 
     @image.subcommand('fromtext', "Generate an image from a prompt")
     async def fromtext(self, 
-                       interaction : Interaction,
-                       prompt : str =  SlashOption(description="A text description of the image you want to generate",required=True,min_length=1),
-                       model : str = SlashOption(description="Model to be used for generating the image",required=False,choices=txt2img_models,default=txt2img_models[0]),
-                       steps : int = SlashOption(description="Number of diffusion steps, higher values can improve quality but take longer (min: 1 max: 8 def:4)",required=False,default=4, min_value=1, max_value=8),
-                       ephemeral : bool = SlashOption(description="Whether the response should be ephemeral or not",required=False,default=True),
-                       spoiler : bool = SlashOption(description="Whether the generated image should be a spoiler or not",required=False,default=False),
-                       ):
+            interaction : Interaction,
+            prompt : str =  SlashOption(description="A text description of the image you want to generate",required=True,min_length=1),
+            model : str = SlashOption(description="Model to be used for generating the image",required=False,choices=txt2img_models,default=txt2img_models[0]),
+            steps : int = SlashOption(description="Number of diffusion steps, higher values can improve quality but take longer (min: 1 max: 8 def:4)",required=False,default=4, min_value=1, max_value=8),
+            ephemeral : bool = SlashOption(description="Whether the response should be ephemeral or not",required=False,default=True),
+            spoiler : bool = SlashOption(description="Whether the generated image should be a spoiler or not",required=False,default=False),
+        ):
         try:
             await interaction.response.defer(ephemeral=ephemeral)
 
-            url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ai/run/{model}"
+            # NOTE: The default value is -1 because we want to check if the user has made any requests before. 
+            #       If they haven't, then we set it to 1. If they have, then we increment it by 1.
+            if (user_requests:=self.requests_cache.get(interaction.user.id, -1)) >= self.requests_limit:
+                raise GGsBotException(
+                    title="Daily limit reached!",
+                    description=f"You have reached your daily limit of {self.requests_limit} requests.",
+                    suggestions="Please try again after 24 hours, or if you think this is an error contact support."
+                )
+            
+            self.requests_cache[interaction.user.id] = user_requests + 1 if user_requests != -1 else 1
+
+            url = f"https://gateway.ai.cloudflare.com/v1/{os.environ['CLOUDFLARE_ACCOUNT_ID']}/ggsbot-ai"
             headers = { "Authorization": f"Bearer {os.environ['CLOUDFLARE_API_KEY']}", 'Content-Type': 'application/json' }
-            data = { "prompt" : prompt, "steps" : steps}
+            data = [
+                {
+                    "provider": "workers-ai",
+                    "endpoint": model,
+                    "headers" : headers,
+                    "query" : {
+                        "prompt" : prompt,
+                        "steps" : steps
+                    }
+                }
+            ]
 
             content_type, content, code, reason = await asyncpost(url, headers=headers, json=data)
             
@@ -113,7 +138,7 @@ class ImageGeneration(commands.Cog):
 
             await interaction.followup.send(embed=embed, file=File(io.BytesIO(base64.b64decode(b64image)), filename="image.png",description=f"Image generated by GGsBot", spoiler=spoiler))
         except (GGsBotException, CloudFlareAIException) as e:
-            await interaction.followup.send(embed=e.asEmbed())
+            await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
             logger.error(e)
         except SlashCommandException as e:
             if e.code == 'Interaction Expired':
