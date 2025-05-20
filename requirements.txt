@@ -50,7 +50,7 @@ pyttsx3==2.98
 pytube==15.0.0
 redis==6.1.0
 requests==2.32.3
-setuptools==80.7.1
+setuptools==80.8.0
 sniffio==1.3.1
 spotipy==2.25.1
 urllib3==2.4.0
