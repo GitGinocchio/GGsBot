@@ -12,6 +12,8 @@ from nextcord import (
     ButtonStyle,
     TextInputStyle,
     SelectOption,
+    Attachment,
+    File,
     Embed,
     Colour,
     slash_command,
@@ -347,6 +349,7 @@ class EmbedsEditor(View):
     def __init__(self):
         View.__init__(self, timeout=None)
         self.embeds: dict[str, Embed] = {}
+        self.attachments: dict[str, Attachment] = {}
         self.message: Message | None = None
 
         self.embed_select = EmbedIndex(self)
@@ -394,6 +397,10 @@ class EmbedsEditor(View):
     async def from_existing_message(self, message : Message):
         if len(message.embeds) > 0:
             self.embed_select.options.clear()
+
+        for attachment in message.attachments:
+            attachment_id = uuid.uuid4().hex
+            self.attachments[attachment_id] = attachment
 
         for embed in message.embeds:
             embed_id = uuid.uuid4().hex
@@ -574,6 +581,8 @@ class EmbedsEditor(View):
 
     async def send(self, interaction : Interaction):
         try:
+            await interaction.response.defer()
+
             avatar = interaction.user.avatar if interaction.user.avatar else interaction.user.default_avatar
             webhook = await interaction.channel.create_webhook(
                 name=interaction.user.display_name,
@@ -584,6 +593,7 @@ class EmbedsEditor(View):
             await webhook.send(
                 content=self.message.content,
                 embeds=self.embeds.values(),
+                files=[await attachment.to_file() for attachment in self.attachments.values()],
                 username=interaction.user.display_name,
                 avatar_url=avatar.url,
             )
@@ -600,8 +610,7 @@ class EmbedsEditor(View):
 
     async def start(self, interaction: Interaction):
         self.message = await interaction.followup.send(
-            content="-# Add embeds, fields, contents, attachments with the buttons below",
-            embeds=self.embeds,
+            content="-# Add embeds, fields, contents, attachments with the buttons below\n-# Files and Attachments will be shown when the message is sent",
             view=self,
             ephemeral=True
         )
@@ -610,10 +619,10 @@ class EmbedsEditor(View):
         if not self.message:
             return
         
-        #self.refresh(self.to_components())
         await self.message.edit(
             content=self.message.content,
-            embeds=self.embeds.values(), 
+            embeds=self.embeds.values(),
+            attachments=self.attachments.values(),
             view=self
         )
 
@@ -624,8 +633,8 @@ class Messages(commands.Cog):
         commands.Cog.__init__(self)
         self.bot = bot
 
-    @message_command(name="edit", integration_types=GLOBAL_INTEGRATION)
-    async def edit(self, interaction : Interaction, message  : nextcord.Message):
+    @message_command(name="copy", integration_types=GLOBAL_INTEGRATION)
+    async def message_command_copy(self, interaction : Interaction, message : nextcord.Message):
         try:
             await interaction.response.defer(ephemeral=True)
 
@@ -638,7 +647,7 @@ class Messages(commands.Cog):
     @slash_command(description="Set of commands to manage messages")
     async def message(self, interaction: Interaction): pass
 
-    @message.subcommand(description="Create a new message with embeds, fields and attachments.")
+    @message.subcommand(description="Create and edit a new message with embeds, fields and attachments.")
     async def new(self, interaction : Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
@@ -649,7 +658,7 @@ class Messages(commands.Cog):
         except Exception as e:
             logger.error(traceback.format_exc())
     
-    @message.subcommand(description="Clone a message with its embeds and file attachments.")
+    @message.subcommand(description="Copy and edit a message with embeds and file attachments.")
     async def copy(self, 
             interaction : Interaction,
             message_id : str = SlashOption(description="The ID of the message you want to copy.", required=True, max_length=20, min_length=1),
