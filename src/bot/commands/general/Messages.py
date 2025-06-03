@@ -66,7 +66,7 @@ class EditTitleDescription(Modal):
             label="Title",
             placeholder="Enter embed title",
             default_value=self.embed.title or "",
-            required=False
+            required=True
         )
         self.desc_input = TextInput(
             label="Description",
@@ -323,9 +323,78 @@ class EditEmbed(Modal):
         await interaction.response.edit_message(embeds=[self.embed])
         self.stop()
 
+class EditField(Modal):
+    def __init__(self, editor: 'EmbedsEditor', embed: Embed, field_name : str = None):
+        super().__init__(title=f"Edit Field \"{field_name}\"" if field_name else "Add Field", timeout=180)
+        self.editor = editor
+        self.embed = embed
+        match = next(((i, f) for i, f in enumerate(self.embed.fields or []) if f.name == field_name), None)
+        self.field = match[1] if match else None
+        self.field_index = match[0] if match else None
+        self.name = None
+        self.value = None
+        self.inline = None
+
+        self.name_input = TextInput(
+            label="Name",
+            placeholder="Enter field name",
+            default_value=self.field.name if self.field else "",
+            required=True
+        )
+
+        self.value_input = TextInput(
+            label="Value",
+            placeholder="Enter field value (Markdown syntax is supported!)",
+            style=TextInputStyle.paragraph,
+            default_value=self.field.value if self.field else "",
+            required=True
+        )
+
+        self.inline_input = TextInput(
+            label="Inline",
+            placeholder="If the field should be inline or not. Yes / No",
+            style=TextInputStyle.short,
+            default_value=("Yes" if self.field.inline else "No") if self.field else "",
+            required=True
+        )
+
+        if not self.field: self.add_item(self.name_input)
+        self.add_item(self.value_input)
+        self.add_item(self.inline_input)
+
+    async def callback(self, interaction: Interaction):
+        if not self.inline_input.value:
+            self.inline = False
+        elif "yes" in (lower_value:=self.inline_input.value.lower()):
+            self.inline = True
+        elif "no" in lower_value:
+            self.inline = False
+        else:
+            self.inline = False
+
+        self.name = self.name_input.value or self.name_input.default_value
+        self.value = self.value_input.value or self.value_input.default_value
+
+        if self.field and self.field_index:
+            self.embed.set_field_at(
+                index=self.field_index,
+                name=self.name,
+                value=self.value,
+                inline=self.inline
+            )
+        else:
+            self.embed.add_field(
+                name=self.name,
+                value=self.value,
+                inline=self.inline
+            )
+
+        await interaction.response.edit_message(embeds=[self.embed], view=self.editor)
+        self.stop()
+
 class EmbedIndex(Select):
     def __init__(self, editor : 'EmbedsEditor'):
-        self.buddy_select = SelectOption(label="No Embed", value="None", description="Create an embed first", default=True)
+        self.buddy_select = SelectOption(label="No Embeds", value="None", description="Your message has no embeds", default=True)
         Select.__init__(self, 
             placeholder="Select the embed you want to modify or delete",
             options=[self.buddy_select],
@@ -345,6 +414,30 @@ class EmbedIndex(Select):
 
         await self.editor.update()
 
+class EmbedField(Select):
+    def __init__(self, editor : 'EmbedsEditor'):
+        self.buddy_select = SelectOption(label="No Fields", value="None", description="Your embed has no fields", default=True)
+        Select.__init__(self, 
+            placeholder="Select the embed field you want to modify or delete",
+            options=[self.buddy_select],
+            row=1
+        )
+        self.editor = editor
+        self.field = None
+
+    async def callback(self, interaction : Interaction):
+        self.field = self.values[0] if len(self.values) > 0 else None
+
+        print(f'{self.field=}')
+
+        for option in self.options:
+            if option.value == self.field:
+                option.default = True
+            else:
+                option.default = False
+
+        await self.editor.update()
+
 class EmbedsEditor(View):
     def __init__(self):
         View.__init__(self, timeout=None)
@@ -355,42 +448,57 @@ class EmbedsEditor(View):
         self.embed_select = EmbedIndex(self)
         self.add_item(self.embed_select)
 
+        self.field_select = EmbedField(self)
+        self.add_item(self.field_select)
+
         # Edit Commands
-        self.sc_button = Button(style=ButtonStyle.grey, label="Edit Content", row=1)
+        self.sc_button = Button(style=ButtonStyle.grey, label="Edit Content", row=2)
         self.sc_button.callback = self.edit_content
         self.add_item(self.sc_button)
     
-        self.etd_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit title & description", row=1)
+        self.etd_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit title & description", row=2)
         self.etd_button.callback = self.edit_td
         self.add_item(self.etd_button)
 
-        self.ei_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit images", row=1)
+        self.ei_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit images", row=2)
         self.ei_button.callback = self.edit_images
         self.add_item(self.ei_button)
 
-        self.ea_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit author", row=2)
+        self.ea_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit author", row=3)
         self.ea_button.callback = self.edit_author
         self.add_item(self.ea_button)
 
-        self.ef_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit footer", row=2)
+        self.ef_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit footer", row=3)
         self.ef_button.callback = self.edit_footer
         self.add_item(self.ef_button)
 
-        self.ec_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit Color", row=2)
+        self.ec_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit Color", row=3)
         self.ec_button.callback = self.edit_color
         self.add_item(self.ec_button)
 
+        #self.efield_button = Button(style=ButtonStyle.grey, disabled=True, label="Edit Field", row=3)
+        #self.efield_button.callback = self.edit_field
+        #self.add_item(self.efield_button)
+
         # Add / Remove / Send
         
-        self.add_button = Button(style=ButtonStyle.green, label="Add Embed", row=3)
-        self.add_button.callback = self.add_embed
-        self.add_item(self.add_button)
+        self.add_embed_button = Button(style=ButtonStyle.green, label="Add Embed", row=4)
+        self.add_embed_button.callback = self.add_embed
+        self.add_item(self.add_embed_button)
 
-        self.del_button = Button(style=ButtonStyle.danger, disabled=True, label="Remove Embed", row=3)
-        self.del_button.callback = self.del_embed
-        self.add_item(self.del_button)
+        self.add_field_button = Button(style=ButtonStyle.green, disabled=True, label="Add Field", row=4)
+        self.add_field_button.callback = self.add_field
+        self.add_item(self.add_field_button)
 
-        self.send_button = Button(style=ButtonStyle.primary, label="Send", row=3)
+        self.del_embed_button = Button(style=ButtonStyle.danger, disabled=True, label="Remove Embed", row=4)
+        self.del_embed_button.callback = self.del_embed
+        self.add_item(self.del_embed_button)
+        
+        self.del_field_button = Button(style=ButtonStyle.danger, disabled=True, label="Remove Field", row=4)
+        self.del_field_button.callback = self.del_field
+        self.add_item(self.del_field_button)
+
+        self.send_button = Button(style=ButtonStyle.primary, label="Send", row=4)
         self.send_button.callback = self.send
         self.add_item(self.send_button)
 
@@ -413,7 +521,7 @@ class EmbedsEditor(View):
                 default=False
             )
 
-        for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_button]:
+        for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_embed_button]:
             input.disabled = False
 
         if len(self.embed_select.options) > 0:
@@ -428,9 +536,9 @@ class EmbedsEditor(View):
 
     async def edit_content(self, interaction : Interaction):
         try:
-            edit_modal = EditContent(self)
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditContent(self)
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
@@ -443,9 +551,9 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
 
-            edit_modal = EditTitleDescription(self, self.embeds[self.embed_select.embed])
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditTitleDescription(self, self.embeds[self.embed_select.embed])
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
@@ -458,9 +566,9 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
 
-            edit_modal = EditImages(self, self.embeds[self.embed_select.embed])
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditImages(self, self.embeds[self.embed_select.embed])
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
@@ -473,9 +581,9 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
 
-            edit_modal = EditAuthor(self, self.embeds[self.embed_select.embed])
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditAuthor(self, self.embeds[self.embed_select.embed])
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
@@ -488,9 +596,9 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
 
-            edit_modal = EditFooter(self, self.embeds[self.embed_select.embed])
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditFooter(self, self.embeds[self.embed_select.embed])
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
@@ -503,14 +611,29 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
 
-            edit_modal = EditColor(self, self.embeds[self.embed_select.embed])
-            await interaction.response.send_modal(edit_modal)
-            await edit_modal.wait()
+            modal = EditColor(self, self.embeds[self.embed_select.embed])
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
 
             await self.update()
         except GGsBotException as e:
             await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)   
 
+    """
+    async def edit_field(self, interaction : Interaction):
+        try:
+            embed = self.embeds[self.embed_select.embed]
+            field = self.field_select.field
+            
+            modal = EditField(self, embed, field)
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
+
+            await self.update()
+        except GGsBotException as e:
+            await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+    """
+            
     # Add / Delete / Send
 
     async def add_embed(self, interaction : Interaction):
@@ -524,7 +647,7 @@ class EmbedsEditor(View):
             
             modal = EditTitleDescription(self)
             await interaction.response.send_modal(modal)
-            await modal.wait()
+            if await modal.wait(): return
 
             option_id = uuid.uuid4().hex
             self.embeds[option_id] = modal.embed
@@ -542,10 +665,39 @@ class EmbedsEditor(View):
                 default=True
             )
 
-            for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_button]:
+            for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_embed_button, self.add_field_button]:
                 input.disabled = False
 
             self.embed_select.embed = option_id
+
+            await self.update()
+        except GGsBotException as e:
+            await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+
+    async def add_field(self, interaction : Interaction):
+        try:
+            embed = self.embeds[self.embed_select.embed]
+            modal = EditField(self, embed)
+            await interaction.response.send_modal(modal)
+            if await modal.wait(): return
+
+            if self.field_select.buddy_select in self.field_select.options:
+                self.field_select.options.remove(self.field_select.buddy_select)
+
+            for option in self.field_select.options:
+                option.default = False
+
+            self.field_select.add_option(
+                label=modal.name.capitalize(),
+                value=f'{embed.title}-{modal.name}',
+                description=f"Value: {modal.value} | inline: {modal.inline}",
+                default=True
+            )
+
+            self.field_select.field = modal.name
+
+            #self.efield_button.disabled = False
+            self.del_field_button.disabled = False
 
             await self.update()
         except GGsBotException as e:
@@ -558,14 +710,32 @@ class EmbedsEditor(View):
             elif self.embed_select.embed == "None" or self.embed_select.embed == None:
                 raise GGsBotException(title="Embed not selected", description="You must select an embed first")
             
-            for option in self.embed_select.options:
-                if option.value == self.embed_select.embed:
-                    self.embed_select.options.remove(option)
+            for embed_option in self.embed_select.options:
+                if embed_option.value == self.embed_select.embed:
+                    embed = self.embeds[self.embed_select.embed]
+
+                    embed_fields = [f'{embed.title}-{field.name}' for field in embed.fields]
+                    for field_option in self.field_select.options:
+                        if field_option.value in embed_fields:
+                            self.field_select.options.remove(field_option)
+
+                    self.embed_select.options.remove(embed_option)
                     self.embeds.pop(self.embed_select.embed)
                     break
 
+            if len(self.field_select.options) == 0:
+                for input in [self.del_field_button]: #[self.efield_button, self.del_field_button]:
+                    input.disabled = True
+
+                self.field_select.buddy_select.default = True
+                self.field_select.options.append(self.field_select.buddy_select)
+                self.field_select.field = 'None'
+            else:
+                self.field_select.options[0].default = True
+                self.field_select.field = self.field_select.options[0].value 
+            
             if len(self.embed_select.options) == 0:
-                for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_button]:
+                for input in [self.etd_button, self.ei_button, self.ea_button, self.ef_button,self.ec_button, self.del_embed_button]:
                     input.disabled = True
 
                 self.embed_select.buddy_select.default = True
@@ -574,6 +744,33 @@ class EmbedsEditor(View):
             else:
                 self.embed_select.options[0].default = True
                 self.embed_select.embed = self.embed_select.options[0].value
+
+            await self.update()
+        except GGsBotException as e:
+            await interaction.response.send_message(embed=e.asEmbed(), ephemeral=True, delete_after=5)
+
+    async def del_field(self, interaction : Interaction):
+        try:
+            embed = self.embeds[self.embed_select.embed]
+            field_name = self.field_select.field
+            field_index, field = next(((i, f) for i, f in enumerate(embed.fields or []) if f'{embed.title}-{f.name}' == field_name), (None, None))
+
+            embed.remove_field(field_index)
+
+            for option in self.field_select.options:
+                if option.value == field_name:
+                    self.field_select.options.remove(option)
+                    break
+
+            if len(self.field_select.options) == 0:
+                self.field_select.buddy_select.default = True
+                self.field_select.options.append(self.field_select.buddy_select)
+                self.field_select.field = 'None'
+
+                self.del_field_button.disabled = True
+            else:
+                self.field_select.options[0].default = True
+                self.field_select.field = self.field_select.options[0].value
 
             await self.update()
         except GGsBotException as e:
