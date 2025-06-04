@@ -14,7 +14,8 @@ from nextcord import \
     NotFound,        \
     Forbidden,       \
     HTTPException,   \
-    Colour
+    Colour,          \
+    File
 from nextcord.ui import \
     StringSelect,       \
     Modal,              \
@@ -26,9 +27,12 @@ from nextcord.ui import \
 from datetime import datetime, timezone
 from typing import Callable
 from enum import StrEnum
+import traceback
 import hashlib
 import random
+import base64
 import json
+import io
 
 from utils.exceptions import *
 from utils.commons import Extensions
@@ -39,7 +43,8 @@ from utils.db import Database
 logger = getlogger()
 
 class VerificationTypes(StrEnum):
-    QUESTION = "question"
+    #QUESTION = "question"
+    IMAGE = "image"
 
 class VerificationStatus(StrEnum):
     ALREADY_VERIFIED = "ALREADY_VERIFIED"
@@ -53,7 +58,8 @@ class StartVerificationUI(Embed, View):
         Embed.__init__(self)
         self.description = "Select the verification mode you want to use to verify yourself (optional)\nClick **Start Verification** to begin."
         self.uis : dict[VerificationTypes, VerificationUI] = {
-            VerificationTypes.QUESTION : QuestionVerificationUi
+            VerificationTypes.IMAGE : CaptchaApiVerificationUi
+            #VerificationTypes.QUESTION : QuestionVerificationUi
         }
         self.colour = Colour.green()
         self.db = Database()
@@ -96,10 +102,10 @@ class StartVerificationUI(Embed, View):
                 verified_role = interaction.guild.get_role(verified_role_id)
 
                 ui : VerificationUI = ui_type(self.bot, verified_role)
-                await ui.async_init()
-
-                message = await interaction.followup.send(embed=ui, view=ui, wait=True, ephemeral=True)
+                message = await ui.async_init(interaction)
                 timedout = await ui.wait()
+
+                await message.delete()
 
                 if timedout: 
                     raise GGsBotException(
@@ -109,15 +115,14 @@ class StartVerificationUI(Embed, View):
                     )
                 
         except (GGsBotException, ExtensionException) as e:
-            if message: await message.delete()
             await interaction.followup.send(embed=e.asEmbed(), ephemeral=True)
         else:
             if ui.status == VerificationStatus.ALREADY_VERIFIED:
-                await message.edit('You have already been verified!', view=None, embed=None, delete_after=5)
+                await interaction.followup.send('You have already been verified!', delete_after=5, ephemeral=True)
             elif ui.status == VerificationStatus.NOT_VERIFIED:
-                await message.edit('Verification failed!', view=None, embed=None, delete_after=5)
+                await interaction.followup.send('Verification failed!', delete_after=5, ephemeral=True)
             else:
-                await message.edit(f'Verification completed successfully!', view=None, embed=None, delete_after=5)
+                await interaction.followup.send('Verification completed successfully!', delete_after=5, ephemeral=True)
 
 
 class VerificationUI(Embed, View):
@@ -139,7 +144,7 @@ class VerificationUI(Embed, View):
     @status.setter
     def status(self, value : VerificationStatus): self._status = value
 
-    async def async_init(self): pass
+    async def async_init(self, interaction : Interaction) -> Message: pass
 
 class QuestionVerificationUi(VerificationUI):
     def __init__(self,
@@ -148,7 +153,7 @@ class QuestionVerificationUi(VerificationUI):
         ):
         VerificationUI.__init__(self, bot, verified)
         self.title = "Question Verification"
-        self.description = "Press the button and answer the question to verify yourself"
+        self.description = "Press the button below and answer the question to verify yourself"
 
         self.modal = self.QuestionModal(self.on_answer)
 
@@ -186,7 +191,7 @@ class QuestionVerificationUi(VerificationUI):
     async def answer_button(self, button : Button, interaction : Interaction):
         await interaction.response.send_modal(self.modal)
 
-    async def async_init(self):
+    async def async_init(self, interaction : Interaction):
         try:
             content_type, content, code, reason = await asyncget("https://api.textcaptcha.com/ggsbot.json")
 
@@ -210,6 +215,82 @@ class QuestionVerificationUi(VerificationUI):
 
         if encoded_answer in self.answers:
             self.status = VerificationStatus.VERIFIED
-            await interaction.user.add_roles(self.verified, reason="GGsBot::QuestionVerification")
+            if self.verified:
+                await interaction.user.add_roles(self.verified, reason="GGsBot::QuestionVerification")
 
         self.stop()
+
+class CaptchaApiVerificationUi(VerificationUI):
+    def __init__(self, bot: commands.Bot, verified : Role | None = None):
+        VerificationUI.__init__(self, bot, verified)
+        self.title = "Captcha Verification"
+        self.description = "Press the button below and type what you see in the captcha image"
+        self.color = Colour.green()
+
+        self.modal = self.CaptchaModal(self.on_answer)
+        self.text = None
+
+    class CaptchaModal(Modal):
+        def __init__(self, submit_callback : Callable[[Interaction, str], None]):
+            Modal.__init__(self, "Captcha Verification")
+            self.submit_callback = submit_callback
+
+            self.user_input = TextInput(
+                label="What’s the text shown in the image?",
+                placeholder="Type the answer here...",
+                style=TextInputStyle.short,
+                required=True
+            )
+
+            self.add_item(self.user_input)
+
+        async def callback(self, interaction: Interaction):
+            try:
+                await self.submit_callback(interaction, self.user_input.value.strip().lower())
+            except Exception as e:
+                raise e
+
+    @button(label="Answer", style=ButtonStyle.primary)
+    async def answer_button(self, button : Button, interaction : Interaction):
+        await interaction.response.send_modal(self.modal)
+
+    async def on_answer(self, interaction : Interaction, answer : str):
+        try:
+            if self.text == answer:
+                self.status = VerificationStatus.VERIFIED
+                if self.verified:
+                    await interaction.user.add_roles(self.verified, reason="GGsBot::QuestionVerification")
+            
+            self.stop()
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+    async def async_init(self, interaction: Interaction):
+        try:
+            content_type, content, code, reason = await asyncget("https://captchapi.giulioo.workers.dev/captcha.json+png?scale=3&nletters=4,5")
+
+            if content_type != 'application/json' and code != 200:
+                raise GGsBotException(
+                    title="Failed to fetch captcha data",
+                    description=f"Failed to fetch captcha data (code: {code}): {reason}"
+                )
+            response : dict = json.loads(content)
+            image_b64 : str = response.get('image', None)
+            self.text = response.get('text', None)
+
+            if not image_b64 or not self.text:
+                raise GGsBotException(
+                    title="Response was malformed",
+                    description=f"Response was malformed (code: {code}): {reason}"
+                )
+        
+            png_bytes = base64.b64decode(image_b64.split(",", 1)[1])
+            file = File(io.BytesIO(png_bytes), filename="captcha.png")
+            self.set_image(url="attachment://captcha.png")
+
+            message = await interaction.followup.send(embed=self, view=self, wait=True, file=file, ephemeral=True)
+
+            return message
+
+        except GGsBotException as e:
+            logger.error(e)
