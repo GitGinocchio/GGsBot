@@ -219,7 +219,9 @@ class Music(commands.Cog):
             if after.channel and before.channel:
                 if before.channel.id == after.channel.id: return
 
-            player.disconnect(force=True)
+            if len(before.channel.members) > 0: return
+
+            await player.disconnect(force=True)
             await player.ui.message.delete()
 
             self.sessions.discard(before.channel.id)

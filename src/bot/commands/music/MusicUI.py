@@ -289,10 +289,11 @@ class MiniPlayer(Page):
             if isinstance(tracks, list) and len(tracks) == 0:
                 await interaction.followup.send(embed=NoTracksFound(query), delete_after=5, ephemeral=True)
                 return
-    
-            tracks.extras = {
-                'requestor_id' : interaction.user.id
-            }
+            elif isinstance(tracks, list):
+                for track in tracks:
+                    track.extras = { 'requestor_id' : interaction.user.id }
+            elif isinstance(tracks, Playable):
+                tracks.extras = { 'requestor_id' : interaction.user.id }
 
             await self.player.queue.put_wait(tracks)
 
