@@ -5,6 +5,8 @@ from utils.terminal import getlogger, F
 import nextcord
 import os
 
+from utils.commons import isdeveloper, load_commands
+
 logger = getlogger()
 
 DEV_ID = os.environ['DEVELOPER_ID']
@@ -25,44 +27,24 @@ class Development(commands.Cog):
     async def reload(self, interaction : nextcord.Interaction): pass
 
     @reload.subcommand('extensions','Reload all Extensions or the specified extension')
+    @isdeveloper()
     async def reloadExtensions(self,interaction : nextcord.Interaction, extension : str = nextcord.SlashOption(required=False,choices=EXTENSIONS,default=None)):
         await interaction.response.defer(ephemeral=True)
-        if not interaction.user.id == int(DEV_ID): 
-            await interaction.followup.send(f'Only the developer can execute this command!')
-            return
         
         if not extension:
             categories = EXTENSIONS
         else:
             categories = [extension]
 
-        for category in categories:
-            logger.info(f'Looking in commands.{category}...')
-            for filename in os.listdir(f'./src/bot/commands/{category}'):
-                if filename.endswith('.py') and filename not in config['ignore_files']:
-                    try:
-                        self.bot.reload_extension(f'commands.{category}.{filename[:-3]}')
-                    except (commands.ExtensionFailed,
-                            commands.ExtensionAlreadyLoaded,
-                            commands.ExtensionNotFound,
-                            commands.InvalidSetupArguments) as e:
-                        logger.critical(f'Loading command error: Cog {e.name} message: \n{e}')
-                    except (commands.NoEntryPointError, commands.ExtensionNotLoaded) as e:
-                        pass  # if no entry point found maybe is a file used by the main command file.
-                    else:
-                        logger.info(f'Imported command {F.LIGHTMAGENTA_EX}{category}.{filename[:-3]}{F.RESET}')
-                elif filename in config['ignore_files']:
-                    pass
-                else:
-                    logger.warning(f'Skipping non-py file: \'{filename}\'')
+        load_commands(self.bot, logger, categories=categories, reload=True)
+        logger.info('Extensions reloaded successfully')
+
         await interaction.followup.send(f'Reload Complete...')
 
     @reload.subcommand('config','Reload the config file')
+    @isdeveloper()
     async def reloadConfig(self, interaction : nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        if not interaction.user.id == int(DEV_ID): 
-            await interaction.followup.send(f'Only the developer can execute this command!')
-            return
         
         try:
             reload_config_files()

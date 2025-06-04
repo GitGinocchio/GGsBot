@@ -57,6 +57,10 @@
                 ],
                 "cookiefile": "./data/cookies/ytdlcookies.txt"
             }
+        },
+        "lavalink" : {
+            "nodes" : [
+            ]
         }
     },
 
@@ -97,6 +101,8 @@
         
         "db" : "./data/database.db",
         "db_script" : "./config/database.sql",
+        "db_migrations" : "./config/migrations.sql",
+
 
         "chatbot_templates" : "./data/chatbot-templates/",
 

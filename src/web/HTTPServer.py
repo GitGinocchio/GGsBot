@@ -167,6 +167,9 @@ class HTTPServer:
         stats = get_psutil_stats()
         status['machine'] = stats
 
+        #   potrebbe essere un metodo per ottenere le statistiche di lavalink
+        #   self.bot.get_cog('Music')
+
         status['machine']['os'] = OS
         status['uptime'] = uptime.total_seconds()
         status['discord'] = { 'latency' : self.bot.latency if self.bot else None }
