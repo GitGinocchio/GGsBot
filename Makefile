@@ -21,7 +21,7 @@ freeze:
 	cd .venv/Scripts && activate && cd ../.. && $(PIP) freeze --require-virtualenv > requirements.txt
 
 clearpycache:
-	$(PYTHON) ./src/bot/.make/clearpycache.py
+	$(PYTHON) ./scripts/clearpycache.py
 
 test:
 	set PYTHONPATH=src && pytest -v ./tests/

@@ -246,7 +246,7 @@ class CaptchaApiVerificationUi(VerificationUI):
 
         async def callback(self, interaction: Interaction):
             try:
-                await self.submit_callback(interaction, self.user_input.value.strip().lower())
+                await self.submit_callback(interaction, self.user_input.value.strip())
             except Exception as e:
                 raise e
 
